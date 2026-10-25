@@ -1,0 +1,23 @@
+{
+  "corpus": "k8s",
+  "model": "claude-haiku-5-5",
+  "n": 150,
+  "candidates": 388,
+  "calls": 49,
+  "drafted": 388,
+  "proposed": 263,
+  "validated": 240,
+  "validated_traps": 48,
+  "kept": 150,
+  "kept_traps": 47,
+  "not_proposed": {
+    "declined": 124,
+    "trap_answer_unchanged": 1
+  },
+  "rejected": {
+    "trap_not_changed": 22,
+    "quote_not_found": 1
+  },
+  "cost_usd": "0.115741",
+  "stopped_over_budget": false
+}

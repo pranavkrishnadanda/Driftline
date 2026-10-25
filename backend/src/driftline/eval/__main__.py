@@ -22,6 +22,7 @@ from driftline.agents.graph import AgentConfig, AgentDeps
 from driftline.agents.llm import AgentLLM
 from driftline.clock import SystemClock
 from driftline.config import Settings
+from driftline.eval.curate import add_curate_parser, curate
 from driftline.eval.metrics import gate
 from driftline.eval.runner import SYSTEMS, EvalDeps, report_path, run
 from driftline.eval.types import EvalReport, GoldenCase
@@ -49,6 +50,7 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--base", required=True, help="a commit sha or a report path")
     c.add_argument("--head", required=True, type=Path, help="the head report path")
     c.add_argument("--reports-dir", type=Path, default=DEFAULT_REPORTS)
+    add_curate_parser(sub)
     return parser
 
 
@@ -156,6 +158,8 @@ async def amain(argv: list[str], settings: Settings | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "compare":
         return _compare(args)
+    if args.command == "curate":
+        return await curate(args)
     return await _run(args, settings or Settings())
 
 
