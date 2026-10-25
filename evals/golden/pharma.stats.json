@@ -1,0 +1,22 @@
+{
+  "corpus": "pharma",
+  "model": "claude-haiku-5-5",
+  "n": 150,
+  "candidates": 550,
+  "calls": 69,
+  "drafted": 550,
+  "proposed": 274,
+  "validated": 208,
+  "validated_traps": 58,
+  "kept": 150,
+  "kept_traps": 50,
+  "not_proposed": {
+    "declined": 276
+  },
+  "rejected": {
+    "trap_not_changed": 65,
+    "quote_not_found": 2
+  },
+  "cost_usd": "0.134519",
+  "stopped_over_budget": false
+}
