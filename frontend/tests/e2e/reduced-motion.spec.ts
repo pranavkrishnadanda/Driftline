@@ -31,8 +31,9 @@ test("the landing hero shows its finished picture, with no animation control", a
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Answers as of any date, from the version in force then.",
   );
-  await expect(page.getByRole("link", { name: "Try Ask" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "View drift inbox" })).toBeVisible();
+  const main = page.getByRole("main");
+  await expect(main.getByRole("link", { name: "Try Ask" })).toBeVisible();
+  await expect(main.getByRole("link", { name: "View drift inbox" })).toBeVisible();
   const cards = page.getByRole("list", { name: "Features" }).getByRole("group");
   await expect(cards).toHaveCount(4);
   for (const card of await cards.all()) await expect(card).toBeVisible();

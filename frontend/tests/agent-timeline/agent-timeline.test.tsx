@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
@@ -20,7 +20,7 @@ import {
 
 function show(events: AskEvent[], reducedMotion: "user" | "always" | "never" = "user") {
   render(<AgentTimeline state={buildTimeline(events)} reducedMotion={reducedMotion} />);
-  return screen.getByRole("region", { name: "Agent timeline" });
+  return screen.getByRole("region", { name: "How this answer was built" });
 }
 
 const steps = () => screen.getByRole("list", { name: "Agent steps" });
@@ -59,7 +59,7 @@ describe("AgentTimeline", () => {
       "7",
     ]);
     expect(within(nodeItem("verify")).getByRole("button")).toHaveAccessibleName(
-      /Verifying claims: done/,
+      /Checking claims against sources: done/,
     );
   });
 
@@ -78,7 +78,7 @@ describe("AgentTimeline", () => {
     expect(items).toHaveLength(3);
     expect(items.map((li) => li.dataset.status)).toEqual(["done", "done", "active"]);
     expect(items[1]).toHaveTextContent("What is the maximum daily dose?");
-    expect(items[1]).toHaveTextContent("6 of 30 kept");
+    expect(items[1]).toHaveTextContent("Searched 30 passages, used the 6 most relevant");
   });
 
   it("flips each claim to verified or not as the claim events arrive", () => {
@@ -109,20 +109,23 @@ describe("AgentTimeline", () => {
   it("shows a failed node and the error", () => {
     show(ERROR_RUN);
     expect(nodeItem("draft").dataset.status).toBe("failed");
-    expect(screen.getByText(/The agent stopped: internal/)).toBeInTheDocument();
+    expect(screen.getByText(/The agent stopped before finishing/)).toBeInTheDocument();
+    // The error code is a technical detail, one click away.
+    fireEvent.click(screen.getByRole("button", { name: "Technical details" }));
+    expect(screen.getByText(/The agent stopped before finishing: internal/)).toBeInTheDocument();
   });
 
   it("shows the review node waiting for a reviewer", () => {
     show(REVIEW_WAITING_RUN);
     expect(nodeItem("review").dataset.status).toBe("waiting");
     expect(within(nodeItem("review")).getByRole("button")).toHaveAccessibleName(
-      /Human review: waiting/,
+      /Waiting for a reviewer: waiting/,
     );
   });
 
   it("shows a cache hit skipping the rest of the graph", () => {
     show(CACHE_HIT_RUN);
-    expect(nodeItem("cache")).toHaveTextContent("hit");
+    expect(nodeItem("cache")).toHaveTextContent("reused a saved answer");
     expect(nodeItem("plan").dataset.status).toBe("skipped");
     expect(nodeItem("respond").dataset.status).toBe("done");
   });
@@ -146,12 +149,15 @@ describe("AgentTimeline", () => {
   it("summarises progress in a polite live region", () => {
     const region = show(FAN_OUT_RUN);
     const live = region.querySelector('[aria-live="polite"]');
-    expect(live).toHaveTextContent("Searching sources: 2 of 3 searches done.");
+    expect(live).toHaveTextContent("Searching the documents: 2 of 3 searches done.");
   });
 
   it("is keyboard-reachable: each node opens its details, and the steps collapse", async () => {
     const user = userEvent.setup();
     show(ANSWERED_RUN);
+    await user.tab();
+    const technical = screen.getByRole("button", { name: "Technical details" });
+    expect(technical).toHaveFocus();
     await user.tab();
     const toggle = screen.getByRole("button", { name: "Hide steps" });
     expect(toggle).toHaveFocus();
@@ -181,7 +187,7 @@ describe("AgentTimeline with reduced motion", () => {
       <AgentTimeline state={buildTimeline(events.slice(0, 1))} reducedMotion="always" />,
     );
     rerender(<AgentTimeline state={buildTimeline(events)} reducedMotion="always" />);
-    const region = screen.getByRole("region", { name: "Agent timeline" });
+    const region = screen.getByRole("region", { name: "How this answer was built" });
     for (const name of [
       "classify",
       "cache",
@@ -200,7 +206,7 @@ describe("AgentTimeline with reduced motion", () => {
     );
     expect(within(region).getAllByRole("img", { name: /^Claim \d verified$/ })).toHaveLength(2);
     expect(region.querySelector('[aria-live="polite"]')).toHaveTextContent(
-      "Done: 2 of 2 claims verified.",
+      "Done: 2 of 2 claims verified against the sources.",
     );
 
     // Nothing starts hidden, shifted or scaled for an entrance animation.

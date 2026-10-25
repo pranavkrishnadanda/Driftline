@@ -47,8 +47,8 @@ export function DocumentTimeline({ timeline, tenant, now, reducedMotion }: Docum
           {timeline.title?.trim() || timeline.external_id}
         </h1>
         <p className="text-sm text-muted-foreground">
-          <span className="font-mono">{timeline.external_id}</span> · {count}{" "}
-          {count === 1 ? "version" : "versions"}
+          {count} {count === 1 ? "version" : "versions"} ·{" "}
+          <span title="Document reference">{timeline.external_id}</span>
         </p>
       </header>
 
@@ -73,13 +73,18 @@ export function DocumentTimeline({ timeline, tenant, now, reducedMotion }: Docum
                     "flex flex-col items-start rounded-md border px-3 py-1.5 text-left text-xs",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     i === selected
-                      ? "border-primary bg-primary/10 text-foreground"
+                      ? "border-brand bg-brand-soft text-foreground"
                       : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <span className="text-sm font-semibold text-foreground">v{it.versionNo}</span>
                   <span className="tabular-nums">{formatWindow(it)}</span>
-                  {it.openEnded ? <span>in force now</span> : null}
+                  {it.openEnded ? (
+                    <span className="mt-0.5 inline-flex items-center gap-1 font-medium text-valid">
+                      <span aria-hidden="true" className="size-1.5 rounded-full bg-valid" />
+                      In force now
+                    </span>
+                  ) : null}
                 </button>
               </li>
             ))}

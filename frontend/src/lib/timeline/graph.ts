@@ -27,8 +27,9 @@ export type DrawnEdge = Edge<DrawnEdgeData, "drawn">;
 export const COLUMN_X = { incoming: 0, self: 320, outgoing: 640 } as const;
 const ROW_GAP = 90;
 
-function shortLabel(title: string | null, documentId: string): string {
-  return title?.trim() || documentId.slice(0, 8);
+/** A document's name for the graph; never a raw id. */
+function shortLabel(title: string | null, _documentId: string): string {
+  return title?.trim() || "Untitled document";
 }
 
 export function buildSupersessionGraph(timeline: DocumentTimeline): {

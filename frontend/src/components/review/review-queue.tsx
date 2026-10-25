@@ -49,8 +49,7 @@ export function ReviewQueue({
         <div>
           <SectionHeading>Review</SectionHeading>
           <p className="text-sm text-muted-foreground">
-            Low-confidence answers, broken answers and proposed relations waiting for a person to
-            decide.
+            Answers and document links that Driftline wants a person to check before they are used.
           </p>
         </div>
         {tenants.length > 1 ? (

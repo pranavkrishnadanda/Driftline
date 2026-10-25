@@ -43,11 +43,41 @@ function shortId(id: string): string {
   return id.length > 12 ? `${id.slice(0, 8)}…${id.slice(-4)}` : id;
 }
 
-/** A version's validity window: "Valid from 1 Jun 2024" or "Valid 1 May 2019 to 1 Jun 2024". */
+/**
+ * A version's validity window in plain words: "In force from 1 Jun 2024", or
+ * "In force 1 May 2019 to 1 Jun 2024" for a version that has since been replaced.
+ */
 export function formatValidity(validFrom: string, validTo?: string | null): string {
   return validTo
-    ? `Valid ${formatDate(validFrom)} to ${formatDate(validTo)}`
-    : `Valid from ${formatDate(validFrom)}`;
+    ? `In force ${formatDate(validFrom)} to ${formatDate(validTo)}`
+    : `In force from ${formatDate(validFrom)}`;
+}
+
+/** A section path as a readable breadcrumb: "B > Renal" -> "B › Renal". */
+export function formatSection(path: string | null | undefined): string | null {
+  const parts = (path ?? "")
+    .split(/\s*[>›]\s*/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  return parts.length ? parts.join(" › ") : null;
+}
+
+export type ConfidenceLevel = "High" | "Medium" | "Low";
+
+/** The answer's confidence as a word, with what it means. */
+export function confidenceLevel(confidence: number): {
+  level: ConfidenceLevel;
+  explanation: string;
+} {
+  const percent = Math.round(confidence * 100);
+  const level: ConfidenceLevel = confidence >= 0.8 ? "High" : confidence >= 0.5 ? "Medium" : "Low";
+  const meaning =
+    level === "High"
+      ? "The cited passages clearly support this answer."
+      : level === "Medium"
+        ? "The cited passages support this answer, with some gaps."
+        : "The evidence is thin: check the sources before relying on it.";
+  return { level, explanation: `${meaning} (Confidence score ${percent}%.)` };
 }
 
 /**
@@ -59,7 +89,7 @@ export function describeCitation(citation: Citation): CitationDetails {
   return {
     quote: citation.quote,
     title: citation.title ?? null,
-    section: citation.section_path || null,
+    section: formatSection(citation.section_path),
     version:
       citation.version_no != null
         ? `v${citation.version_no}`
@@ -152,18 +182,43 @@ export function parseTenants(raw: string | undefined): string[] {
 }
 
 const STEP_LABELS: Record<string, string> = {
-  classify: "Reading the question",
-  cache: "Checking the cache",
-  plan: "Planning",
-  subagent: "Searching sources",
-  merge: "Merging evidence",
-  draft: "Drafting",
-  verify: "Verifying claims",
-  re_retrieve: "Searching again",
-  respond: "Finishing",
-  review: "Human review",
+  classify: "Understanding the question",
+  cache: "Checking for a saved answer",
+  plan: "Planning the search",
+  subagent: "Searching the documents",
+  merge: "Gathering the evidence",
+  draft: "Writing the answer",
+  verify: "Checking claims against sources",
+  re_retrieve: "Looking for more evidence",
+  respond: "Finishing up",
+  review: "Waiting for a reviewer",
 };
 
+/** A step of the answer graph in plain words. */
 export function stepLabel(node: string): string {
-  return STEP_LABELS[node] ?? node;
+  return STEP_LABELS[node] ?? node.replaceAll("_", " ");
+}
+
+/**
+ * The one-line progress shown while an answer streams, e.g. "Searching the documents in
+ * force on 1 Jun 2024…". `asOf` is the date being asked about (null: today).
+ */
+export function progressLine(node: string | null, asOf: string | null): string {
+  const when = asOf ? `on ${formatDate(asOf)}` : "today";
+  switch (node) {
+    case null:
+      return "Getting started…";
+    case "classify":
+      return "Reading your question…";
+    case "plan":
+    case "subagent":
+    case "merge":
+      return `Searching the documents in force ${when}…`;
+    case "re_retrieve":
+      return `Looking for more evidence in force ${when}…`;
+    case "verify":
+      return "Checking each claim against its source…";
+    default:
+      return `${stepLabel(node)}…`;
+  }
 }

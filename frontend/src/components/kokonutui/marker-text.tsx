@@ -88,8 +88,9 @@ interface Entry {
 }
 
 const DEFAULT_COLOR: Record<MarkType, string> = {
-  highlight: "#facc15",
-  underline: "#f97316",
+  // Driftline: the brand colour (globals.css) instead of the stock yellow and orange.
+  highlight: "color-mix(in oklch, var(--brand) 22%, transparent)",
+  underline: "var(--brand)",
   circle: "#2563eb",
   box: "#16a34a",
   strike: "#dc2626",

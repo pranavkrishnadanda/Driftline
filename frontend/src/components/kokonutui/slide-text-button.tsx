@@ -35,13 +35,13 @@ export default function SlideTextButton({
   const slideText = hoverText ?? text;
   const variantStyles =
     variant === "ghost"
-      ? "border border-black/10 text-black hover:bg-black/5 dark:border-white/10 dark:text-white dark:hover:bg-white/5"
-      : "bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90";
+      ? "border border-border text-foreground hover:bg-muted"
+      : "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90";
 
   return (
     <Link
       className={cn(
-        "group relative inline-flex h-10 items-center justify-center overflow-hidden rounded-lg px-8 font-medium text-base tracking-tighter transition-[background-color,scale,opacity,translate] duration-[150ms,150ms,200ms,200ms] ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 md:min-w-56 dark:focus-visible:outline-white",
+        "group relative inline-flex h-10 items-center justify-center overflow-hidden rounded-full px-8 font-medium text-base tracking-tight transition-[background-color,scale,opacity,translate] duration-[150ms,150ms,200ms,200ms] ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 md:min-w-56",
         // CSS entrance from @starting-style: no JS and no wrapper element.
         // Driftline: reduced motion drops both the slide and the fade, so nothing
         // animates on mount.

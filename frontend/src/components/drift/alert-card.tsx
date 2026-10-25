@@ -5,19 +5,18 @@ import { useId, useState } from "react";
 
 import { TextDiff } from "@/components/drift/text-diff";
 import { Badge } from "@/components/ui/badge";
+import { VerdictBadge, VERDICT_COPY } from "@/components/verdict";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { ApiClient, DriftVerdict } from "@/lib/api/client";
 import type { DriftAlert } from "@/lib/drift/inbox";
 import { describeApiFailure } from "@/lib/api/failure";
+import { formatSection } from "@/lib/ask/format";
 import { cn } from "@/lib/utils";
 
-const VERDICTS: Record<
-  DriftVerdict,
-  { label: string; variant: "destructive" | "secondary" | "outline" }
-> = {
-  broken: { label: "Broken", variant: "destructive" },
-  changed: { label: "Changed", variant: "secondary" },
-  still_valid: { label: "Still valid", variant: "outline" },
+const BORDER: Record<DriftVerdict, string> = {
+  broken: "border-broken/40",
+  changed: "border-changed/40",
+  still_valid: "border-border",
 };
 
 const TIME_FORMAT = new Intl.DateTimeFormat("en-GB", {
@@ -54,7 +53,8 @@ export function AlertCard({ alert, tenant, client, reviewItemId }: AlertCardProp
   const detailsId = useId();
   const [open, setOpen] = useState(false);
   const [watch, setWatch] = useState<WatchState>({ kind: "watching" });
-  const verdict = VERDICTS[alert.verdict];
+  const verdict = VERDICT_COPY[alert.verdict];
+  const section = formatSection(alert.sectionPath);
 
   const watched =
     watch.kind === "watching" ||
@@ -79,7 +79,7 @@ export function AlertCard({ alert, tenant, client, reviewItemId }: AlertCardProp
       aria-labelledby={headingId}
       className={cn(
         "flex flex-col gap-3 rounded-xl border bg-card p-4 text-card-foreground shadow-xs",
-        alert.verdict === "broken" && "border-destructive/40",
+        BORDER[alert.verdict],
       )}
     >
       <header className="flex flex-wrap items-start justify-between gap-2">
@@ -89,14 +89,16 @@ export function AlertCard({ alert, tenant, client, reviewItemId }: AlertCardProp
           </h2>
           <p className="text-xs text-muted-foreground">
             <time dateTime={alert.at}>{formatTime(alert.at)}</time>
-            {alert.sectionPath ? <> · {alert.sectionPath}</> : null}
+            {section ? <> · {section}</> : null}
           </p>
         </div>
         <div className="flex items-center gap-1.5">
           {alert.live ? <Badge variant="outline">New</Badge> : null}
-          <Badge variant={verdict.variant}>{verdict.label}</Badge>
+          <VerdictBadge verdict={alert.verdict} />
         </div>
       </header>
+
+      <p className="text-sm text-muted-foreground">{verdict.next}</p>
 
       <TextDiff before={alert.before} after={alert.after} />
 
@@ -108,7 +110,7 @@ export function AlertCard({ alert, tenant, client, reviewItemId }: AlertCardProp
           aria-controls={detailsId}
           onClick={() => setOpen((o) => !o)}
         >
-          Open answer
+          Details
         </Button>
         {reviewItemId ? (
           <Link
@@ -127,7 +129,7 @@ export function AlertCard({ alert, tenant, client, reviewItemId }: AlertCardProp
         className="flex flex-col gap-3 rounded-md border border-dashed p-3 text-sm"
       >
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-          <dt className="text-muted-foreground">Answer</dt>
+          <dt className="text-muted-foreground">Answer ID</dt>
           <dd className="font-mono text-xs break-all">{alert.answerId}</dd>
           {alert.claimIdx !== null ? (
             <>
@@ -135,10 +137,10 @@ export function AlertCard({ alert, tenant, client, reviewItemId }: AlertCardProp
               <dd>#{alert.claimIdx + 1}</dd>
             </>
           ) : null}
-          {alert.sectionPath ? (
+          {section ? (
             <>
               <dt className="text-muted-foreground">Section</dt>
-              <dd>{alert.sectionPath}</dd>
+              <dd>{section}</dd>
             </>
           ) : null}
           <dt className="text-muted-foreground">Old version</dt>

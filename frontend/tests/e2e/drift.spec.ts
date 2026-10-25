@@ -136,9 +136,11 @@ test.describe("Drift inbox and review queue (real backend)", () => {
       .first();
     await expect(alert).toBeVisible({ timeout: 180_000 });
     await expect(alert.getByRole("group", { name: "Before and after" })).toContainText("20 mg");
-    await expect(alert.getByText(/^(Broken|Changed|Still valid)$/)).toBeVisible();
+    await expect(
+      alert.getByText(/^(Broken: the cited text was removed|Changed: please review|Still valid)$/),
+    ).toBeVisible();
 
-    await alert.getByRole("button", { name: "Open answer" }).press("Enter");
+    await alert.getByRole("button", { name: "Details" }).press("Enter");
     await expect(alert.getByRole("region", { name: "Answer details" })).toContainText(answer);
     await expectAxeClean(page);
 

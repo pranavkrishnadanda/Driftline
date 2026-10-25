@@ -107,18 +107,20 @@ describe("AskView: answering", () => {
     expect(screen.getByText("How often should ALT be checked?")).toBeInTheDocument();
   });
 
-  it("shows the agent timeline above the answer, lit in graph order", async () => {
+  it("shows the answer first, then how it was built (collapsed), lit in graph order", async () => {
     await setup(ANSWERED_EVENTS);
     const user = renderView(api!.url);
 
     await ask(user);
 
     const answer = await screen.findByRole("region", { name: "Answer" });
-    const timeline = screen.getByRole("region", { name: "Agent timeline" });
-    // Above the answer in document order.
+    const timeline = screen.getByRole("region", { name: "How this answer was built" });
+    // The answer comes first; the steps stay folded away until asked for.
     expect(
-      timeline.compareDocumentPosition(answer) & Node.DOCUMENT_POSITION_FOLLOWING,
+      answer.compareDocumentPosition(timeline) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    expect(within(timeline).queryByRole("list", { name: "Agent steps" })).toBeNull();
+    await user.click(within(timeline).getByRole("button", { name: "Show steps" }));
     const lit = [...timeline.querySelectorAll<HTMLElement>("[data-lit-order]")]
       .sort((a, b) => Number(a.dataset.litOrder) - Number(b.dataset.litOrder))
       .map((el) => el.dataset.node);
@@ -133,7 +135,7 @@ describe("AskView: answering", () => {
       "respond",
     ]);
     expect(timeline.querySelector('[aria-live="polite"]')).toHaveTextContent(
-      "Done: 1 of 1 claims verified.",
+      "Done: 1 of 1 claim verified against the sources.",
     );
   });
 
@@ -213,7 +215,8 @@ describe("AskView: human review", () => {
     expect(pending).toHaveTextContent(ANSWERED_TEXT);
     expect(pending).toHaveTextContent("confidence is below the review threshold");
     expect(screen.getByRole("status")).toHaveTextContent("Waiting for human review.");
-    const timeline = screen.getByRole("region", { name: "Agent timeline" });
+    const timeline = screen.getByRole("region", { name: "How this answer was built" });
+    await user.click(within(timeline).getByRole("button", { name: "Show steps" }));
     expect(timeline.querySelector('[data-node="review"]')).toHaveAttribute(
       "data-status",
       "waiting",

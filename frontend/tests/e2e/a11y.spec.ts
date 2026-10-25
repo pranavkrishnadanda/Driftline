@@ -35,6 +35,22 @@ for (const view of VIEWS) {
   });
 }
 
+// Dark mode has its own colour tokens, so contrast is checked there too.
+test.describe("in dark mode", () => {
+  test.use({ colorScheme: "dark" });
+
+  for (const view of VIEWS) {
+    test(`${view.name} (${view.path}) has no serious or critical axe violations`, async ({
+      page,
+    }) => {
+      await openView(page, view);
+      await expect(page.locator("html")).toHaveClass(/\bdark\b/);
+      const violations = await seriousViolations(page);
+      expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
+    });
+  }
+});
+
 test("the landing page's flip cards stay accessible with their backs turned", async ({ page }) => {
   await openView(page, VIEWS[0]);
   const cards = page.getByRole("list", { name: "Features" }).getByRole("group");
@@ -51,7 +67,8 @@ test("the landing page's flip cards stay accessible with their backs turned", as
 test("every interactive element on the landing page is reachable by keyboard", async ({ page }) => {
   await openView(page, VIEWS[0]);
   const reached = new Set<string>();
-  for (let i = 0; i < 20; i++) {
+  // The header comes first in tab order (wordmark, five views, theme, Try Ask).
+  for (let i = 0; i < 40; i++) {
     await page.keyboard.press("Tab");
     const name = await page.evaluate(() => {
       const el = document.activeElement as HTMLElement | null;

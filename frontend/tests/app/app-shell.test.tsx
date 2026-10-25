@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import AppLayout from "@/app/(app)/layout";
+import RootLayout from "@/app/layout";
 import DriftPage from "@/app/(app)/drift/page";
 import ReviewPage from "@/app/(app)/review/page";
 import StatsPage from "@/app/(app)/stats/page";
@@ -42,17 +43,22 @@ describe("app shell navigation", () => {
     expect(screen.getByRole("link", { name: "Ask" })).not.toHaveAttribute("aria-current");
   });
 
-  it("renders the navigation around the page", () => {
+  it("renders the navigation in the header around every page", () => {
     const html = renderToStaticMarkup(
-      <AppLayout params={Promise.resolve({})}>
-        <p>page body</p>
-      </AppLayout>,
+      <RootLayout params={Promise.resolve({})}>
+        <AppLayout params={Promise.resolve({})}>
+          <p>page body</p>
+        </AppLayout>
+      </RootLayout>,
     );
     const doc = new DOMParser().parseFromString(html, "text/html");
     const hrefs = [...doc.querySelectorAll("nav[aria-label='Views'] a")].map((a) =>
       a.getAttribute("href"),
     );
     expect(hrefs).toEqual(["/ask", "/timeline", "/drift", "/review", "/stats"]);
+    expect(doc.querySelector("header")?.querySelector("nav[aria-label='Views']")).not.toBeNull();
+    expect(doc.querySelector("header a[href='/ask']:not(nav a)")?.textContent).toBe("Try Ask");
+    expect(doc.querySelector("header button[aria-label^='Switch to']")).not.toBeNull();
     expect(doc.body.textContent).toContain("page body");
   });
 });

@@ -9,7 +9,7 @@
  * `animate={false}` and roots `animationDuration={0}` (no clip reveal, no bar stagger).
  * The gauge draws its notches in place by itself (`gauge.tsx` checks `useReducedMotion`).
  */
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 import { Bar } from "@/components/charts/bar";
 import { BarChart } from "@/components/charts/bar-chart";
@@ -40,14 +40,34 @@ import {
   latencySeries,
 } from "@/lib/stats/format";
 
+/** The verdict colours used everywhere in the app: green, amber, red. */
 const VERDICTS = [
-  { key: "still_valid", label: "Still valid", color: "var(--chart-1)" },
-  { key: "changed", label: "Changed", color: "var(--chart-2)" },
-  { key: "broken", label: "Broken", color: "var(--chart-3)" },
+  { key: "still_valid", label: "Still valid", color: "var(--valid)" },
+  { key: "changed", label: "Changed", color: "var(--changed)" },
+  { key: "broken", label: "Broken", color: "var(--broken)" },
 ] as const;
 
-const P50 = "var(--chart-1)";
-const P95 = "var(--chart-2)";
+const BRAND = "var(--brand)";
+const P50 = BRAND;
+const P95 = "var(--changed)";
+
+const WIDE = "(min-width: 640px)";
+
+function subscribeWide(onChange: () => void): () => void {
+  if (typeof window.matchMedia !== "function") return () => {};
+  const media = window.matchMedia(WIDE);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+/** Wide charts get taller on a phone, so their bars stay readable. */
+function useWide(): boolean {
+  return useSyncExternalStore(
+    subscribeWide,
+    () => typeof window.matchMedia !== "function" || window.matchMedia(WIDE).matches,
+    () => true,
+  );
+}
 
 interface ChartProps {
   stats: Stats;
@@ -65,6 +85,7 @@ function num(value: unknown): number {
 
 export function DriftChart({ stats, reduceMotion }: ChartProps) {
   const data = useMemo(() => driftSeries(stats), [stats]);
+  const wide = useWide();
   const legend = useMemo(
     () =>
       VERDICTS.map((v) => ({
@@ -78,7 +99,7 @@ export function DriftChart({ stats, reduceMotion }: ChartProps) {
     <div className="flex flex-col gap-3">
       <div aria-hidden="true">
         <BarChart
-          aspectRatio="4 / 1"
+          aspectRatio={wide ? "4 / 1" : "3 / 2"}
           data={data}
           margin={{ top: 16, right: 8, bottom: 32, left: 8 }}
           stacked
@@ -105,40 +126,71 @@ export function DriftChart({ stats, reduceMotion }: ChartProps) {
           />
         </BarChart>
       </div>
-      <Legend items={legend} title="Verdicts">
+      <Legend
+        items={legend}
+        className="flex-row flex-wrap gap-x-6 gap-y-2"
+        title="Verdicts"
+        titleClassName="sr-only"
+      >
         <LegendItem className="flex items-center gap-2 text-sm">
           <LegendMarker />
-          <LegendLabel className="flex-1" />
-          <LegendValue formatValue={formatCount} />
+          <LegendLabel />
+          <LegendValue className="font-semibold tabular-nums" formatValue={formatCount} />
         </LegendItem>
       </Legend>
     </div>
   );
 }
 
+/** A small colour key under a line chart. */
+function LineKey({ items }: { items: { color: string; label: string }[] }) {
+  return (
+    <ul className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
+      {items.map((item) => (
+        <li key={item.label} className="flex items-center gap-2">
+          <span
+            aria-hidden="true"
+            className="h-0.5 w-4 rounded-full"
+            style={{ background: item.color }}
+          />
+          {item.label}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function LatencyChart({ stats, reduceMotion }: ChartProps) {
   const data = useMemo(() => latencySeries(stats), [stats]);
   return (
-    <div aria-hidden="true">
-      <LineChart
-        aspectRatio="5 / 2"
-        data={data}
-        margin={{ top: 16, right: 16, bottom: 32, left: 56 }}
-        xDataKey="date"
-        {...motionProps(reduceMotion)}
-      >
-        <Grid horizontal />
-        <Line animate={!reduceMotion} dataKey="p50" stroke={P50} />
-        <Line animate={!reduceMotion} dataKey="p95" stroke={P95} />
-        <XAxis />
-        <YAxis formatValue={formatMs} />
-        <ChartTooltip
-          rows={(point) => [
-            { color: P50, label: "p50", value: formatMs(num(point.p50)) },
-            { color: P95, label: "p95", value: formatMs(num(point.p95)) },
-          ]}
-        />
-      </LineChart>
+    <div className="flex flex-col gap-2">
+      <div aria-hidden="true">
+        <LineChart
+          aspectRatio="5 / 2"
+          data={data}
+          margin={{ top: 16, right: 16, bottom: 32, left: 56 }}
+          xDataKey="date"
+          {...motionProps(reduceMotion)}
+        >
+          <Grid horizontal />
+          <Line animate={!reduceMotion} dataKey="p50" stroke={P50} />
+          <Line animate={!reduceMotion} dataKey="p95" stroke={P95} />
+          <XAxis />
+          <YAxis formatValue={formatMs} />
+          <ChartTooltip
+            rows={(point) => [
+              { color: P50, label: "Typical (p50)", value: formatMs(num(point.p50)) },
+              { color: P95, label: "Slowest 5% (p95)", value: formatMs(num(point.p95)) },
+            ]}
+          />
+        </LineChart>
+      </div>
+      <LineKey
+        items={[
+          { color: P50, label: "Typical answer time" },
+          { color: P95, label: "Slowest 5%" },
+        ]}
+      />
     </div>
   );
 }
@@ -155,13 +207,13 @@ export function CostChart({ stats, reduceMotion }: ChartProps) {
         {...motionProps(reduceMotion)}
       >
         <Grid horizontal />
-        <Line animate={!reduceMotion} dataKey="perAnswer" stroke="var(--chart-line-primary)" />
+        <Line animate={!reduceMotion} dataKey="perAnswer" stroke={BRAND} />
         <XAxis />
         <YAxis formatValue={formatUsd} />
         <ChartTooltip
           rows={(point) => [
             {
-              color: "var(--chart-line-primary)",
+              color: BRAND,
               label: "Per answer",
               value: formatUsd(num(point.perAnswer)),
             },
@@ -178,7 +230,7 @@ export function CacheGauge({ stats }: { stats: Stats }) {
     <div aria-hidden="true" className="mx-auto h-44 w-full max-w-64">
       <Gauge
         centerValue={rate * 100}
-        defaultLabel="hit rate"
+        defaultLabel="reused"
         formatOptions={{ maximumFractionDigits: 1 }}
         suffix="%"
         value={rate * 100}
@@ -199,11 +251,11 @@ export function BacklogChart({ stats, reduceMotion }: ChartProps) {
         {...motionProps(reduceMotion)}
       >
         <Grid horizontal />
-        <Bar animate={!reduceMotion} dataKey="open" fill="var(--chart-4)" stroke="var(--chart-4)" />
+        <Bar animate={!reduceMotion} dataKey="open" fill={BRAND} stroke={BRAND} />
         <BarXAxis showAllLabels />
         <ChartTooltip
           rows={(point) => [
-            { color: "var(--chart-4)", label: "Open", value: formatCount(num(point.open)) },
+            { color: BRAND, label: "Waiting", value: formatCount(num(point.open)) },
           ]}
           showDatePill={false}
         />
@@ -214,27 +266,22 @@ export function BacklogChart({ stats, reduceMotion }: ChartProps) {
 
 export function EvalChart({ stats, reduceMotion }: ChartProps) {
   const data = useMemo(() => evalSeries(stats), [stats]);
+  const wide = useWide();
   return (
     <div aria-hidden="true">
       <BarChart
-        aspectRatio="4 / 1"
+        aspectRatio={wide ? "6 / 1" : "5 / 2"}
+        barGap={0.45}
         data={data}
         margin={{ top: 16, right: 8, bottom: 32, left: 8 }}
         xDataKey="metric"
         {...motionProps(reduceMotion)}
       >
         <Grid horizontal />
-        <Bar
-          animate={!reduceMotion}
-          dataKey="score"
-          fill="var(--chart-5)"
-          stroke="var(--chart-5)"
-        />
+        <Bar animate={!reduceMotion} dataKey="score" fill={BRAND} stroke={BRAND} />
         <BarXAxis showAllLabels />
         <ChartTooltip
-          rows={(point) => [
-            { color: "var(--chart-5)", label: "Score", value: formatScore(num(point.score)) },
-          ]}
+          rows={(point) => [{ color: BRAND, label: "Score", value: formatScore(num(point.score)) }]}
           showDatePill={false}
         />
       </BarChart>

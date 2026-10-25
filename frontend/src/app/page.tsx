@@ -4,15 +4,13 @@ import { AsOfBoard } from "@/components/landing/as-of-board";
 import { DriftHero } from "@/components/landing/drift-hero";
 import { FeatureCards } from "@/components/landing/feature-cards";
 
-const STACK = ["FastAPI", "Postgres + pgvector", "Redis Streams", "LangGraph", "Claude", "Next.js"];
-
 export default function Home() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-20 px-4 py-16 sm:py-20">
       <section className="grid items-center gap-10 lg:grid-cols-[1fr_1.1fr]">
         <div className="flex flex-col gap-6">
-          <p className="text-sm font-medium text-muted-foreground">
-            A version-aware knowledge engine
+          <p className="text-sm font-semibold text-brand">
+            Answers you can trust, for documents that change
           </p>
           <MarkerText
             as="h1"
@@ -46,27 +44,11 @@ export default function Home() {
             What it does
           </h2>
           <p className="max-w-2xl text-muted-foreground">
-            Four parts, all built and running in this repository. Turn a card over (click it, or
-            focus it and press Enter) to see how it is built.
+            Ask questions about any date, see how each document changed, and hear about it when an
+            answer goes out of date. Turn a card over to see how each part works.
           </p>
         </div>
         <FeatureCards />
-      </section>
-
-      <section aria-labelledby="stack-heading" className="flex flex-col gap-3">
-        <h2 id="stack-heading" className="font-heading text-lg font-semibold tracking-tight">
-          Built with
-        </h2>
-        <ul className="flex flex-wrap gap-2">
-          {STACK.map((name) => (
-            <li
-              key={name}
-              className="rounded-full border border-border px-3 py-1 text-sm text-muted-foreground"
-            >
-              {name}
-            </li>
-          ))}
-        </ul>
       </section>
     </div>
   );

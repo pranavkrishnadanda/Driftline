@@ -41,23 +41,37 @@ describe("StatsView", () => {
     const kpis = await screen.findByRole("list", { name: "Key figures" });
     const tile = (name: string) => within(kpis).getByRole("group", { name });
     expect(tile("Documents")).toHaveTextContent("12");
-    expect(tile("Documents")).toHaveTextContent("31 versions · 1,234 chunks · 3 sources");
-    expect(tile("Ask latency")).toHaveTextContent("5.24 s");
+    expect(tile("Documents")).toHaveTextContent("31 versions from 3 sources");
+    // The exact figures stay one hover away.
+    expect(tile("Documents")).toHaveAttribute(
+      "title",
+      "12 documents, 31 versions, 1,234 passages, 3 sources",
+    );
+    expect(tile("Typical answer time")).toHaveTextContent("1.8 s");
+    expect(tile("Typical answer time")).toHaveTextContent("Slowest 5%: 5.24 s");
     expect(tile("Cost per answer")).toHaveTextContent("$0.0045");
-    expect(tile("Cache hit rate")).toHaveTextContent("25%");
-    expect(tile("Review backlog")).toHaveTextContent("3");
+    expect(tile("Answers reused")).toHaveTextContent("25%");
+    expect(tile("Waiting for review")).toHaveTextContent("3");
 
-    expect(figure("Drift events per day")).toHaveAccessibleDescription(
-      "4 drift events in the last 30 days: 1 still valid, 2 changed, 1 broken. Busiest day: Oct 25 with 3.",
+    expect(figure("Changes detected per day")).toHaveAccessibleDescription(
+      "4 changes detected in the last 30 days: 1 still valid, 2 changed, 1 broken. Busiest day: Oct 25 with 3.",
     );
-    expect(figure("Ask latency")).toHaveAccessibleDescription(/p50 1\.8 s, p95 5\.24 s/);
+    expect(figure("Answer time")).toHaveAccessibleDescription(
+      /typical answer took 1\.8 s; the slowest 5% took 5\.24 s/,
+    );
     expect(figure("Cost per answer")).toHaveAccessibleDescription(/\$0\.0045 per answer/);
-    expect(figure("Cache hit rate")).toHaveAccessibleDescription(
-      "Cache hit rate 25%: 1 hit and 3 misses.",
+    expect(figure("Answers reused")).toHaveAccessibleDescription(
+      "25% of questions reused a saved answer for the same question and date (1 of 4).",
     );
-    expect(figure("Review backlog")).toHaveAccessibleDescription(/3 open review items/);
-    expect(figure("Eval scores")).toHaveAccessibleDescription(
-      "Latest eval run bbbbbbb on corpus pharma: Citation precision 0.88, Faithfulness 0.91.",
+    expect(figure("Waiting for review")).toHaveAccessibleDescription(/3 items waiting/);
+    const quality = figure("Latest quality check");
+    expect(quality).toHaveAccessibleDescription(
+      "Checked on 24 Oct 2026 against the pharma question set: citation accuracy 88%, faithfulness 91%.",
+    );
+    expect(within(quality).getByText("88%")).toHaveAttribute("title", "Exact score: 0.88");
+    expect(within(quality).getByRole("link", { name: /Read the full report/ })).toHaveAttribute(
+      "href",
+      expect.stringContaining("RESULTS.md"),
     );
     expect(api!.requests.map((r) => r.url)).toEqual(["/v1/stats?tenant=demo"]);
   });
@@ -66,15 +80,19 @@ describe("StatsView", () => {
     await setup({ status: 200, json: emptyStats() });
 
     const kpis = await screen.findByRole("list", { name: "Key figures" });
-    expect(within(kpis).getByRole("group", { name: "Ask latency" })).toHaveTextContent("—");
-    expect(within(kpis).getByRole("group", { name: "Cache hit rate" })).toHaveTextContent(
-      "No cache lookups yet",
+    expect(within(kpis).getByRole("group", { name: "Typical answer time" })).toHaveTextContent("—");
+    expect(within(kpis).getByRole("group", { name: "Answers reused" })).toHaveTextContent(
+      "No questions asked yet",
     );
-    expect(within(figure("Eval scores")).getByText("No eval runs yet.")).toBeInTheDocument();
-    expect(within(figure("Ask latency")).getByText(/No finished asks/)).toBeInTheDocument();
-    expect(within(figure("Drift events per day")).getByText(/No drift events/)).toBeInTheDocument();
     expect(
-      within(figure("Review backlog")).getByText("The review queue is empty."),
+      within(figure("Latest quality check")).getByText("No quality checks yet."),
+    ).toBeInTheDocument();
+    expect(within(figure("Answer time")).getByText(/No answers in the last/)).toBeInTheDocument();
+    expect(
+      within(figure("Changes detected per day")).getByText(/No changes detected/),
+    ).toBeInTheDocument();
+    expect(
+      within(figure("Waiting for review")).getByText("Nothing is waiting for review."),
     ).toBeInTheDocument();
     expect(screen.queryByText(/0\.88|Faithfulness/)).not.toBeInTheDocument();
   });

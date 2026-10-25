@@ -62,9 +62,10 @@ describe("DocumentTimelineView", () => {
         .getAllByRole("columnheader")
         .map((h) => h.textContent),
     ).toEqual(["v2 (before)", "v3 (after)"]);
-    const removed = within(table).getByRole("row", { name: /B > Renal/ });
-    expect(within(removed).getAllByRole("cell")[0]).toHaveTextContent("B > Renal");
-    expect(within(removed).getAllByRole("cell")[0]).toHaveTextContent("removed");
+    // Section paths read as breadcrumbs; statuses are plain words.
+    const removed = within(table).getByRole("row", { name: /B › Renal/ });
+    expect(within(removed).getAllByRole("cell")[0]).toHaveTextContent("B › Renal");
+    expect(within(removed).getAllByRole("cell")[0]).toHaveTextContent("Removed");
     expect(within(removed).getAllByRole("cell")[1]).toHaveTextContent("not present");
   });
 
@@ -80,10 +81,10 @@ describe("DocumentTimelineView", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: "Changes in v2 since v1" }),
     ).toBeInTheDocument();
-    const added = within(diffSection()).getByRole("row", { name: /B > Renal/ });
+    const added = within(diffSection()).getByRole("row", { name: /B › Renal/ });
     expect(within(added).getAllByRole("cell")[0]).toHaveTextContent("not present");
-    expect(within(added).getAllByRole("cell")[1]).toHaveTextContent("added");
-    expect(diffSection()).toHaveTextContent("1 added · 1 changed · 0 removed · 1 unchanged");
+    expect(within(added).getAllByRole("cell")[1]).toHaveTextContent("Added");
+    expect(diffSection()).toHaveTextContent("1 added · 1 changed · 1 unchanged");
 
     await user.keyboard("{Home}");
     expect(slider).toHaveAttribute("aria-valuenow", "1");
@@ -120,22 +121,27 @@ describe("DocumentTimelineView", () => {
   it("lists incoming and outgoing relations with links to their timelines", async () => {
     api = await startApiServer({ [ROUTE]: { status: 200, json: TIMELINE } });
     renderView(api.url);
-    const graph = await screen.findByRole("region", { name: "Supersession" });
+    const graph = await screen.findByRole("region", { name: "Related documents" });
 
-    const incoming = within(graph).getByRole("list", { name: "Declared by other documents" });
-    const link = within(incoming).getByRole("link", { name: OTHER_DOC_ID.slice(0, 8) });
+    const incoming = within(graph).getByRole("list", { name: "Documents that point here" });
+    // An untitled document says so; it is never shown as a raw id.
+    const link = within(incoming).getByRole("link", { name: "Untitled document" });
     expect(link).toHaveAttribute("href", `/documents/${OTHER_DOC_ID}?tenant=demo`);
     expect(incoming).toHaveTextContent("amends");
-    expect(incoming).toHaveTextContent("pending");
-    expect(incoming).toHaveTextContent("61%");
+    expect(incoming).toHaveTextContent("Awaiting review");
+    expect(within(incoming).getByText("Awaiting review")).toHaveAttribute(
+      "title",
+      "61% confidence",
+    );
 
-    const outgoing = within(graph).getByRole("list", { name: "Declared by this document" });
+    const outgoing = within(graph).getByRole("list", { name: "This document points to" });
     expect(within(outgoing).getByRole("link", { name: "Metformin label (2019)" })).toHaveAttribute(
       "href",
       `/documents/${OLD_DOC_ID}?tenant=demo`,
     );
     expect(outgoing).toHaveTextContent("supersedes");
-    expect(outgoing).toHaveTextContent("from v2");
+    expect(outgoing).toHaveTextContent("Confirmed");
+    expect(outgoing).toHaveTextContent("since v2");
   });
 
   it("says when a document has no relations", async () => {
@@ -143,7 +149,7 @@ describe("DocumentTimelineView", () => {
       [ROUTE]: { status: 200, json: { ...TIMELINE, relations: { incoming: [], outgoing: [] } } },
     });
     renderView(api.url);
-    const graph = await screen.findByRole("region", { name: "Supersession" });
+    const graph = await screen.findByRole("region", { name: "Related documents" });
     expect(graph).toHaveTextContent("No relations recorded for this document.");
   });
 

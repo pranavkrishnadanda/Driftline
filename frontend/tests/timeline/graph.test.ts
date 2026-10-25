@@ -16,8 +16,8 @@ describe("buildSupersessionGraph", () => {
     expect(self.data).toMatchObject({ label: "Metformin label", documentId: DOC_ID, role: "self" });
     expect(incoming.position.x).toBeLessThan(self.position.x);
     expect(outgoing.position.x).toBeGreaterThan(self.position.x);
-    // An untitled document falls back to its id.
-    expect(incoming.data.label).toBe(OTHER_DOC_ID.slice(0, 8));
+    // An untitled document says so, never a hash id.
+    expect(incoming.data.label).toBe("Untitled document");
   });
 
   it("draws one edge per relation, pointing from declarer to target, labelled by kind", () => {

@@ -236,27 +236,29 @@ describe("summarizeTimeline", () => {
 
   it("names the running step and the parallel branch progress", () => {
     expect(summarizeTimeline(buildTimeline(FAN_OUT_RUN))).toBe(
-      "Searching sources: 2 of 3 searches done.",
+      "Searching the documents: 2 of 3 searches done.",
     );
   });
 
   it("counts the claims checked in a verify pass, with the re-retrieve iteration", () => {
     expect(summarizeTimeline(buildTimeline(RE_RETRIEVE_RUN))).toBe(
-      "Verifying claims (pass 2): 1 of 2 claims checked.",
+      "Checking claims against sources (pass 2): 1 of 2 claims checked.",
     );
   });
 
   it("summarises each outcome", () => {
-    expect(summarizeTimeline(buildTimeline(ANSWERED_RUN))).toBe("Done: 1 of 1 claims verified.");
-    expect(summarizeTimeline(buildTimeline(CACHE_HIT_RUN))).toBe("Done: served from the cache.");
+    expect(summarizeTimeline(buildTimeline(ANSWERED_RUN))).toBe(
+      "Done: 1 of 1 claim verified against the sources.",
+    );
+    expect(summarizeTimeline(buildTimeline(CACHE_HIT_RUN))).toBe(
+      "Done: reused a saved answer for this question and date.",
+    );
     expect(summarizeTimeline(buildTimeline(INSUFFICIENT_RUN))).toBe(
-      "Done: not enough evidence to answer; 2 nearest sources found.",
+      "Done: not enough evidence to answer; found 2 nearby sources.",
     );
     expect(summarizeTimeline(buildTimeline(REVIEW_WAITING_RUN))).toBe(
-      "Paused: waiting for human review.",
+      "Paused: waiting for a reviewer.",
     );
-    expect(summarizeTimeline(buildTimeline(ERROR_RUN))).toBe(
-      "Stopped: Drafting failed (internal).",
-    );
+    expect(summarizeTimeline(buildTimeline(ERROR_RUN))).toBe("Stopped: Writing the answer failed.");
   });
 });

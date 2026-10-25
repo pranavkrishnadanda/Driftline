@@ -58,8 +58,9 @@ describe("formatters", () => {
   });
 
   it("metricLabel humanises eval metric names", () => {
-    expect(metricLabel("citation_precision")).toBe("Citation precision");
+    expect(metricLabel("citation_precision")).toBe("Citation accuracy");
     expect(metricLabel("faithfulness")).toBe("Faithfulness");
+    expect(metricLabel("some_new_metric")).toBe("Some new metric");
   });
 });
 
@@ -95,16 +96,16 @@ describe("chart transforms", () => {
 
   it("backlogSeries labels every review kind", () => {
     expect(backlogSeries(busyStats())).toEqual([
-      { kind: "Relations", open: 2 },
+      { kind: "Links", open: 2 },
       { kind: "Broken", open: 1 },
-      { kind: "Low conf.", open: 0 },
-      { kind: "Answers", open: 0 },
+      { kind: "Unsure", open: 0 },
+      { kind: "Regenerated", open: 0 },
     ]);
   });
 
   it("evalSeries lists the latest run's metrics, or nothing without a run", () => {
     expect(evalSeries(busyStats())).toEqual([
-      { metric: "Citation precision", score: 0.88 },
+      { metric: "Citation accuracy", score: 0.88 },
       { metric: "Faithfulness", score: 0.91 },
     ]);
     expect(evalSeries(emptyStats())).toEqual([]);
@@ -117,14 +118,18 @@ describe("KPI tiles", () => {
     expect(tiles.map((t) => [t.id, t.value])).toEqual([
       ["corpus", "12"],
       ["drift", "4"],
-      ["latency", "5.24 s"],
+      ["latency", "1.8 s"],
       ["cost", "$0.0045"],
       ["cache", "25%"],
       ["backlog", "3"],
     ]);
     const corpus = tiles.find((t) => t.id === "corpus")!;
-    expect(corpus.detail).toBe("31 versions · 1,234 chunks · 3 sources");
-    expect(tiles.find((t) => t.id === "latency")!.detail).toBe("p95 · p50 1.8 s · 5 asks");
+    expect(corpus.detail).toBe("31 versions from 3 sources");
+    expect(corpus.exact).toBe("12 documents, 31 versions, 1,234 passages, 3 sources");
+    const latency = tiles.find((t) => t.id === "latency")!;
+    expect(latency.title).toBe("Typical answer time");
+    expect(latency.detail).toBe("Slowest 5%: 5.24 s");
+    expect(latency.exact).toBe("p50 1,800 ms, p95 5,241 ms over 5 answers");
   });
 
   it("show dashes, not zeros dressed up as numbers, when there is no data", () => {
@@ -132,7 +137,7 @@ describe("KPI tiles", () => {
     expect(tiles.find((t) => t.id === "latency")!.value).toBe("—");
     expect(tiles.find((t) => t.id === "cost")!.value).toBe("—");
     expect(tiles.find((t) => t.id === "cache")!.value).toBe("—");
-    expect(tiles.find((t) => t.id === "cache")!.detail).toBe("No cache lookups yet");
+    expect(tiles.find((t) => t.id === "cache")!.detail).toBe("No questions asked yet");
   });
 });
 
@@ -140,30 +145,32 @@ describe("accessible chart descriptions", () => {
   it("describe each chart in words", () => {
     const stats = busyStats();
     expect(describeDrift(stats)).toBe(
-      "4 drift events in the last 30 days: 1 still valid, 2 changed, 1 broken. Busiest day: Oct 25 with 3.",
+      "4 changes detected in the last 30 days: 1 still valid, 2 changed, 1 broken. Busiest day: Oct 25 with 3.",
     );
     expect(describeLatency(stats)).toBe(
-      "Ask latency over 5 asks: p50 1.8 s, p95 5.24 s. Plotted on 2 days with asks.",
+      "A typical answer took 1.8 s; the slowest 5% took 5.24 s or more (5 answers, 2 days with answers).",
     );
     expect(describeCost(stats)).toBe(
-      "3 answers cost $0.0135 in total, $0.0045 per answer. All LLM calls: $0.021 over 9 calls.",
+      "3 answers cost $0.0135 in total, $0.0045 per answer. All model calls: $0.021 over 9 calls.",
     );
-    expect(describeCache(stats)).toBe("Cache hit rate 25%: 1 hit and 3 misses.");
+    expect(describeCache(stats)).toBe(
+      "25% of questions reused a saved answer for the same question and date (1 of 4).",
+    );
     expect(describeBacklog(stats)).toBe(
-      "3 open review items: 2 relations, 1 broken answer, 0 low-confidence answers, 0 answers.",
+      "3 items waiting for a person to decide: 2 document links, 1 broken answer, 0 low-confidence answers, 0 regenerated answers.",
     );
     expect(describeEval(stats)).toBe(
-      "Latest eval run bbbbbbb on corpus pharma: Citation precision 0.88, Faithfulness 0.91.",
+      "Checked on 24 Oct 2026 against the pharma question set: citation accuracy 88%, faithfulness 91%.",
     );
   });
 
   it("say plainly when there is nothing to show", () => {
     const stats = emptyStats();
-    expect(describeDrift(stats)).toBe("No drift events in the last 30 days.");
-    expect(describeLatency(stats)).toBe("No finished asks in the last 30 days.");
+    expect(describeDrift(stats)).toBe("No changes detected in the last 30 days.");
+    expect(describeLatency(stats)).toBe("No answers in the last 30 days.");
     expect(describeCost(stats)).toBe("No answers in the last 30 days.");
-    expect(describeCache(stats)).toBe("No cache lookups yet, so there is no hit rate.");
-    expect(describeBacklog(stats)).toBe("The review queue is empty.");
-    expect(describeEval(stats)).toBe("No eval runs yet.");
+    expect(describeCache(stats)).toBe("No questions asked yet.");
+    expect(describeBacklog(stats)).toBe("Nothing is waiting for review.");
+    expect(describeEval(stats)).toBe("No quality checks yet.");
   });
 });

@@ -183,6 +183,14 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
     phase.kind === "submitting" ||
     (streaming !== null && STREAMING.has(stream.status) && !awaitingReview);
 
+  // The date being asked about, for the progress line: the agent's reading of it once
+  // known (it can come from the question itself), else the picked date.
+  const classified = stream.events.find(
+    (e): e is StepEvent =>
+      e.type === "step" && e.node === "classify" && typeof e.detail?.as_of === "string",
+  );
+  const askedAsOf = (classified?.detail?.as_of as string | undefined) ?? request?.as_of ?? null;
+
   let announcement = "";
   if (responding) announcement = "Answering…";
   else if (awaitingReview) announcement = "Waiting for human review.";
@@ -194,8 +202,8 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
         <header>
           <SectionHeading>Ask</SectionHeading>
           <p className="text-sm text-muted-foreground">
-            Answers come only from the document versions in force on the as-of date, with the exact
-            quotes they rest on.
+            Ask about your documents as they stood on any date. Every answer shows the exact
+            passages it rests on, checked against the source.
           </p>
         </header>
 
@@ -204,19 +212,22 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
         </p>
 
         {request && phase.kind !== "idle" ? (
-          <p className="max-w-[85%] self-end rounded-2xl bg-primary px-4 py-2 text-primary-foreground">
+          <p className="max-w-[85%] self-end rounded-2xl rounded-br-md bg-primary px-4 py-2 text-primary-foreground shadow-sm">
             {request.question}
           </p>
         ) : null}
-
-        {streaming && timeline.phase !== "idle" ? <AgentTimeline state={timeline} /> : null}
 
         {answer ? (
           <FinalAnswer answer={answer} />
         ) : awaitingReview ? (
           <ReviewPending text={stream.text} step={lastStep} />
         ) : responding ? (
-          <StreamingAnswer text={stream.text} step={lastStep} />
+          <StreamingAnswer text={stream.text} step={lastStep} asOf={askedAsOf} />
+        ) : null}
+
+        {/* The answer comes first; how it was built stays one click away. */}
+        {streaming && timeline.phase !== "idle" ? (
+          <AgentTimeline state={timeline} defaultExpanded={false} />
         ) : null}
 
         {phase.kind === "stopped" ? (
@@ -258,7 +269,10 @@ function FailureNotice({
   if (failure.kind === "rate_limited") {
     const waiting = waitSeconds > 0;
     return (
-      <div role="alert" className="rounded-2xl border border-amber-500/40 px-5 py-4 text-sm">
+      <div
+        role="alert"
+        className="rounded-2xl border border-changed/40 bg-changed-soft px-5 py-4 text-sm"
+      >
         <p className="font-medium">Driftline is busy right now.</p>
         <p className="mb-3 text-muted-foreground">
           The gateway asked to wait before the next question. Retry in{" "}
@@ -271,7 +285,10 @@ function FailureNotice({
     );
   }
   return (
-    <div role="alert" className="rounded-2xl border border-destructive/40 px-5 py-4 text-sm">
+    <div
+      role="alert"
+      className="rounded-2xl border border-broken/40 bg-broken-soft px-5 py-4 text-sm"
+    >
       <p className="mb-3 font-medium">{failure.message}</p>
       {failure.kind === "backend_down" ? (
         <Button size="sm" variant="outline" onClick={onRetry}>

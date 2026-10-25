@@ -302,23 +302,23 @@ export function summarizeTimeline(state: TimelineState): string {
     case "idle":
       return "";
     case "waiting":
-      return "Paused: waiting for human review.";
+      return "Paused: waiting for a reviewer.";
     case "failed": {
       const failed = GRAPH_NODES.find((n) => state.nodes[n].status === "failed");
-      const what = failed ? `${stepLabel(failed)} failed` : "The answer stream failed";
-      return `Stopped: ${what} (${state.error?.code ?? "error"}).`;
+      const what = failed ? `${stepLabel(failed)} failed` : "the connection was lost";
+      return `Stopped: ${what}.`;
     }
     case "done": {
       const answer = state.answer;
       if (!answer) return "Done.";
-      if (answer.cached) return "Done: served from the cache.";
+      if (answer.cached) return "Done: reused a saved answer for this question and date.";
       if (answer.status === "refused") return "Done: Driftline declined to answer.";
       if (answer.status === "insufficient_evidence") {
         const n = answer.nearest_sources?.length ?? 0;
-        return `Done: not enough evidence to answer; ${plural(n, "nearest source")} found.`;
+        return `Done: not enough evidence to answer; found ${plural(n, "nearby source")}.`;
       }
       const verified = state.claims.filter((c) => c.verified).length;
-      return `Done: ${verified} of ${state.claims.length} claims verified.`;
+      return `Done: ${verified} of ${plural(state.claims.length, "claim")} verified against the sources.`;
     }
     case "running": {
       const current = [...state.lit].reverse().find((n) => state.nodes[n].status === "active");

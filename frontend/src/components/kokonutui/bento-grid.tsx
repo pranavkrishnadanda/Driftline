@@ -490,11 +490,12 @@ function WidgetCell({
       </div>
 
       <div className="relative flex h-full flex-col p-4 pt-3">
-        <div className="mb-2 flex h-7 shrink-0 items-center gap-2">
+        <div className="mb-2 flex min-h-7 shrink-0 items-center gap-2">
           <span aria-hidden className="text-zinc-400 dark:text-zinc-500">
             {item.icon}
           </span>
-          <span className="truncate font-medium text-[13px] text-zinc-600 dark:text-zinc-400">
+          {/* Driftline: titles wrap to two lines on narrow tiles instead of truncating. */}
+          <span className="line-clamp-2 font-medium text-[13px] leading-tight text-zinc-600 dark:text-zinc-400">
             {item.title}
           </span>
           <button
