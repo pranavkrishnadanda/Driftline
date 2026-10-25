@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     # P6: when true, every tenant-scoped route needs `Authorization: Bearer <tenant key>`.
     # When false (dev mode), a tenant name is enough; a key, if sent, must still be valid.
     auth_required: bool = False
+    # Host headers the MCP endpoint (/mcp) accepts; anything else gets 421 (the SDK's DNS
+    # rebinding protection). `name:*` allows any port. Browser Origins are allowed for the
+    # same hosts over http and https. Add the name clients reach the gateway by, e.g.
+    # DRIFTLINE_MCP_ALLOWED_HOSTS='["localhost:*","127.0.0.1:*","gateway:*"]' in Compose.
+    mcp_allowed_hosts: list[str] = ["localhost:*", "127.0.0.1:*", "[::1]:*"]
 
     anthropic_api_key: str | None = None
     gemini_api_key: str | None = None

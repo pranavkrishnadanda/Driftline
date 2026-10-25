@@ -15,6 +15,7 @@ from driftline.gateway.contract import install_event_schemas
 from driftline.gateway.drift import build_drift_router
 from driftline.gateway.review import build_review_router
 from driftline.mcp import build_mcp
+from driftline.mcp.server import transport_security
 from driftline.streams.bus import StreamBus
 
 
@@ -69,7 +70,11 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(build_review_router())
     install_event_schemas(app)
     mcp = build_mcp(app.state)
-    app.add_route("/mcp", mcp.streamable_http_app(), include_in_schema=False)
+    app.add_route(
+        "/mcp",
+        mcp.streamable_http_app(transport_security=transport_security(settings.mcp_allowed_hosts)),
+        include_in_schema=False,
+    )
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:

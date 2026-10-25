@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+import asyncpg
 from fastapi import APIRouter, Header, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -95,6 +96,88 @@ def _json(value: Any) -> Any:
     return json.loads(value) if isinstance(value, str) else value
 
 
+# Shared with the MCP tools (`driftline.mcp.server`), so both surfaces read the same rows.
+
+
+async def set_answer_watch(
+    conn: asyncpg.Connection, tenant_id: UUID, answer_id: UUID, on: bool
+) -> bool:
+    """Watch or unwatch one of the tenant's answers; False if it has no such answer.
+    Watching again keeps the original watch time."""
+    found = await conn.fetchval(
+        "UPDATE answers SET watched = $3, "
+        "watched_at = CASE WHEN NOT $3 THEN NULL WHEN watched THEN watched_at "
+        "ELSE now() END "
+        "WHERE id = $1 AND tenant_id = $2 RETURNING id",
+        answer_id,
+        tenant_id,
+        on,
+    )
+    return found is not None
+
+
+async def tenant_document(
+    conn: asyncpg.Connection, tenant_id: UUID, document_id: UUID
+) -> asyncpg.Record | None:
+    """The document (id, external_id, title) if it belongs to the tenant, else None."""
+    return await conn.fetchrow(
+        "SELECT d.id, d.external_id, d.title FROM documents d "
+        "JOIN sources s ON s.id = d.source_id WHERE d.id = $1 AND s.tenant_id = $2",
+        document_id,
+        tenant_id,
+    )
+
+
+async def load_timeline(
+    conn: asyncpg.Connection, tenant_id: UUID, document_id: UUID
+) -> DocumentTimeline | None:
+    """The document's timeline, or None if the tenant has no such document."""
+    doc = await tenant_document(conn, tenant_id, document_id)
+    if doc is None:
+        return None
+    versions = await conn.fetch(
+        "SELECT id AS version_id, version_no, version_key, valid_from, valid_to, "
+        "diff_from_prev, created_at FROM doc_versions WHERE document_id = $1 "
+        "ORDER BY version_no",
+        document_id,
+    )
+    # Both sides of a relation are kept within the tenant.
+    outgoing = await conn.fetch(
+        "SELECT r.id, r.kind, r.status, r.confidence, r.src_version_id, "
+        "o.id AS document_id, o.title AS document_title "
+        "FROM relations r JOIN doc_versions v ON v.id = r.src_version_id "
+        "JOIN documents o ON o.id = r.dst_document_id "
+        "JOIN sources s ON s.id = o.source_id "
+        "WHERE v.document_id = $1 AND s.tenant_id = $2 ORDER BY v.version_no, r.id",
+        document_id,
+        tenant_id,
+    )
+    incoming = await conn.fetch(
+        "SELECT r.id, r.kind, r.status, r.confidence, r.src_version_id, "
+        "o.id AS document_id, o.title AS document_title "
+        "FROM relations r JOIN doc_versions v ON v.id = r.src_version_id "
+        "JOIN documents o ON o.id = v.document_id "
+        "JOIN sources s ON s.id = o.source_id "
+        "WHERE r.dst_document_id = $1 AND s.tenant_id = $2 "
+        "ORDER BY v.valid_from, r.id",
+        document_id,
+        tenant_id,
+    )
+    return DocumentTimeline(
+        document_id=doc["id"],
+        external_id=doc["external_id"],
+        title=doc["title"],
+        versions=[
+            TimelineVersion(**{**dict(v), "diff_from_prev": _json(v["diff_from_prev"])})
+            for v in versions
+        ],
+        relations=TimelineRelations(
+            outgoing=[TimelineRelation(**dict(r)) for r in outgoing],
+            incoming=[TimelineRelation(**dict(r)) for r in incoming],
+        ),
+    )
+
+
 def build_drift_router() -> APIRouter:
     router = APIRouter(prefix="/v1", tags=["drift"])
     not_found = {
@@ -105,19 +188,9 @@ def build_drift_router() -> APIRouter:
     async def set_watch(
         request: Request, answer_id: UUID, caller: TenantRow, on: bool
     ) -> WatchState:
-        tenant_id = caller.id
         async with request.app.state.pg.acquire() as conn:
-            # Watching again keeps the original watch time.
-            found = await conn.fetchval(
-                "UPDATE answers SET watched = $3, "
-                "watched_at = CASE WHEN NOT $3 THEN NULL WHEN watched THEN watched_at "
-                "ELSE now() END "
-                "WHERE id = $1 AND tenant_id = $2 RETURNING id",
-                answer_id,
-                tenant_id,
-                on,
-            )
-        if found is None:
+            found = await set_answer_watch(conn, caller.id, answer_id, on)
+        if not found:
             raise HTTPException(status_code=404, detail={"code": "unknown_answer"})
         return WatchState(answer_id=answer_id, watched=on)
 
@@ -206,56 +279,10 @@ def build_drift_router() -> APIRouter:
     ) -> DocumentTimeline:
         """Every version of a document with its validity window and diff from the previous
         version, plus the relations it declares (outgoing) and receives (incoming)."""
-        tenant_id = caller.id
         async with request.app.state.pg.acquire() as conn:
-            doc = await conn.fetchrow(
-                "SELECT d.id, d.external_id, d.title FROM documents d "
-                "JOIN sources s ON s.id = d.source_id WHERE d.id = $1 AND s.tenant_id = $2",
-                document_id,
-                tenant_id,
-            )
-            if doc is None:
-                raise HTTPException(status_code=404, detail={"code": "unknown_document"})
-            versions = await conn.fetch(
-                "SELECT id AS version_id, version_no, version_key, valid_from, valid_to, "
-                "diff_from_prev, created_at FROM doc_versions WHERE document_id = $1 "
-                "ORDER BY version_no",
-                document_id,
-            )
-            # Both sides of a relation are kept within the tenant.
-            outgoing = await conn.fetch(
-                "SELECT r.id, r.kind, r.status, r.confidence, r.src_version_id, "
-                "o.id AS document_id, o.title AS document_title "
-                "FROM relations r JOIN doc_versions v ON v.id = r.src_version_id "
-                "JOIN documents o ON o.id = r.dst_document_id "
-                "JOIN sources s ON s.id = o.source_id "
-                "WHERE v.document_id = $1 AND s.tenant_id = $2 ORDER BY v.version_no, r.id",
-                document_id,
-                tenant_id,
-            )
-            incoming = await conn.fetch(
-                "SELECT r.id, r.kind, r.status, r.confidence, r.src_version_id, "
-                "o.id AS document_id, o.title AS document_title "
-                "FROM relations r JOIN doc_versions v ON v.id = r.src_version_id "
-                "JOIN documents o ON o.id = v.document_id "
-                "JOIN sources s ON s.id = o.source_id "
-                "WHERE r.dst_document_id = $1 AND s.tenant_id = $2 "
-                "ORDER BY v.valid_from, r.id",
-                document_id,
-                tenant_id,
-            )
-        return DocumentTimeline(
-            document_id=doc["id"],
-            external_id=doc["external_id"],
-            title=doc["title"],
-            versions=[
-                TimelineVersion(**{**dict(v), "diff_from_prev": _json(v["diff_from_prev"])})
-                for v in versions
-            ],
-            relations=TimelineRelations(
-                outgoing=[TimelineRelation(**dict(r)) for r in outgoing],
-                incoming=[TimelineRelation(**dict(r)) for r in incoming],
-            ),
-        )
+            found = await load_timeline(conn, caller.id, document_id)
+        if found is None:
+            raise HTTPException(status_code=404, detail={"code": "unknown_document"})
+        return found
 
     return router

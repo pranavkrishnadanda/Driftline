@@ -8,10 +8,13 @@ the gateway's own services, read from the gateway's `app.state` at call time:
   for its `final` event on the per-ask event log, up to `timeout_s`; past that it returns
   `{status: "running", job_id}` so the client is never left hanging.
 - `list_sources` lists the caller's sources.
+- `diff_versions`, `get_timeline` and `watch_answer` read and write the same rows as the
+  P4 drift routes, through the query helpers in `driftline.gateway.drift`.
 
 Auth: the per-tenant API key in `Authorization: Bearer`, checked by the SDK's bearer
 middleware with `resolve_tenant` as its token verifier. A missing or unknown key is a 401
-before any MCP message is handled; tools only ever see the key's own tenant.
+before any MCP message is handled; tools only ever see the key's own tenant, and an id of
+another tenant's row is reported as not found, exactly like an unknown id.
 """
 
 import asyncio
@@ -20,11 +23,13 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 from uuid import UUID
 
+import asyncpg
 from mcp.server import MCPServer
 from mcp.server.auth.middleware.auth_context import get_access_token
 from mcp.server.auth.provider import AccessToken
 from mcp.server.auth.settings import AuthSettings
 from mcp.server.mcpserver.exceptions import ToolError
+from mcp.server.transport_security import TransportSecuritySettings
 from pydantic import AnyHttpUrl, Field
 from starlette.datastructures import State
 
@@ -33,7 +38,9 @@ from driftline.agents.graph import VERSION_START
 from driftline.agents.guardrails import extract_as_of_hint
 from driftline.agents.schemas import AskRequest, SourceKind
 from driftline.auth import TenantRow, Unauthorized, resolve_tenant
+from driftline.drift.diff import sections_text_diff
 from driftline.gateway.ask import Backpressure, submit_ask
+from driftline.gateway.drift import load_timeline, set_answer_watch, tenant_document
 
 # Driftline issues its API keys itself; with no `resource_server_url` the SDK publishes no
 # OAuth metadata, so this URL is never advertised. AuthSettings requires one.
@@ -51,6 +58,26 @@ LIST_SOURCES = (
     "FROM sources s LEFT JOIN documents d ON d.source_id = s.id "
     "WHERE s.tenant_id = $1 GROUP BY s.id ORDER BY s.kind, s.id"
 )
+
+
+# Review focus 5: a large diff is capped, with an explicit truncation marker.
+DIFF_VERSIONS_CAP_BYTES = 16 * 1024
+
+VERSION_NOS = "SELECT version_no FROM doc_versions WHERE document_id = $1 ORDER BY version_no"
+VERSION_ID = "SELECT id FROM doc_versions WHERE document_id = $1 AND version_no = $2"
+# A section's text is its chunks in order, as the drift engine reads it.
+SECTION_CHUNKS = "SELECT section_path, text FROM chunks WHERE version_id = $1 ORDER BY ord"
+
+
+def transport_security(allowed_hosts: list[str]) -> TransportSecuritySettings:
+    """The SDK's DNS rebinding protection for `/mcp`: only these Host headers (`name:*`
+    for any port) are served, others get 421; a browser Origin must be one of the same
+    hosts over http or https, or it gets 403."""
+    return TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=list(allowed_hosts),
+        allowed_origins=[f"{scheme}://{h}" for h in allowed_hosts for scheme in ("http", "https")],
+    )
 
 
 class TenantKeyVerifier:
@@ -118,6 +145,57 @@ async def wait_for_answer(state: State, job_id: UUID, timeout_s: float) -> dict[
             if isinstance(event, ErrorEvent) and not event.retryable:
                 raise ToolError(f"ask {job_id} failed: {event.code} {event.message}".strip())
     return None
+
+
+async def section_texts(conn: asyncpg.Connection, version_id: UUID) -> dict[str, str]:
+    """The version's sections in document order: path -> text (its chunks joined)."""
+    grouped: dict[str, list[str]] = {}
+    for row in await conn.fetch(SECTION_CHUNKS, version_id):
+        grouped.setdefault(row["section_path"], []).append(row["text"])
+    return {path: "\n".join(texts) for path, texts in grouped.items()}
+
+
+def pick_versions(
+    document_id: UUID, existing: list[int], from_no: int | None, to_no: int | None
+) -> tuple[int, int]:
+    """The (from, to) version numbers to diff: by default the latest version and the one
+    before it; `to` alone diffs it against its predecessor, `from` alone against latest."""
+    for n in (from_no, to_no):
+        if n is not None and n not in existing:
+            raise ToolError(f"document {document_id}: version {n} not found")
+    if len(existing) < 2:
+        raise ToolError(f"document {document_id} has only one version; nothing to diff")
+    to = to_no if to_no is not None else existing[-1]
+    if from_no is None:
+        earlier = [n for n in existing if n < to]
+        if not earlier:
+            raise ToolError(f"version {to} is the first version; pass from_version")
+        from_no = earlier[-1]
+    if from_no == to:
+        raise ToolError("from_version and to_version must differ")
+    return from_no, to
+
+
+def diff_sections_texts(
+    old: dict[str, str], new: dict[str, str]
+) -> tuple[list[dict[str, str]], list[tuple[str, str | None, str | None]]]:
+    """Each section's status in document order (the new version's sections, then the
+    ones it removed), and the (path, before, after) of every section that is not
+    unchanged."""
+    statuses: list[dict[str, str]] = []
+    differing: list[tuple[str, str | None, str | None]] = []
+    for path in [*new, *(p for p in old if p not in new)]:
+        before, after = old.get(path), new.get(path)
+        if before is None:
+            status = "added"
+        elif after is None:
+            status = "removed"
+        else:
+            status = "unchanged" if before == after else "changed"
+        statuses.append({"section_path": path, "status": status})
+        if status != "unchanged":
+            differing.append((path, before, after))
+    return statuses, differing
 
 
 def build_mcp(state: State) -> MCPServer:
@@ -188,5 +266,69 @@ def build_mcp(state: State) -> MCPServer:
                 for r in rows
             ]
         }
+
+    @mcp.tool()
+    async def diff_versions(
+        document_id: UUID,
+        from_version: Annotated[
+            int | None,
+            Field(ge=1, description="Version number to diff from. Default: the one before."),
+        ] = None,
+        to_version: Annotated[
+            int | None, Field(ge=1, description="Version number to diff to. Default: latest.")
+        ] = None,
+    ) -> dict[str, Any]:
+        """What changed in a document between two of its versions (default: the previous
+        version vs the latest). Version numbers are the `version_no`s from `get_timeline`.
+        Returns each section's status (added, removed, changed, unchanged) and one unified
+        diff of the sections that differ, capped at 16 KB: when cut, `truncated` is true
+        and the diff ends with a "... diff truncated" line."""
+        caller = _caller()
+        async with state.pg.acquire() as conn:
+            if await tenant_document(conn, caller.id, document_id) is None:
+                raise ToolError(f"document {document_id} not found")
+            existing = [r["version_no"] for r in await conn.fetch(VERSION_NOS, document_id)]
+            from_no, to_no = pick_versions(document_id, existing, from_version, to_version)
+            from_id = await conn.fetchval(VERSION_ID, document_id, from_no)
+            to_id = await conn.fetchval(VERSION_ID, document_id, to_no)
+            old = await section_texts(conn, from_id)
+            new = await section_texts(conn, to_id)
+        sections, differing = diff_sections_texts(old, new)
+        diff, truncated = sections_text_diff(differing, DIFF_VERSIONS_CAP_BYTES)
+        return {
+            "document_id": str(document_id),
+            "from_version": from_no,
+            "to_version": to_no,
+            "from_version_id": str(from_id),
+            "to_version_id": str(to_id),
+            "sections": sections,
+            "diff": diff,
+            "truncated": truncated,
+        }
+
+    @mcp.tool()
+    async def get_timeline(document_id: UUID) -> dict[str, Any]:
+        """A document's history: every version (version_no, version_key, its validity
+        window valid_from..valid_to, where a null valid_to means in force now, and the
+        sections changed from the previous version), plus the relations it declares
+        (outgoing, e.g. supersedes) and receives (incoming)."""
+        caller = _caller()
+        async with state.pg.acquire() as conn:
+            timeline = await load_timeline(conn, caller.id, document_id)
+        if timeline is None:
+            raise ToolError(f"document {document_id} not found")
+        return timeline.model_dump(mode="json")
+
+    @mcp.tool()
+    async def watch_answer(answer_id: UUID) -> dict[str, Any]:
+        """Watch an answer (the `answer_id` that `ask` returned): Driftline re-checks its
+        claims whenever a document it cites changes, and raises a drift alert when one
+        no longer holds."""
+        caller = _caller()
+        async with state.pg.acquire() as conn:
+            found = await set_answer_watch(conn, caller.id, answer_id, True)
+        if not found:
+            raise ToolError(f"answer {answer_id} not found")
+        return {"answer_id": str(answer_id), "watched": True}
 
     return mcp
