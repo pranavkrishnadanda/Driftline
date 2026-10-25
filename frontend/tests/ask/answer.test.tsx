@@ -36,7 +36,7 @@ describe("StreamingAnswer", () => {
 
   it("is never an empty bubble before the first token", () => {
     render(<StreamingAnswer text="" step={null} />);
-    expect(screen.getByText(/Waiting for the agent/)).toBeInTheDocument();
+    expect(screen.getByText(/Getting started/)).toBeInTheDocument();
   });
 });
 
@@ -81,7 +81,22 @@ describe("FinalAnswer: answered", () => {
     const claims = screen.getByRole("list", { name: "Claims" });
     const [claim] = within(claims).getAllByRole("listitem");
     expect(claim).toHaveTextContent(ANSWERED.claims![0].text);
-    expect(within(claim).getByLabelText("Verified")).toBeInTheDocument();
+    expect(claim).toHaveTextContent("Verified against the source");
+    // The sources the answer rests on, as cards under it.
+    const sources = screen.getByRole("list", { name: "Sources" });
+    expect(sources).toHaveTextContent("Lipitor (atorvastatin calcium) label");
+    expect(sources).toHaveTextContent("v2");
+    expect(sources).toHaveTextContent("Warnings and Precautions › Liver Dysfunction");
+    expect(sources).toHaveTextContent("In force from 15 Apr 2024");
+  });
+
+  it("says how confident it is in words, with the score on hover", async () => {
+    const user = userEvent.setup();
+    renderFinal(ANSWERED);
+    const badge = screen.getByRole("button", { name: /confidence/ });
+    expect(badge).toHaveTextContent(/^(High|Medium|Low) confidence$/);
+    await user.hover(badge);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(/Confidence score \d+%/);
   });
 
   it("shows the exact quote with title, version, section and valid-from when a citation is focused", async () => {
@@ -89,6 +104,7 @@ describe("FinalAnswer: answered", () => {
     // No nearest_sources: an answered answer's citations carry their own metadata.
     renderFinal({ ...ANSWERED, nearest_sources: [] });
 
+    await user.tab(); // the confidence badge
     await user.tab();
     const chip = screen.getByRole("button", { name: /Citation 1/ });
     expect(chip).toHaveFocus();
@@ -97,9 +113,9 @@ describe("FinalAnswer: answered", () => {
     const tip = await screen.findByRole("tooltip");
     expect(tip).toHaveTextContent("Check ALT monthly during therapy.");
     expect(tip).toHaveTextContent("Lipitor (atorvastatin calcium) label");
-    expect(tip).toHaveTextContent("Warnings and Precautions > Liver Dysfunction");
+    expect(tip).toHaveTextContent("Warnings and Precautions › Liver Dysfunction");
     expect(tip).toHaveTextContent("v2");
-    expect(tip).toHaveTextContent("Valid from 15 Apr 2024");
+    expect(tip).toHaveTextContent("In force from 15 Apr 2024");
   });
 
   it("shows the valid-to of a superseded cited version", async () => {
@@ -112,7 +128,7 @@ describe("FinalAnswer: answered", () => {
 
     await user.hover(screen.getByRole("button", { name: /Citation 1/ }));
     const tip = await screen.findByRole("tooltip");
-    expect(tip).toHaveTextContent("Valid 15 Apr 2024 to 1 Jan 2025");
+    expect(tip).toHaveTextContent("In force 15 Apr 2024 to 1 Jan 2025");
   });
 
   it("shows the quote and version id for a citation stored without metadata", async () => {
@@ -142,18 +158,18 @@ describe("FinalAnswer: answered", () => {
     const tip = await screen.findByRole("tooltip");
     expect(tip).toHaveTextContent("Check ALT monthly during therapy.");
     expect(tip).toHaveTextContent("version 00000000…00a2");
-    expect(tip).not.toHaveTextContent("Valid");
+    expect(tip).not.toHaveTextContent("In force");
   });
 
   it("shows degraded and cached badges only when the answer says so", () => {
     const { unmount } = renderFinal(ANSWERED);
-    expect(screen.queryByText("Degraded")).not.toBeInTheDocument();
-    expect(screen.queryByText("Cached")).not.toBeInTheDocument();
+    expect(screen.queryByText("Backup model")).not.toBeInTheDocument();
+    expect(screen.queryByText("Saved answer")).not.toBeInTheDocument();
     unmount();
 
     renderFinal({ ...ANSWERED, degraded: true, cached: true });
-    expect(screen.getByText("Degraded")).toBeInTheDocument();
-    expect(screen.getByText("Cached")).toBeInTheDocument();
+    expect(screen.getByText("Backup model")).toBeInTheDocument();
+    expect(screen.getByText("Saved answer")).toBeInTheDocument();
   });
 
   it("states the as-of date the answer was computed for", () => {
@@ -173,9 +189,9 @@ describe("FinalAnswer: insufficient evidence", () => {
     expect(items).toHaveLength(2);
     expect(items[0]).toHaveTextContent("Acme tablets label");
     expect(items[0]).toHaveTextContent("v3");
-    expect(items[0]).toHaveTextContent("Valid from 14 Feb 2023");
+    expect(items[0]).toHaveTextContent("In force from 14 Feb 2023");
     expect(items[1]).toHaveTextContent("Acme tablets label (2019)");
-    expect(items[1]).toHaveTextContent("Valid 1 May 2019 to 14 Feb 2023");
+    expect(items[1]).toHaveTextContent("In force 1 May 2019 to 14 Feb 2023");
   });
 
   it("still says why, and that no sources were near, when the answer is empty", () => {

@@ -17,7 +17,7 @@ const baseURL = `http://localhost:${PORT}`;
 
 export default defineConfig({
   ...base,
-  testMatch: ["a11y.spec.ts", "reduced-motion.spec.ts"],
+  testMatch: ["a11y.spec.ts", "reduced-motion.spec.ts", "drawn.spec.ts", "header.spec.ts"],
   globalSetup: "./tests/e2e/stub/global-setup.ts",
   use: { ...base.use, baseURL },
   webServer: {

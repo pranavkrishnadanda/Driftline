@@ -2,14 +2,22 @@ import { useId } from "react";
 
 import type { TimelineVersion } from "@/lib/api/client";
 import { diffToRows, type DiffRow, type SectionStatus } from "@/lib/timeline/diff";
+import { formatSection } from "@/lib/ask/format";
 import { formatDay } from "@/lib/timeline/format";
 import { cn } from "@/lib/utils";
 
 const STATUS_STYLE: Record<SectionStatus, string> = {
-  added: "bg-emerald-500/10 text-emerald-900 dark:text-emerald-200",
-  removed: "bg-red-500/10 text-red-900 dark:text-red-200",
-  changed: "bg-amber-500/10 text-amber-950 dark:text-amber-200",
-  unchanged: "text-muted-foreground",
+  added: "bg-valid-soft/60",
+  removed: "bg-broken-soft/60",
+  changed: "bg-changed-soft/60",
+  unchanged: "",
+};
+
+const STATUS_BADGE: Record<SectionStatus, { label: string; style: string }> = {
+  added: { label: "Added", style: "bg-valid-soft text-valid" },
+  removed: { label: "Removed", style: "bg-broken-soft text-broken" },
+  changed: { label: "Changed", style: "bg-changed-soft text-changed" },
+  unchanged: { label: "No change", style: "border border-border text-muted-foreground" },
 };
 
 function Cell({ row, present }: { row: DiffRow; present: boolean }) {
@@ -23,9 +31,16 @@ function Cell({ row, present }: { row: DiffRow; present: boolean }) {
   }
   return (
     <td className={cn("border-t border-border px-3 py-2 align-top", STATUS_STYLE[row.status])}>
-      <span className="font-mono text-[13px]">{row.path}</span>{" "}
-      <span className="ml-1 rounded-sm border border-current/20 px-1 text-[11px] uppercase tracking-wide">
-        {row.status}
+      <span className={row.status === "unchanged" ? "text-muted-foreground" : "font-medium"}>
+        {formatSection(row.path) ?? row.path}
+      </span>{" "}
+      <span
+        className={cn(
+          "ml-1 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium",
+          STATUS_BADGE[row.status].style,
+        )}
+      >
+        {STATUS_BADGE[row.status].label}
       </span>
     </td>
   );
@@ -60,8 +75,14 @@ export function SectionDiff({ version, previous }: SectionDiffProps) {
       ) : (
         <>
           <p className="text-sm text-muted-foreground tabular-nums">
-            {counts.added} added · {counts.changed} changed · {counts.removed} removed ·{" "}
-            {counts.unchanged} unchanged
+            {[
+              counts.added ? `${counts.added} added` : null,
+              counts.changed ? `${counts.changed} changed` : null,
+              counts.removed ? `${counts.removed} removed` : null,
+              counts.unchanged ? `${counts.unchanged} unchanged` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ") || "No sections recorded"}
           </p>
           {diff.adjusted ? (
             <p className="text-sm text-muted-foreground">

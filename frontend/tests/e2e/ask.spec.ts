@@ -65,7 +65,7 @@ test.describe("Ask view (real backend)", () => {
     await citation.focus();
     const tip = page.getByRole("tooltip");
     await expect(tip).toBeVisible();
-    await expect(tip).toContainText("Valid from");
+    await expect(tip).toContainText("In force from");
 
     const results = await new AxeBuilder({ page }).analyze();
     const serious = results.violations.filter(
@@ -86,8 +86,10 @@ test.describe("Ask view (real backend)", () => {
     await question.fill(QUESTION);
     await question.press("Enter");
 
-    const timeline = page.getByRole("region", { name: "Agent timeline" });
+    const timeline = page.getByRole("region", { name: "How this answer was built" });
     await expect(timeline).toBeVisible({ timeout: 60_000 });
+    // The steps are folded away behind a disclosure; open it.
+    await timeline.getByRole("button", { name: "Show steps" }).click();
     // The first node lights up before the run ends.
     await expect(timeline.locator('[data-node="classify"]')).toHaveAttribute(
       "data-lit-order",

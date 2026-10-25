@@ -4,7 +4,13 @@
 /* React Flow's base styles (supersession graph); imported after Tailwind as its docs ask. */
 @import "@xyflow/react/dist/style.css";
 
-/* React Flow's default attribution grey (#999) fails WCAG AA contrast. */
+/* React Flow's attribution stays (only Pro subscribers may remove it), small and quiet.
+   Its default grey (#999) fails WCAG AA contrast, so it takes the muted foreground. */
+.react-flow__attribution {
+  background: transparent;
+  padding: 0 4px;
+  font-size: 9px;
+}
 .react-flow__attribution a {
   color: var(--muted-foreground);
 }
@@ -12,6 +18,15 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-valid: var(--valid);
+  --color-valid-soft: var(--valid-soft);
+  --color-changed: var(--changed);
+  --color-changed-soft: var(--changed-soft);
+  --color-broken: var(--broken);
+  --color-broken-soft: var(--broken-soft);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   /* System font stacks: no build-time font download, works offline and in CI. */
@@ -104,14 +119,28 @@
 }
 
 :root {
+  color-scheme: light;
+  /* Brand: indigo. Its hue (277) sits far from the verdict hues (green 150, amber 70,
+     red 27), so a brand highlight never reads as a verdict. White text on it is 6.4:1. */
+  --brand: oklch(0.511 0.23 277);
+  --brand-foreground: oklch(0.985 0 0);
+  --brand-soft: oklch(0.962 0.025 277);
+  /* Verdicts: still valid / changed / broken. The base tone is used for text, icons and
+     chart series; each passes WCAG AA (4.5:1) on white and on its own -soft background. */
+  --valid: oklch(0.517 0.135 152);
+  --valid-soft: oklch(0.962 0.04 152);
+  --changed: oklch(0.53 0.14 55);
+  --changed-soft: oklch(0.97 0.045 85);
+  --broken: oklch(0.505 0.2 27);
+  --broken-soft: oklch(0.965 0.022 25);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -123,12 +152,13 @@
   --destructive: oklch(0.505 0.213 27.518);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --ring: oklch(0.62 0.17 277);
+  /* Chart series: the brand first, then the verdict tones. */
+  --chart-1: var(--brand);
+  --chart-2: oklch(0.72 0.12 277);
+  --chart-3: var(--valid);
+  --chart-4: var(--changed);
+  --chart-5: var(--broken);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -176,14 +206,24 @@
 }
 
 .dark {
+  color-scheme: dark;
+  --brand: oklch(0.74 0.15 277);
+  --brand-foreground: oklch(0.2 0.06 277);
+  --brand-soft: oklch(0.27 0.06 277);
+  --valid: oklch(0.79 0.16 152);
+  --valid-soft: oklch(0.26 0.05 152);
+  --changed: oklch(0.84 0.14 80);
+  --changed-soft: oklch(0.27 0.05 70);
+  --broken: oklch(0.74 0.17 25);
+  --broken-soft: oklch(0.27 0.06 25);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -193,12 +233,12 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --ring: oklch(0.6 0.14 277);
+  --chart-1: var(--brand);
+  --chart-2: oklch(0.56 0.12 277);
+  --chart-3: var(--valid);
+  --chart-4: var(--changed);
+  --chart-5: var(--broken);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);

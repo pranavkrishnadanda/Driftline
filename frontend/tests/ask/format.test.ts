@@ -54,15 +54,15 @@ describe("describeCitation", () => {
     expect(describeCitation(CITATION)).toEqual({
       quote: "Check ALT monthly during therapy.",
       title: "Lipitor (atorvastatin calcium) label",
-      section: "Warnings and Precautions > Liver Dysfunction",
+      section: "Warnings and Precautions › Liver Dysfunction",
       version: "v2",
-      validity: "Valid from 15 Apr 2024",
+      validity: "In force from 15 Apr 2024",
     });
   });
 
   it("shows the whole window of a superseded version", () => {
     const superseded = { ...CITATION, valid_to: "2025-01-01T00:00:00Z" };
-    expect(describeCitation(superseded).validity).toBe("Valid 15 Apr 2024 to 1 Jan 2025");
+    expect(describeCitation(superseded).validity).toBe("In force 15 Apr 2024 to 1 Jan 2025");
   });
 
   it("falls back to the version id for a citation stored without metadata", () => {
@@ -187,11 +187,11 @@ describe("parseTenants", () => {
 
 describe("stepLabel", () => {
   it("names the agent's graph nodes for people", () => {
-    expect(stepLabel("plan")).toBe("Planning");
-    expect(stepLabel("subagent")).toBe("Searching sources");
-    expect(stepLabel("verify")).toBe("Verifying claims");
-    expect(stepLabel("re_retrieve")).toBe("Searching again");
-    expect(stepLabel("review")).toBe("Human review");
-    expect(stepLabel("mystery_node")).toBe("mystery_node");
+    expect(stepLabel("plan")).toBe("Planning the search");
+    expect(stepLabel("subagent")).toBe("Searching the documents");
+    expect(stepLabel("verify")).toBe("Checking claims against sources");
+    expect(stepLabel("re_retrieve")).toBe("Looking for more evidence");
+    expect(stepLabel("review")).toBe("Waiting for a reviewer");
+    expect(stepLabel("mystery_node")).toBe("mystery node");
   });
 });

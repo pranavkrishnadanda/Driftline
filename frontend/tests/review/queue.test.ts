@@ -33,8 +33,8 @@ describe("groupByKind", () => {
     expect(groups.map((g) => g.label)).toEqual([
       "Low-confidence answers",
       "Broken answers",
-      "Relations",
-      "Answers",
+      "Suggested document links",
+      "Regenerated answers",
     ]);
     expect(groupByKind([])).toEqual([]);
   });
@@ -45,7 +45,8 @@ describe("describeItem", () => {
     const view = describeItem(LOW_CONFIDENCE);
     expect(view.title).toBe("What is the maximum daily dose?");
     expect(view.body).toBe("The maximum daily dose is 40 mg.");
-    expect(view.facts).toContainEqual({ label: "Confidence", value: "42%" });
+    expect(view.facts).toContainEqual({ label: "Confidence", value: "Low (42%)" });
+    expect(view.status).toMatchObject({ tone: "changed", label: "Needs a second look" });
     expect(view.edit).toEqual({ field: "answer", initial: "The maximum daily dose is 40 mg." });
   });
 
@@ -53,6 +54,10 @@ describe("describeItem", () => {
     const view = describeItem(BROKEN);
     expect(view.title).toBe("A watched answer no longer matches its source");
     expect(view.body).toBe("Take 10 mg twice daily.");
+    expect(view.status).toMatchObject({
+      tone: "broken",
+      label: "Broken: the cited text was removed",
+    });
     expect(view.edit).toEqual({ field: "answer", initial: "" });
   });
 
@@ -60,7 +65,8 @@ describe("describeItem", () => {
     const view = describeItem(RELATION);
     expect(view.title).toBe("Amends SOP-12");
     expect(view.body).toBe("This revision amends SOP-12.");
-    expect(view.facts).toContainEqual({ label: "Confidence", value: "61%" });
+    expect(view.facts).toContainEqual({ label: "Confidence", value: "Medium (61%)" });
+    expect(view.status.next).toContain("Driftline thinks this document amends SOP-12.");
     expect(view.edit).toEqual({ field: "kind", initial: "amends", options: RELATION_KINDS });
   });
 
@@ -72,7 +78,7 @@ describe("describeItem", () => {
         payload: { error: "malformed_extraction", detail: "bad JSON", raw: "{" },
       }),
     );
-    expect(view.title).toBe("Relation extraction failed");
+    expect(view.title).toBe("Couldn't read a document link");
     expect(view.body).toBe("bad JSON");
     expect(view.edit).toBeNull();
   });

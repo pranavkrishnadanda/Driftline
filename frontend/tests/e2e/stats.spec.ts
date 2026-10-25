@@ -27,12 +27,12 @@ interface Stats {
 }
 
 const PANELS = [
-  "Drift events per day",
-  "Ask latency",
+  "Changes detected per day",
+  "Answer time",
   "Cost per answer",
-  "Cache hit rate",
-  "Review backlog",
-  "Eval scores",
+  "Answers reused",
+  "Waiting for review",
+  "Latest quality check",
 ];
 
 async function expectRendered(page: Page, stats: Stats): Promise<void> {
@@ -45,11 +45,11 @@ async function expectRendered(page: Page, stats: Stats): Promise<void> {
   for (const name of PANELS) {
     await expect(page.getByRole("figure", { name })).toBeVisible();
   }
-  const drift = page.getByRole("figure", { name: "Drift events per day" });
+  const drift = page.getByRole("figure", { name: "Changes detected per day" });
   if (stats.drift.total > 0) await expect(drift.locator("svg").first()).toBeVisible();
   if (stats.latest_eval === null) {
-    await expect(page.getByRole("figure", { name: "Eval scores" })).toContainText(
-      "No eval runs yet.",
+    await expect(page.getByRole("figure", { name: "Latest quality check" })).toContainText(
+      "No quality checks yet.",
     );
   }
 }

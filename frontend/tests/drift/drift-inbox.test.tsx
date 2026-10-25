@@ -129,7 +129,9 @@ describe("DriftInbox", () => {
     );
 
     const card = await screen.findByRole("article", { name: /Dosing guideline/ });
-    expect(within(card).getByText("Broken")).toBeInTheDocument();
+    expect(within(card).getByText("Broken: the cited text was removed")).toBeInTheDocument();
+    // What to do next, in plain words.
+    expect(card).toHaveTextContent("Send it to review");
     const diff = within(card).getByRole("group", { name: "Before and after" });
     const removed = [...diff.querySelectorAll("del")].map((d) => d.textContent);
     const added = [...diff.querySelectorAll("ins")].map((d) => d.textContent);
@@ -191,14 +193,14 @@ describe("DriftInbox", () => {
     );
 
     const card = await screen.findByRole("article", { name: /Storage policy/ });
-    const open = within(card).getByRole("button", { name: "Open answer" });
+    const open = within(card).getByRole("button", { name: "Details" });
     expect(open).toHaveAttribute("aria-expanded", "false");
     open.focus();
     await user.keyboard("{Enter}");
     expect(open).toHaveAttribute("aria-expanded", "true");
     const details = within(card).getByRole("region", { name: "Answer details" });
     expect(details).toHaveTextContent(driftEvent({ id: "x" }).answer_id);
-    expect(details).toHaveTextContent("Storage > Temperature");
+    expect(details).toHaveTextContent("Storage › Temperature");
 
     await user.click(within(details).getByRole("button", { name: "Stop watching" }));
     await within(details).findByRole("button", { name: "Watch again" });

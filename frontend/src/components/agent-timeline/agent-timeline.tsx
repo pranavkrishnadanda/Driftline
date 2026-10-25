@@ -31,6 +31,8 @@ export interface AgentTimelineProps {
    * device's `prefers-reduced-motion`, `"always"` never animates, `"never"` always does.
    */
   reducedMotion?: "user" | "always" | "never";
+  /** Whether the steps start open. The Ask view opens them only on request. */
+  defaultExpanded?: boolean;
   className?: string;
 }
 
@@ -38,21 +40,28 @@ export interface AgentTimelineProps {
 const CONDITIONAL = new Set<NodeName>(["re_retrieve", "review"]);
 
 const STATUS_TEXT: Record<NodeStatus, string> = {
-  pending: "not reached",
-  active: "running",
+  pending: "not started",
+  active: "in progress",
   done: "done",
   skipped: "skipped",
   failed: "failed",
   waiting: "waiting",
 };
 
+/** The cache step's outcome in plain words (the raw hit/miss is a technical detail). */
+const CACHE_TEXT: Record<string, string> = {
+  hit: "reused a saved answer",
+  miss: "none saved, answering fresh",
+  skipped: "skipped",
+};
+
 const DOT: Record<NodeStatus, string> = {
   pending: "border-border bg-background",
-  active: "border-sky-500 bg-sky-500",
-  done: "border-emerald-600 bg-emerald-600",
+  active: "border-brand bg-brand",
+  done: "border-valid bg-valid",
   skipped: "border-border bg-muted",
-  failed: "border-destructive bg-destructive",
-  waiting: "border-amber-500 bg-amber-500",
+  failed: "border-broken bg-broken",
+  waiting: "border-changed bg-changed",
 };
 
 const words = (value: string) => value.replaceAll("_", " ");
@@ -62,14 +71,16 @@ function seconds(ms: number | null): string | null {
   return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`;
 }
 
-function nodeStatusText(node: NodeState, state: TimelineState): string {
-  if (node.name === "cache" && state.cache && node.status !== "pending") return state.cache;
+function nodeStatusText(node: NodeState, state: TimelineState, technical: boolean): string {
+  if (node.name === "cache" && state.cache && node.status !== "pending") {
+    return technical ? `cache ${state.cache}` : (CACHE_TEXT[state.cache] ?? state.cache);
+  }
   if (node.status === "active" && node.retrying) return "retrying";
   return STATUS_TEXT[node.status];
 }
 
 /** What a node's details panel says, from its last `step` event's `detail`. */
-function describeNode(node: NodeState, state: TimelineState): string[] {
+function describeNode(node: NodeState, state: TimelineState, technical: boolean): string[] {
   const d = node.detail;
   const n = (key: string) => (typeof d[key] === "number" ? (d[key] as number) : null);
   const s = (key: string) => (typeof d[key] === "string" ? (d[key] as string) : null);
@@ -132,15 +143,21 @@ function describeNode(node: NodeState, state: TimelineState): string[] {
       break;
   }
   const at = seconds(node.tMs);
-  if (at) lines.push(`At ${at}`);
+  if (at && technical) lines.push(`At ${at}`);
   return lines.length ? lines : ["No details yet"];
 }
 
-export function AgentTimeline({ state, reducedMotion = "user", className }: AgentTimelineProps) {
+export function AgentTimeline({
+  state,
+  reducedMotion = "user",
+  defaultExpanded = true,
+  className,
+}: AgentTimelineProps) {
   const prefersReduced = useReducedMotion();
   const reduce =
     reducedMotion === "always" || (reducedMotion === "user" && prefersReduced === true);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const [technical, setTechnical] = useState(false);
   const [open, setOpen] = useState<NodeName[]>([]);
   const listId = useId();
 
@@ -158,28 +175,40 @@ export function AgentTimeline({ state, reducedMotion = "user", className }: Agen
       transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
     >
       <section
-        aria-label="Agent timeline"
+        aria-label="How this answer was built"
         className={cn(
-          "rounded-2xl border border-border bg-card px-4 py-3 text-card-foreground",
+          "rounded-2xl border border-border bg-card/60 px-4 py-3 text-card-foreground",
           className,
         )}
       >
         <header className="flex flex-wrap items-center gap-2">
-          <h2 className="font-heading text-sm font-semibold">Agent timeline</h2>
+          <h2 className="font-heading text-sm font-semibold">How this answer was built</h2>
           {state.iteration > 0 ? (
-            <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[11px] font-medium text-sky-700 dark:text-sky-300">
+            <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-brand">
               Pass {state.iteration + 1}
             </span>
           ) : null}
-          <button
-            type="button"
-            aria-expanded={expanded}
-            aria-controls={listId}
-            onClick={() => setExpanded((v) => !v)}
-            className="ml-auto rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {expanded ? "Hide steps" : "Show steps"}
-          </button>
+          <div className="ml-auto flex items-center gap-1">
+            {expanded ? (
+              <button
+                type="button"
+                aria-pressed={technical}
+                onClick={() => setTechnical((v) => !v)}
+                className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Technical details
+              </button>
+            ) : null}
+            <button
+              type="button"
+              aria-expanded={expanded}
+              aria-controls={listId}
+              onClick={() => setExpanded((v) => !v)}
+              className="rounded-md px-2 py-1 text-xs font-medium text-brand hover:bg-brand-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {expanded ? "Hide steps" : "Show steps"}
+            </button>
+          </div>
         </header>
 
         <p aria-live="polite" aria-atomic="true" className="mt-1 text-xs text-muted-foreground">
@@ -201,6 +230,7 @@ export function AgentTimeline({ state, reducedMotion = "user", className }: Agen
                     node={state.nodes[name]}
                     state={state}
                     reduce={reduce}
+                    technical={technical}
                     open={open.includes(name)}
                     onToggle={() => toggleNode(name)}
                   />
@@ -211,14 +241,17 @@ export function AgentTimeline({ state, reducedMotion = "user", className }: Agen
         ) : null}
 
         {state.phase === "failed" && state.error ? (
-          <p className="mt-3 rounded-lg border border-destructive/40 px-3 py-2 text-xs">
-            The agent stopped: {state.error.code}
-            {state.error.message ? ` (${state.error.message})` : ""}.
+          <p className="mt-3 rounded-lg border border-broken/40 bg-broken-soft px-3 py-2 text-xs">
+            The agent stopped before finishing
+            {technical
+              ? `: ${state.error.code}${state.error.message ? ` (${state.error.message})` : ""}`
+              : ""}
+            .
           </p>
         ) : null}
 
         {answer && answer.status !== "answered" ? (
-          <div className="mt-3 rounded-lg border border-amber-500/40 px-3 py-2">
+          <div className="mt-3 rounded-lg border border-changed/40 px-3 py-2">
             <h3 className="text-sm font-semibold">
               {answer.status === "refused"
                 ? "Refused: declined to answer"
@@ -253,19 +286,21 @@ function NodeRow({
   node,
   state,
   reduce,
+  technical,
   open,
   onToggle,
 }: {
   node: NodeState;
   state: TimelineState;
   reduce: boolean;
+  technical: boolean;
   open: boolean;
   onToggle: () => void;
 }) {
   const detailsId = useId();
   const order = state.lit.indexOf(node.name);
   const label = stepLabel(node.name);
-  const statusText = nodeStatusText(node, state);
+  const statusText = nodeStatusText(node, state, technical);
   const showRuns =
     node.name === "re_retrieve" ? node.runs > 0 : node.name !== "subagent" && node.runs > 1;
 
@@ -309,7 +344,7 @@ function NodeRow({
         {showRuns ? (
           <span className="rounded bg-muted px-1 text-[11px] tabular-nums">×{node.runs}</span>
         ) : null}
-        {node.tMs !== null ? (
+        {technical && node.tMs !== null ? (
           <span className="ml-auto text-[11px] tabular-nums text-muted-foreground">
             {seconds(node.tMs)}
           </span>
@@ -318,14 +353,14 @@ function NodeRow({
 
       {open ? (
         <ul id={detailsId} className="mt-1 ml-1 text-xs text-muted-foreground">
-          {describeNode(node, state).map((line) => (
+          {describeNode(node, state, technical).map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
       ) : null}
 
       {node.name === "subagent" && state.branches.length ? (
-        <Branches branches={state.branches} reduce={reduce} />
+        <Branches branches={state.branches} reduce={reduce} technical={technical} />
       ) : null}
       {node.name === "verify" && state.claims.length ? (
         <ClaimChecks claims={state.claims} reduce={reduce} />
@@ -334,7 +369,25 @@ function NodeRow({
   );
 }
 
-function Branches({ branches, reduce }: { branches: BranchState[]; reduce: boolean }) {
+function branchResult(branch: BranchState, technical: boolean): string {
+  if (branch.status !== "done" || branch.kept === null || branch.retrieved === null) {
+    return STATUS_TEXT[branch.status];
+  }
+  if (technical) {
+    return `${branch.kept} of ${branch.retrieved} kept${branch.reranked === false ? " (not reranked)" : ""}`;
+  }
+  return `Searched ${branch.retrieved} passages, used the ${branch.kept} most relevant`;
+}
+
+function Branches({
+  branches,
+  reduce,
+  technical,
+}: {
+  branches: BranchState[];
+  reduce: boolean;
+  technical: boolean;
+}) {
   return (
     <motion.ul
       layout={!reduce}
@@ -352,8 +405,8 @@ function Branches({ branches, reduce }: { branches: BranchState[]; reduce: boole
             data-status={branch.status}
             className={cn(
               "rounded-lg border px-2 py-1.5 text-xs",
-              branch.status === "active" ? "border-sky-500/60" : "border-border",
-              branch.status === "failed" ? "border-destructive/60" : "",
+              branch.status === "active" ? "border-brand/60" : "border-border",
+              branch.status === "failed" ? "border-broken/60" : "",
             )}
           >
             {/* A single branch searches the question as asked: no need to repeat it. */}
@@ -364,11 +417,7 @@ function Branches({ branches, reduce }: { branches: BranchState[]; reduce: boole
                   ? `Search ${branch.branch + 1}`
                   : "The question as asked"}
             </span>
-            <span className="text-muted-foreground">
-              {branch.status === "done" && branch.kept !== null && branch.retrieved !== null
-                ? `${branch.kept} of ${branch.retrieved} kept${branch.reranked === false ? " (not reranked)" : ""}`
-                : STATUS_TEXT[branch.status]}
-            </span>
+            <span className="text-muted-foreground">{branchResult(branch, technical)}</span>
           </motion.li>
         ))}
       </AnimatePresence>
@@ -406,8 +455,8 @@ function ClaimChecks({ claims, reduce }: { claims: ClaimCheck[]; reduce: boolean
                   claim.verified === null
                     ? "text-muted-foreground"
                     : claim.verified
-                      ? "text-emerald-600"
-                      : "text-destructive",
+                      ? "text-valid"
+                      : "text-broken",
                 )}
               />
             </motion.span>

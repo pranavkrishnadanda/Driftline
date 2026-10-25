@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+
+import { SiteHeader } from "@/components/site-header";
+import { THEME_SCRIPT } from "@/components/theme-toggle";
 
 import { Providers } from "./providers";
 import "./globals.css";
@@ -11,7 +13,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="h-full antialiased">
+    // The theme script sets `dark` on <html> before React hydrates.
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        {/* A constant script (no input): picks light or dark before the first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <a
           href="#main"
@@ -19,13 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <header className="border-b border-border">
-          <div className="mx-auto flex h-14 w-full max-w-6xl items-center px-4">
-            <Link href="/" className="font-heading text-lg font-semibold tracking-tight">
-              Driftline
-            </Link>
-          </div>
-        </header>
+        <SiteHeader />
         <Providers>
           <main id="main" className="flex flex-1 flex-col">
             {children}

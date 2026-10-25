@@ -21,8 +21,8 @@ export const KIND_ORDER: readonly ReviewKind[] = [
 const KIND_LABELS: Record<ReviewKind, string> = {
   low_confidence_answer: "Low-confidence answers",
   broken_answer: "Broken answers",
-  relation: "Relations",
-  answer: "Answers",
+  relation: "Suggested document links",
+  answer: "Regenerated answers",
 };
 
 /** The relation kinds a reviewer may pick (`RELATION_KINDS` in the review queue). */
@@ -46,8 +46,16 @@ export type ItemEdit =
   | { field: "answer"; initial: string }
   | { field: "kind"; initial: string; options: typeof RELATION_KINDS };
 
+/** How an item reads at a glance: a coloured status and what the reviewer should do. */
+export interface ItemStatus {
+  tone: "changed" | "broken" | "brand";
+  label: string;
+  next: string;
+}
+
 export interface ItemView {
   title: string;
+  status: ItemStatus;
   /** The text under review (a draft answer, the affected claims, the evidence). */
   body: string | null;
   facts: { label: string; value: string }[];
@@ -66,9 +74,22 @@ const obj = (value: unknown): Json | null =>
 const percent = (value: number): string => `${Math.round(value * 100)}%`;
 const capitalise = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
+/** Why an item is here, in words (the raw reason codes are internal). */
+const REASONS: Record<string, string> = {
+  low_confidence: "Not confident enough to show",
+  broken: "Its source text was removed",
+  watched_answer: "Regenerated after its sources changed",
+};
+
 function reasonFact(payload: Json): { label: string; value: string }[] {
   const reason = str(payload.reason);
-  return reason ? [{ label: "Reason", value: reason.replaceAll("_", " ") }] : [];
+  return reason ? [{ label: "Why", value: REASONS[reason] ?? reason.replaceAll("_", " ") }] : [];
+}
+
+function confidenceFact(confidence: number | null): { label: string; value: string }[] {
+  if (confidence === null) return [];
+  const level = confidence >= 0.8 ? "High" : confidence >= 0.5 ? "Medium" : "Low";
+  return [{ label: "Confidence", value: `${level} (${percent(confidence)})` }];
 }
 
 function describeAnswer(payload: Json): ItemView {
@@ -77,11 +98,13 @@ function describeAnswer(payload: Json): ItemView {
   const confidence = num(answer?.confidence);
   return {
     title: str(payload.question) ?? "Low-confidence answer",
+    status: {
+      tone: "changed",
+      label: "Needs a second look",
+      next: "Driftline held this answer back. Approve it, correct it, or reject it.",
+    },
     body: text,
-    facts: [
-      ...reasonFact(payload),
-      ...(confidence === null ? [] : [{ label: "Confidence", value: percent(confidence) }]),
-    ],
+    facts: [...reasonFact(payload), ...confidenceFact(confidence)],
     edit: { field: "answer", initial: text ?? "" },
   };
 }
@@ -91,6 +114,11 @@ function describeBroken(payload: Json): ItemView {
   const texts = claims.map((c) => str(obj(c)?.text)).filter((t): t is string => t !== null);
   return {
     title: "A watched answer no longer matches its source",
+    status: {
+      tone: "broken",
+      label: "Broken: the cited text was removed",
+      next: "Approve to rebuild the answer from the current version, edit it yourself, or reject it to retire it.",
+    },
     body: texts.length ? texts.join("\n") : null,
     facts: reasonFact(payload),
     edit: { field: "answer", initial: "" },
@@ -100,7 +128,12 @@ function describeBroken(payload: Json): ItemView {
 function describeRelation(payload: Json): ItemView {
   if (payload.error === "malformed_extraction") {
     return {
-      title: "Relation extraction failed",
+      title: "Couldn't read a document link",
+      status: {
+        tone: "broken",
+        label: "Needs attention",
+        next: "Driftline couldn't work out how this document relates to another. Approve to dismiss, or reject.",
+      },
       body: str(payload.detail),
       facts: [],
       edit: null,
@@ -111,11 +144,16 @@ function describeRelation(payload: Json): ItemView {
   const confidence = num(payload.confidence);
   return {
     title: kind && target ? `${capitalise(kind)} ${target}` : "Proposed relation",
+    status: {
+      tone: "brand",
+      label: "Suggested link",
+      next:
+        kind && target
+          ? `Driftline thinks this document ${kind} ${target}. Approve to record the link, change its kind, or reject it.`
+          : "Approve to record the link, change its kind, or reject it.",
+    },
     body: str(payload.evidence_quote),
-    facts: [
-      ...reasonFact(payload),
-      ...(confidence === null ? [] : [{ label: "Confidence", value: percent(confidence) }]),
-    ],
+    facts: [...reasonFact(payload), ...confidenceFact(confidence)],
     edit: { field: "kind", initial: kind ?? RELATION_KINDS[0], options: RELATION_KINDS },
   };
 }

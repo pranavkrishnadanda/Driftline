@@ -76,8 +76,15 @@ describe("ReviewQueue", () => {
     const groups = screen
       .getAllByRole("region")
       .map((r) => within(r).getByRole("heading", { level: 2 }).textContent);
-    expect(groups).toEqual(["Low-confidence answers", "Broken answers", "Relations", "Answers"]);
-    expect(screen.getByRole("region", { name: "Relations" })).toHaveTextContent("1 item");
+    expect(groups).toEqual([
+      "Low-confidence answers",
+      "Broken answers",
+      "Suggested document links",
+      "Regenerated answers",
+    ]);
+    expect(screen.getByRole("region", { name: "Suggested document links" })).toHaveTextContent(
+      "1 item",
+    );
     expect(api!.requests[0].url).toContain("tenant=demo");
   });
 

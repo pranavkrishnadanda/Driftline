@@ -54,7 +54,8 @@ export function DriftInbox({
         <div>
           <SectionHeading>Drift</SectionHeading>
           <p className="text-sm text-muted-foreground">
-            Watched answers re-checked against each new document version, as it lands.
+            When a document gets a new version, Driftline re-checks the answers that cite it and
+            tells you here which ones still hold.
           </p>
         </div>
         {tenants.length > 1 ? (
@@ -154,9 +155,9 @@ function Inbox({
             aria-hidden="true"
             className={
               stream.status === "open"
-                ? "size-2 rounded-full bg-emerald-500"
+                ? "size-2 rounded-full bg-valid"
                 : streamDown
-                  ? "size-2 rounded-full bg-destructive"
+                  ? "size-2 rounded-full bg-broken"
                   : "size-2 rounded-full bg-muted-foreground"
             }
           />

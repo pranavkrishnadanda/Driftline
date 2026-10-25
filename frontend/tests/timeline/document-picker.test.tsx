@@ -50,8 +50,9 @@ describe("DocumentPicker", () => {
     const list = await screen.findByRole("list", { name: "Recently drifted documents" });
     const links = within(list).getAllByRole("link");
     expect(links.map((a) => [a.textContent, a.getAttribute("href")])).toEqual([
-      ["Metformin label", `/documents/${DOC_ID}?tenant=demo`],
-      [OTHER_DOC_ID, `/documents/${OTHER_DOC_ID}?tenant=demo`],
+      [expect.stringContaining("Metformin label"), `/documents/${DOC_ID}?tenant=demo`],
+      // No title: never a hash id.
+      [expect.stringContaining("Untitled document"), `/documents/${OTHER_DOC_ID}?tenant=demo`],
     ]);
     expect(api.requests[0].url).toBe("/v1/drift/events?tenant=demo&limit=200");
   });
@@ -59,7 +60,7 @@ describe("DocumentPicker", () => {
   it("explains an empty list and keeps the paste form", async () => {
     api = await startApiServer({ "GET /v1/drift/events": { status: 200, json: { events: [] } } });
     render(<DocumentPicker tenants={["demo"]} client={createApiClient({ baseUrl: api.url })} />);
-    expect(await screen.findByText(/No drift events yet/)).toBeInTheDocument();
+    expect(await screen.findByText(/No documents have changed yet/)).toBeInTheDocument();
     const form = screen.getByRole("form", { name: "Open a document" });
     expect(form).toHaveAttribute("action", "/timeline");
     expect(form).toHaveAttribute("method", "get");
@@ -92,7 +93,7 @@ describe("DocumentPicker", () => {
       "aria-invalid",
       "true",
     );
-    expect(screen.getByText(/“not-a-uuid” is not a document id/)).toBeInTheDocument();
+    expect(screen.getByText(/“not-a-uuid” doesn't look like a document ID/)).toBeInTheDocument();
   });
 });
 

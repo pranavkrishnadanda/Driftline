@@ -20,6 +20,43 @@ const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.-/&!?";
 const FLIP = 56;
 /** Tiles start a beat apart, left to right. */
 const STAGGER = 40;
+/**
+ * Driftline: the most flaps a tile falls through to reach its letter. A longer trip
+ * starts this many flaps short of the target. Without the cap a trip round the whole
+ * drum took up to 44 flaps (2.5 s plus stagger), longer than the board's interval, so
+ * the next word arrived mid-trip and the board showed half-turned dates such as
+ * "2025-0/-00".
+ */
+const MAX_FLAPS = 6;
+/** Digits only turn through digits, so a date never shows punctuation mid-flip. */
+const DIGITS = "0123456789";
+/**
+ * If a trip has run this long (timers throttled in a background tab), the tile shows
+ * its letter at once instead of crawling on.
+ */
+const TRIP_BUDGET = MAX_FLAPS * FLIP * 4;
+
+/** The drum a tile turns through between two characters. */
+function drumFor(from: string, to: string): string {
+  return DIGITS.includes(from) && DIGITS.includes(to) ? DIGITS : CHARSET;
+}
+
+/**
+ * The next character a tile shows on its way from `from` to `to`: one flap forward on
+ * the drum, but never more than MAX_FLAPS from the target.
+ */
+export function nextFlap(from: string, to: string): string {
+  if (from === to) return to;
+  const drum = drumFor(from, to);
+  const at = drum.indexOf(from);
+  const target = drum.indexOf(to);
+  if (at < 0 || target < 0) return to;
+  const distance = (target - at + drum.length) % drum.length;
+  if (distance > MAX_FLAPS) {
+    return drum[(target - MAX_FLAPS + drum.length) % drum.length];
+  }
+  return drum[(at + 1) % drum.length];
+}
 
 export interface SplitFlapTextProps {
   /** Show this text. Leave out to cycle through `words`. */
@@ -105,15 +142,18 @@ function Tile({
     }
     let timer: ReturnType<typeof setTimeout>;
     let id = 0;
+    let started = 0;
     // Step through the drum one flap at a time until the target is up.
     const step = () => {
       const from = shownRef.current;
-      if (from === target) {
+      if (from === target || (started && Date.now() - started > TRIP_BUDGET)) {
+        shownRef.current = target;
         setShown(target);
         setFlip(null);
         return;
       }
-      const to = CHARSET[(CHARSET.indexOf(from) + 1) % CHARSET.length];
+      if (!started) started = Date.now();
+      const to = nextFlap(from, target);
       id += 1;
       setFlip({ id, from, to });
       timer = setTimeout(() => {
@@ -133,6 +173,10 @@ function Tile({
       return;
     }
     const half = FLIP / 2;
+    // Driftline: Web Animations is missing in some test environments (jsdom).
+    if (typeof Element === "undefined" || typeof Element.prototype.animate !== "function") {
+      return;
+    }
     topRef.current?.animate([{ transform: "rotateX(0deg)" }, { transform: "rotateX(-90deg)" }], {
       duration: half,
       easing: "cubic-bezier(0.5, 0, 0.9, 0.6)",
@@ -157,6 +201,9 @@ function Tile({
   return (
     <span
       aria-hidden="true"
+      // Driftline: the letter showing now (tests read the settled board from this).
+      data-char={front}
+      data-flipping={flip && !reduceMotion ? "" : undefined}
       className={cn(
         "relative inline-block h-[1.15em] w-[0.72em] rounded-[0.12em] bg-zinc-900 text-zinc-50 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.06)] [perspective:5em]",
         className,

@@ -28,6 +28,12 @@ function formatDay(iso: string): string {
   return Number.isNaN(at) ? iso : DATE_FORMAT.format(at);
 }
 
+const TONE: Record<"changed" | "broken" | "brand", string> = {
+  changed: "bg-changed-soft text-changed",
+  broken: "bg-broken-soft text-broken",
+  brand: "bg-brand-soft text-brand",
+};
+
 export function ReviewItemCard({ item, highlighted = false, onResolve }: ReviewItemCardProps) {
   const view = describeItem(item);
   const headingId = useId();
@@ -82,14 +88,24 @@ export function ReviewItemCard({ item, highlighted = false, onResolve }: ReviewI
         highlighted && "ring-2 ring-primary/60",
       )}
     >
-      <header className="flex flex-col gap-0.5">
+      <header className="flex flex-col gap-1.5">
+        <span
+          className={cn(
+            "inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium",
+            TONE[view.status.tone],
+          )}
+        >
+          {view.status.label}
+        </span>
         <h3 id={headingId} className="font-heading text-base font-semibold">
           {view.title}
         </h3>
         <p className="text-xs text-muted-foreground">
-          Queued <time dateTime={item.created_at}>{formatDay(item.created_at)}</time>
+          Added <time dateTime={item.created_at}>{formatDay(item.created_at)}</time>
         </p>
       </header>
+
+      <p className="text-sm text-muted-foreground">{view.status.next}</p>
 
       {view.body ? (
         <p className="rounded-md bg-muted/50 p-3 text-sm whitespace-pre-wrap">{view.body}</p>

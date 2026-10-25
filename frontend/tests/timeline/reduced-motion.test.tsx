@@ -37,8 +37,8 @@ describe("reduced motion", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Metformin label" })).toBeVisible();
     expect(screen.getByRole("slider", { name: "Version" })).toBeVisible();
     expect(screen.getByRole("region", { name: "v1 is the first version" })).toBeVisible();
-    expect(screen.getByRole("region", { name: "Supersession" })).toBeVisible();
-    expect(screen.getByRole("list", { name: "Declared by this document" })).toBeVisible();
+    expect(screen.getByRole("region", { name: "Related documents" })).toBeVisible();
+    expect(screen.getByRole("list", { name: "This document points to" })).toBeVisible();
   });
 
   it("animates the scrubber with anime.js when motion is allowed", async () => {
