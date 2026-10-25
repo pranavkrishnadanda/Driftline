@@ -20,7 +20,9 @@
     "gen:api": "openapi-typescript ${DRIFTLINE_OPENAPI_URL:-http://localhost:8010/openapi.json} -o src/lib/api/schema.d.ts",
     "gen:api:file": "openapi-typescript ../contracts/openapi.json -o src/lib/api/schema.d.ts",
     "gen:sse": "bun scripts/gen-sse-types.mjs",
-    "test:e2e:stub": "playwright test -c playwright.stub.config.ts"
+    "test:e2e:stub": "playwright test -c playwright.stub.config.ts",
+    "test:e2e:demo": "playwright test -c playwright.demo.config.ts",
+    "build:demo": "NEXT_PUBLIC_DRIFTLINE_DEMO=1 bun --bun next build"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

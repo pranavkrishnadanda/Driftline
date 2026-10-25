@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* The recorded demo's data is text, not markup: its words must not become utilities. */
+@source not "../../public/demo";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 /* React Flow's base styles (supersession graph); imported after Tailwind as its docs ask. */
