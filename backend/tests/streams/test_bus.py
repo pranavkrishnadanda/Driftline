@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from driftline.streams.bus import StreamBus
@@ -103,3 +105,43 @@ async def test_invalid_json_is_dead_lettered(bus, redis_client):
     assert seen == []
     assert result.dead_lettered == 1
     assert len(await redis_client.xrange(f"dlq:{STREAM}")) == 1
+
+
+async def test_keepalive_holds_the_claim_while_the_handler_runs(bus, redis_client):
+    stolen = []
+
+    async def steal(msg_id, _):
+        stolen.append(msg_id)
+
+    async def slow(_, __):
+        for _ in range(3):
+            await asyncio.sleep(0.15)  # longer than the reclaim threshold below
+            await bus.reclaim_once(STREAM, GROUP, "c2", steal, min_idle_ms=100)
+
+    await bus.publish(STREAM, {"x": 1})
+    result = await bus.consume_once(STREAM, GROUP, "c1", slow, keepalive_ms=30)
+    assert result.processed == 1
+    assert stolen == []
+    assert (await redis_client.xpending(STREAM, GROUP))["pending"] == 0
+
+
+async def test_keepalive_does_not_count_as_a_delivery(bus, redis_client):
+    async def slow_then_fail(_, __):
+        await asyncio.sleep(0.2)
+        raise RuntimeError("handler failed")
+
+    msg_id = await bus.publish(STREAM, {"x": 1})
+    result = await bus.consume_once(STREAM, GROUP, "c1", slow_then_fail, keepalive_ms=20)
+    assert result.failed == 1
+    info = await redis_client.xpending_range(STREAM, GROUP, min=msg_id, max=msg_id, count=1)
+    assert info[0]["times_delivered"] == 1  # still pending, delivered exactly once
+
+
+async def test_keepalive_stops_when_the_handler_ends(bus):
+    async def quick(_, __):
+        await asyncio.sleep(0.05)
+
+    await bus.publish(STREAM, {"x": 1})
+    before = set(asyncio.all_tasks())
+    await bus.consume_once(STREAM, GROUP, "c1", quick, keepalive_ms=10)
+    assert set(asyncio.all_tasks()) - before == set()

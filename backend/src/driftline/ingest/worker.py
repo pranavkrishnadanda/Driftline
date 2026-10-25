@@ -22,13 +22,14 @@ from driftline.ingest.embed import EmbedStage
 from driftline.ingest.store import load_cursor, save_cursor, upsert_version
 from driftline.ingest.supersession import SupersessionExtractor
 from driftline.ingest.types import Connector, SourceFetchError
-from driftline.streams.bus import StreamBus
+from driftline.streams.bus import StreamBus, keepalive_interval_ms
 
 INGEST_STREAM = "ingest"
 EMBED_STREAM = "embed"
 INGEST_GROUP = "ingest-workers"
 EMBED_GROUP = "embed-workers"
 RECLAIM_IDLE_MS = 60_000  # spec section 3: reclaim stalled messages after 60 s
+KEEPALIVE_MS = keepalive_interval_ms(RECLAIM_IDLE_MS)
 DEDUPE_TTL_S = 7 * 24 * 3600
 
 ConnectorFactory = Callable[[str, dict[str, Any]], Connector]
@@ -186,11 +187,18 @@ class IngestWorker:
             (INGEST_STREAM, INGEST_GROUP, self.handle_ingest),
             (EMBED_STREAM, EMBED_GROUP, self.handle_embed),
         ):
+            # Fetching a large source or embedding and extracting a long version can outlast
+            # the reclaim window: keep the claim alive so no other worker reruns it.
             result = await self._bus.consume_once(
-                stream, group, self._consumer, handler, block_ms=block_ms
+                stream, group, self._consumer, handler, block_ms=block_ms, keepalive_ms=KEEPALIVE_MS
             )
             reclaimed = await self._bus.reclaim_once(
-                stream, group, self._consumer, handler, min_idle_ms=RECLAIM_IDLE_MS
+                stream,
+                group,
+                self._consumer,
+                handler,
+                min_idle_ms=RECLAIM_IDLE_MS,
+                keepalive_ms=KEEPALIVE_MS,
             )
             processed += result.processed + reclaimed.processed
         return processed
