@@ -1,0 +1,17 @@
+# US prescription drug labels (FDA prescribing information, e.g. from openFDA / DailyMed).
+name: pharma
+version: 1.0.0
+description: >-
+  US FDA prescription drug labeling in the PLR format (21 CFR 201.56-201.57): numbered
+  label sections, boxed warnings, contraindications and safety labeling changes.
+retrieval:
+  # Labels repeat the same terms across many sections: search wider before fusing.
+  candidates: 40
+  rerank_top_n: 8
+  rrf_k: 60
+chunking:
+  chunk_tokens: 256
+  overlap_tokens: 32
+prompts:
+  plan: prompts/plan.md
+  draft: prompts/draft.md

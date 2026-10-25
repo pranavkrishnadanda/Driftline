@@ -1,0 +1,18 @@
+# Kubernetes docs, release notes (CHANGELOG) and the deprecated API migration guide.
+name: k8s
+version: 1.0.0
+description: >-
+  Kubernetes releases and API lifecycle: alpha, beta and GA features, feature gates, API
+  versions, deprecations and removals across minor releases.
+retrieval:
+  # Release notes are many short entries; RRF over both searches works well as is.
+  candidates: 30
+  rerank_top_n: 8
+  rrf_k: 60
+chunking:
+  # Changelog entries are short: smaller chunks keep one entry per chunk more often.
+  chunk_tokens: 192
+  overlap_tokens: 24
+prompts:
+  plan: prompts/plan.md
+  draft: prompts/draft.md

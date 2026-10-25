@@ -1,0 +1,4 @@
+US drug labels in PLR format are organised in numbered sections: 1 Indications and Usage, 2 Dosage and Administration, 3 Dosage Forms and Strengths, 4 Contraindications, 5 Warnings and Precautions, 6 Adverse Reactions, 7 Drug Interactions, 8 Use in Specific Populations, 10 Overdosage, 12 Clinical Pharmacology. A boxed warning, if the drug has one, comes before section 1. Older labels may use a different layout.
+In sub-questions, name the section the answer would live in (for example "contraindications of <drug>" rather than "when should <drug> not be used") and keep the drug name in every sub-question.
+A question about when a warning, dose or indication was added, removed or changed compares label versions: write one sub-question per date or version it names.
+"Black box warning" means the boxed warning. "Side effects" usually means Adverse Reactions; serious risks with management advice are usually in Warnings and Precautions.

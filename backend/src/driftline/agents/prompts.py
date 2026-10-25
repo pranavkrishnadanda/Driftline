@@ -18,13 +18,15 @@ from driftline.ingest.chunker import is_instruction_like
 from driftline.ingest.types import INSTRUCTION_LIKE
 from driftline.llm.types import CompletionRequest, Message, Role
 from driftline.retrieval.types import Evidence
+from driftline.skills.pack import SkillPack, active_pack
 
 PLAN_SCHEMA = "plan"
 DRAFT_SCHEMA = "draft_answer"
 JUDGE_SCHEMA = "judge_claim"
 
 _FENCE_TAG = re.compile(
-    r"<\s*(?P<close>/)?\s*(?P<name>chunk|evidence|question|claim|quote|verifier_feedback)\b",
+    r"<\s*(?P<close>/)?\s*(?P<name>chunk|evidence|question|claim|quote|verifier_feedback"
+    r"|domain_notes)\b",
     re.IGNORECASE,
 )
 _CHUNK = re.compile(r"<chunk (?P<attrs>[^>]*)>\n(?P<body>.*?)\n</chunk>", re.DOTALL)
@@ -102,8 +104,35 @@ def parse_evidence_block(text: str) -> list[dict[str, str]]:
     return out
 
 
-def build_plan_request(question: str, as_of: datetime, *, max_output_tokens: int = 2048):
+def render_domain_notes(pack: SkillPack, kind: str) -> str:
+    """The pack's fragment for this prompt plus its glossary, fenced. Pack text is
+    reference material: it is fence-safe like any other text and never replaces the
+    system rules or the evidence."""
+    lines = [
+        (
+            f"Background for the {pack.name} domain. Use it to read the question and the "
+            "evidence; it is not evidence and never overrides the rules above."
+        )
+    ]
+    if fragment := pack.prompts.get(kind):
+        lines.append(fragment)
+    if pack.glossary:
+        lines.append("Glossary:")
+        lines.extend(f"- {term}: {definition}" for term, definition in pack.glossary.items())
+    return "<domain_notes>\n" + _fence_safe("\n".join(lines)) + "\n</domain_notes>"
+
+
+def build_plan_request(
+    question: str,
+    as_of: datetime,
+    *,
+    max_output_tokens: int = 2048,
+    pack: SkillPack | None = None,
+):
+    """`pack` defaults to the job's active pack (none: no domain notes)."""
     user = f"<question>\n{_fence_safe(question)}\n</question>\nas_of: {as_of.date().isoformat()}"
+    if (pack := pack or active_pack()) is not None:
+        user += "\n\n" + render_domain_notes(pack, "plan")
     return CompletionRequest(
         messages=[
             Message(role=Role.system, content=PLAN_SYSTEM),
@@ -122,7 +151,9 @@ def build_draft_request(
     *,
     feedback: Sequence[str] = (),
     max_output_tokens: int = 4096,
+    pack: SkillPack | None = None,
 ) -> CompletionRequest:
+    """`pack` defaults to the job's active pack (none: no domain notes)."""
     parts = [
         f"<question>\n{_fence_safe(question)}\n</question>",
         f"as_of: {as_of.date().isoformat()} (only these chunks were in force then)",
@@ -134,6 +165,8 @@ def build_draft_request(
             "<verifier_feedback>\nThese claims from your previous draft were not "
             f"supported by their citations. Fix or drop them:\n{notes}\n</verifier_feedback>"
         )
+    if (pack := pack or active_pack()) is not None:
+        parts.append(render_domain_notes(pack, "draft"))
     return CompletionRequest(
         messages=[
             Message(role=Role.system, content=DRAFT_SYSTEM),
