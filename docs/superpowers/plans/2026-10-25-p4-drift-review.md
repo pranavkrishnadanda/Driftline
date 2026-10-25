@@ -224,3 +224,9 @@ Same as P3. In short:
 - Use the latest major versions of every action (verify with `gh api repos/<o>/<r>/releases/latest`).
 
 **Final P4 gate:** the full suite; ruff; the no-mock grep; `git log --format=%B | grep -ci co-authored` = 0; push; CI green; trigger `drift-watch.yml` once with `gh workflow run` and report the result.
+
+## Follow-ups from Wave 0
+
+- **T5:** `ingest/supersession.py` inserts `review_items` without `tenant_id`, so the column is nullable for now. Set `tenant_id` there (from the source of the new version), add a test, then add migration `0005` making `review_items.tenant_id` NOT NULL.
+- **T2 and T5:** nothing on main writes `answers`/`answer_citations` until P3 T9 (the agent worker persists the final answer). Until then, tests use `dbseed.seed_watched_answer(conn, tenant_id, version_id, chunk_ids, claims, *, question, as_of, confidence)`, where `claims` is a list of `(text, quote)` pairs and claim i cites `chunk_ids[i]`.
+- `AlertEvent` lives in `ALERT_EVENT_ADAPTER = AlertEvent | ErrorEvent`, not in `ASK_EVENT_ADAPTER`.
