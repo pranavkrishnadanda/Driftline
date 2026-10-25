@@ -122,3 +122,6 @@ Same as P3, plus:
   - **Bench must win over offline.** `agents/__main__.py:build_agent_router` checks `llm_offline` before `build_router`, so with both set the bench stub never runs. Make `llm_bench` take precedence there.
   - **Per-worker seeds.** Every worker process with the same `llm_bench_seed` draws the same latency sequence. Derive a per-worker seed (`seed ^ hash(consumer)`) so workers aren't lock-stepped. Pin both with tests.
 - **`GoldenCase` rules:** `as_of` is a `date`, `expected_version_ids` are UUIDs (non-empty unless `kind == "not_in_corpus"`), and `golden_from_seed` rejects unfilled seeds.
+- **T4 (baseline fairness):** `plain_rag` currently reuses the Driftline draft prompt, which tells the model "only these chunks were in force then". That's false for the unfiltered baseline and makes the comparison unfair to it. Give `plain_rag` a neutral prompt ("these chunks were retrieved; answer from them with citations") and keep everything else identical. Pin it with a test asserting the baseline prompt makes no claim about in-force status. The README and report must describe each baseline's exact setup.
+- **T4:** extend `tests/eval/test_compare.py` (created in T2), and record the judge cassette for `faithfulness_judge`.
+- `eval_runs.metrics` stores `{"system": ..., "metrics": {...}}`, with no separate column.
