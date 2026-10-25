@@ -300,14 +300,20 @@
             "title": "Source Kinds"
           },
           "tenant": {
-            "minLength": 1,
-            "title": "Tenant",
-            "type": "string"
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant"
           }
         },
         "required": [
-          "question",
-          "tenant"
+          "question"
         ],
         "title": "AskRequest",
         "type": "object"
@@ -1143,6 +1149,13 @@
         "title": "WatchState",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "description": "Per-tenant API key",
+        "scheme": "bearer",
+        "type": "http"
+      }
     }
   },
   "info": {
@@ -1194,18 +1207,6 @@
         "operationId": "alerts_v1_alerts_stream_get",
         "parameters": [
           {
-            "description": "tenant name",
-            "in": "query",
-            "name": "tenant",
-            "required": true,
-            "schema": {
-              "description": "tenant name",
-              "minLength": 1,
-              "title": "Tenant",
-              "type": "string"
-            }
-          },
-          {
             "in": "query",
             "name": "last_event_id",
             "required": false,
@@ -1219,6 +1220,25 @@
                 }
               ],
               "title": "Last Event Id"
+            }
+          },
+          {
+            "description": "tenant name; optional with a bearer key, which must then match it",
+            "in": "query",
+            "name": "tenant",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tenant name; optional with a bearer key, which must then match it",
+              "title": "Tenant"
             }
           },
           {
@@ -1249,6 +1269,12 @@
             },
             "description": "Server-sent events: `id: <n>`, `event: <type>`, `data: <JSON>`; `: ping` heartbeats; open-ended: one `alert` per drift verdict on a watched answer. Reconnect with Last-Event-ID to replay missed events."
           },
+          "401": {
+            "description": "missing or invalid API key"
+          },
+          "403": {
+            "description": "the API key is not the named tenant's"
+          },
           "404": {
             "description": "unknown tenant"
           },
@@ -1266,6 +1292,11 @@
             "description": "too many open streams"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Drift alerts for a tenant (SSE)",
         "tags": [
           "drift"
@@ -1287,15 +1318,22 @@
             }
           },
           {
-            "description": "tenant name",
+            "description": "tenant name; optional with a bearer key, which must then match it",
             "in": "query",
             "name": "tenant",
-            "required": true,
+            "required": false,
             "schema": {
-              "description": "tenant name",
-              "minLength": 1,
-              "title": "Tenant",
-              "type": "string"
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tenant name; optional with a bearer key, which must then match it",
+              "title": "Tenant"
             }
           }
         ],
@@ -1309,6 +1347,12 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "description": "missing or invalid API key"
+          },
+          "403": {
+            "description": "the API key is not the named tenant's"
           },
           "404": {
             "description": "unknown tenant, or not found in this tenant"
@@ -1324,6 +1368,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Unwatch",
         "tags": [
           "drift"
@@ -1344,15 +1393,22 @@
             }
           },
           {
-            "description": "tenant name",
+            "description": "tenant name; optional with a bearer key, which must then match it",
             "in": "query",
             "name": "tenant",
-            "required": true,
+            "required": false,
             "schema": {
-              "description": "tenant name",
-              "minLength": 1,
-              "title": "Tenant",
-              "type": "string"
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tenant name; optional with a bearer key, which must then match it",
+              "title": "Tenant"
             }
           }
         ],
@@ -1366,6 +1422,12 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "description": "missing or invalid API key"
+          },
+          "403": {
+            "description": "the API key is not the named tenant's"
           },
           "404": {
             "description": "unknown tenant, or not found in this tenant"
@@ -1381,6 +1443,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Watch",
         "tags": [
           "drift"
@@ -1411,6 +1478,12 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "description": "missing or invalid API key"
+          },
+          "403": {
+            "description": "the API key is not the named tenant's"
+          },
           "404": {
             "description": "unknown tenant"
           },
@@ -1428,6 +1501,11 @@
             "description": "backpressure"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Ask",
         "tags": [
           "ask"
@@ -1450,15 +1528,22 @@
             }
           },
           {
-            "description": "tenant name",
+            "description": "tenant name; optional with a bearer key, which must then match it",
             "in": "query",
             "name": "tenant",
-            "required": true,
+            "required": false,
             "schema": {
-              "description": "tenant name",
-              "minLength": 1,
-              "title": "Tenant",
-              "type": "string"
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tenant name; optional with a bearer key, which must then match it",
+              "title": "Tenant"
             }
           }
         ],
@@ -1473,6 +1558,12 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "description": "missing or invalid API key"
+          },
+          "403": {
+            "description": "the API key is not the named tenant's"
+          },
           "404": {
             "description": "unknown tenant, or not found in this tenant"
           },
@@ -1487,6 +1578,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Timeline",
         "tags": [
           "drift"
@@ -1499,18 +1595,6 @@
         "operationId": "drift_events_v1_drift_events_get",
         "parameters": [
           {
-            "description": "tenant name",
-            "in": "query",
-            "name": "tenant",
-            "required": true,
-            "schema": {
-              "description": "tenant name",
-              "minLength": 1,
-              "title": "Tenant",
-              "type": "string"
-            }
-          },
-          {
             "in": "query",
             "name": "limit",
             "required": false,
@@ -1520,6 +1604,25 @@
               "minimum": 1,
               "title": "Limit",
               "type": "integer"
+            }
+          },
+          {
+            "description": "tenant name; optional with a bearer key, which must then match it",
+            "in": "query",
+            "name": "tenant",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tenant name; optional with a bearer key, which must then match it",
+              "title": "Tenant"
             }
           }
         ],
@@ -1534,6 +1637,12 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "description": "missing or invalid API key"
+          },
+          "403": {
+            "description": "the API key is not the named tenant's"
+          },
           "404": {
             "description": "unknown tenant, or not found in this tenant"
           },
@@ -1548,6 +1657,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Drift Events",
         "tags": [
           "drift"
@@ -1567,6 +1681,25 @@
               "title": "Job Id",
               "type": "string"
             }
+          },
+          {
+            "description": "tenant name; optional with a bearer key, which must then match it",
+            "in": "query",
+            "name": "tenant",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tenant name; optional with a bearer key, which must then match it",
+              "title": "Tenant"
+            }
           }
         ],
         "responses": {
@@ -1579,6 +1712,12 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "description": "missing or invalid API key"
+          },
+          "403": {
+            "description": "the API key is not the named tenant's"
           },
           "404": {
             "description": "Not Found"
@@ -1594,6 +1733,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Job Status",
         "tags": [
           "ask"
@@ -1628,6 +1772,25 @@
                 }
               ],
               "title": "Last Event Id"
+            }
+          },
+          {
+            "description": "tenant name; optional with a bearer key, which must then match it",
+            "in": "query",
+            "name": "tenant",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tenant name; optional with a bearer key, which must then match it",
+              "title": "Tenant"
             }
           },
           {
@@ -1675,6 +1838,11 @@
             "description": "too many open streams"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Events",
         "tags": [
           "ask"

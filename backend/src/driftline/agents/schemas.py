@@ -106,7 +106,8 @@ class AskRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     question: str = Field(min_length=1, max_length=2000)
-    tenant: str = Field(min_length=1)
+    # Optional with a bearer API key (which must then be this tenant's key).
+    tenant: str | None = Field(default=None, min_length=1)
     as_of: datetime | None = None
     source_kinds: list[SourceKind] | None = None
 

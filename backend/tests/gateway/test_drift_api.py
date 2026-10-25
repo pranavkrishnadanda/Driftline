@@ -210,7 +210,7 @@ async def test_alert_stream_limit_is_shared_with_ask_streams_and_unknown_tenant_
     url = "/v1/alerts/stream?tenant=pharma"
     async with serve(app) as base, httpx.AsyncClient(base_url=base, timeout=10) as client:
         assert (await get(client, "/v1/alerts/stream?tenant=nobody")).status_code == 404
-        assert (await get(client, "/v1/alerts/stream")).status_code == 422
+        assert (await get(client, "/v1/alerts/stream")).status_code == 401  # no tenant, no key
         async with client.stream("GET", url) as r:
             reader = FrameReader(r)
             await reader.until(lambda fs: len(fs) >= 1)
