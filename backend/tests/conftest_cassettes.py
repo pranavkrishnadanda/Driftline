@@ -4,9 +4,26 @@ This is a skip, not a mock: as soon as the cassette file exists (or recording is
 enabled with ``--record-mode``), the test runs the real adapter code.
 """
 
+import re
 from pathlib import Path
+from typing import Any
 
 import pytest
+
+# Response headers that identify the recording account. They are not secrets, but they
+# have no place in a public repo and replay never needs them.
+_ACCOUNT_HEADER = re.compile(
+    r"^(anthropic-organization-id|anthropic-workspace-id|request-id|cf-ray|x-goog-.*project.*)$",
+    re.IGNORECASE,
+)
+
+
+def scrub_response_headers(response: dict[str, Any]) -> dict[str, Any]:
+    """vcrpy ``before_record_response`` hook: drop account-identifying response headers."""
+    headers = response.get("headers")
+    if headers:
+        response["headers"] = {k: v for k, v in headers.items() if not _ACCOUNT_HEADER.match(k)}
+    return response
 
 
 def _provider_name(module_name: str) -> str:

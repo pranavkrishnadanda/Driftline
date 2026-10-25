@@ -1,6 +1,7 @@
 import os
 
 import pytest
+from conftest_cassettes import scrub_response_headers
 from google.genai import types as gtypes
 
 from driftline.llm.adapters.gemini import GeminiAdapter, _result_text
@@ -16,6 +17,7 @@ def vcr_config():
     return {
         "filter_headers": ["x-goog-api-key", "authorization"],
         "filter_query_parameters": ["key"],
+        "before_record_response": scrub_response_headers,
         "match_on": ["method", "scheme", "host", "path"],
     }
 

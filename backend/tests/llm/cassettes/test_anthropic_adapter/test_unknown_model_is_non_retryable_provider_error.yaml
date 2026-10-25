@@ -47,14 +47,8 @@ interactions:
         lUJyTmJpSqpuSn5qsS5QuW5qRWZxiW5FZZVSrY5SUWphaWpxSXxmClADkBNvYGjonO7nYh6VkucY
         ZmbkZZoZVlBVmJmvVAsA0GsPxIwAAAA=
     headers:
-      anthropic-organization-id:
-      - e0510282-6d40-47cb-b151-dcef383cb0bb
-      anthropic-workspace-id:
-      - wrkspc_01BTfLLtez7HAeLJDHwXPHZT
       cf-cache-status:
       - DYNAMIC
-      cf-ray:
-      - a4fdf9b058314981-MAA
       connection:
       - keep-alive
       content-encoding:
@@ -65,8 +59,6 @@ interactions:
       - application/json
       date:
       - Sun, 25 Oct 2026 03:01:12 GMT
-      request-id:
-      - req_011CgND7ZdnAV62J5iVpzqio
       server:
       - cloudflare
       server-timing:
