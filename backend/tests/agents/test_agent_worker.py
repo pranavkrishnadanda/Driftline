@@ -44,8 +44,10 @@ async def setup(fresh_pool, fresh_conn, redis_client, checkpointer, embedder_url
     )
     await embed_all(fresh_conn, embedder_url)
 
-    def make(script=None, *, checkpointed=True, clock=None, reclaim_idle_ms=60_000):
-        det = DeterministicAdapter("det", script=script, responder=ExtractiveResponder())
+    def make(script=None, *, checkpointed=True, clock=None, reclaim_idle_ms=60_000, latency_ms=0.0):
+        det = DeterministicAdapter(
+            "det", script=script, responder=ExtractiveResponder(), latency_ms=latency_ms
+        )
         tiers = {t: [Route("det", f"det-{t}")] for t in ("extract", "answer", "judge")}
         router = LLMRouter(
             providers={"det": det, "tei": TEIEmbeddingAdapter(embedder_url)},
@@ -142,6 +144,37 @@ async def test_redelivered_finished_job_is_not_rerun(setup, fresh_conn, redis_cl
     assert det.calls == calls
     assert await AskEventLog(redis_client).last_id(job.job_id) == events_before
     assert await fresh_conn.fetchval("SELECT count(*) FROM answers") == 1
+
+
+async def test_running_ask_keeps_its_claim_so_no_other_worker_reclaims_it(
+    setup, fresh_conn, redis_client
+):
+    # Each LLM call sleeps in real time, outlasting the 300 ms reclaim threshold.
+    det, worker, bus = setup["make"](reclaim_idle_ms=300, latency_ms=700)
+    await worker.setup()
+    job = await enqueue(fresh_conn, bus, setup["tenant"])
+    first = asyncio.create_task(worker.run_once())
+    stolen = []
+
+    async def second_worker(msg_id, payload):
+        stolen.append(msg_id)
+
+    deadline = time.monotonic() + 60
+    while not det.calls and time.monotonic() < deadline:
+        await asyncio.sleep(0.02)
+    assert det.calls, "the first worker never reached the LLM"
+    passes = 0
+    while time.monotonic() < deadline:
+        await asyncio.sleep(0.45)  # longer than reclaim_idle_ms
+        if first.done():
+            break
+        await bus.reclaim_once(AGENT_STREAM, AGENT_GROUP, "w2", second_worker, min_idle_ms=300)
+        passes += 1
+    assert passes >= 1, "the first worker finished before any reclaim pass ran"
+    assert stolen == []
+    assert await first == 1
+    assert (await job_row(fresh_conn, job.job_id))["status"] == "succeeded"
+    assert (await redis_client.xpending(AGENT_STREAM, AGENT_GROUP))["pending"] == 0
 
 
 async def test_llm_outage_fails_the_job_with_a_terminal_error(setup, fresh_conn, redis_client):

@@ -17,7 +17,7 @@ from driftline.agents.schemas import AGENT_GROUP, AGENT_STREAM, AnswerSchema, As
 from driftline.clock import Clock, SystemClock
 from driftline.llm.router import AllRoutesFailed
 from driftline.obs.cost import job_cost
-from driftline.streams.bus import StreamBus
+from driftline.streams.bus import StreamBus, keepalive_interval_ms
 
 RECLAIM_IDLE_MS = 60_000  # spec section 3: reclaim stalled messages after 60 s
 MAX_DELIVERIES = 3  # StreamBus's default: the 3rd failed delivery is dead-lettered
@@ -242,8 +242,17 @@ class AgentWorker:
 
     async def run_once(self, *, block_ms: int = 100) -> int:
         """One read plus one reclaim pass; returns messages processed."""
+        # One ask can outlast the reclaim window (each LLM call may take up to 120 s), so
+        # keep the claim alive while handling; otherwise another worker reruns the job.
+        keepalive_ms = keepalive_interval_ms(self._reclaim_idle_ms)
         result = await self._bus.consume_once(
-            AGENT_STREAM, AGENT_GROUP, self._consumer, self.handle_ask, count=1, block_ms=block_ms
+            AGENT_STREAM,
+            AGENT_GROUP,
+            self._consumer,
+            self.handle_ask,
+            count=1,
+            block_ms=block_ms,
+            keepalive_ms=keepalive_ms,
         )
         reclaimed = await self._bus.reclaim_once(
             AGENT_STREAM,
@@ -252,6 +261,7 @@ class AgentWorker:
             self.handle_ask,
             min_idle_ms=self._reclaim_idle_ms,
             count=1,
+            keepalive_ms=keepalive_ms,
         )
         return result.processed + reclaimed.processed
 

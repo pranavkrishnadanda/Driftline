@@ -1,12 +1,23 @@
+import asyncio
+import contextlib
 import json
-from collections.abc import Awaitable, Callable
+import logging
+from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
 
 from redis.asyncio import Redis
-from redis.exceptions import ResponseError
+from redis.exceptions import RedisError, ResponseError
+
+logger = logging.getLogger(__name__)
 
 Handler = Callable[[str, dict[str, Any]], Awaitable[None]]
+
+
+def keepalive_interval_ms(reclaim_idle_ms: int) -> int | None:
+    """Refresh a claim three times per reclaim window; None (off) when reclaiming is
+    immediate, since no refresh can outrun a zero idle threshold."""
+    return reclaim_idle_ms // 3 if reclaim_idle_ms >= 3 else None
 
 
 @dataclass(frozen=True)
@@ -43,12 +54,15 @@ class StreamBus:
         *,
         count: int = 10,
         block_ms: int = 100,
+        keepalive_ms: int | None = None,
     ) -> ConsumeResult:
+        """Read new messages and handle them one by one. With `keepalive_ms`, each
+        message's claim is refreshed that often while its handler runs (see `keepalive`)."""
         resp = await self._redis.xreadgroup(
             group, consumer, {stream: ">"}, count=count, block=block_ms
         )
         entries = resp[0][1] if resp else []
-        return await self._process(stream, group, entries, handler)
+        return await self._process(stream, group, consumer, entries, handler, keepalive_ms)
 
     async def reclaim_once(
         self,
@@ -59,13 +73,54 @@ class StreamBus:
         *,
         min_idle_ms: int,
         count: int = 10,
+        keepalive_ms: int | None = None,
     ) -> ConsumeResult:
         resp = await self._redis.xautoclaim(
             stream, group, consumer, min_idle_time=min_idle_ms, start_id="0-0", count=count
         )
-        return await self._process(stream, group, resp[1], handler)
+        return await self._process(stream, group, consumer, resp[1], handler, keepalive_ms)
 
-    async def _process(self, stream, group, entries, handler) -> ConsumeResult:
+    @contextlib.asynccontextmanager
+    async def keepalive(
+        self, stream: str, group: str, consumer: str, msg_id: str, *, interval_ms: int | None
+    ) -> AsyncIterator[None]:
+        """Hold `consumer`'s claim on a pending message for the duration of the block.
+
+        Every `interval_ms` it runs `XCLAIM <stream> <group> <consumer> 0 <id> JUSTID`,
+        which resets the message's idle time without bumping its delivery count, so another
+        consumer's XAUTOCLAIM never reclaims a message that is still being handled. The
+        refresher is cancelled when the block exits, however it exits. `None` disables it.
+        """
+        if interval_ms is None:
+            yield
+            return
+        task = asyncio.create_task(
+            self._refresh_claim(stream, group, consumer, msg_id, interval_ms)
+        )
+        try:
+            yield
+        finally:
+            task.cancel()
+            # Collects the refresher's own CancelledError without swallowing a
+            # cancellation of the caller.
+            await asyncio.gather(task, return_exceptions=True)
+
+    async def _refresh_claim(
+        self, stream: str, group: str, consumer: str, msg_id: str, interval_ms: int
+    ) -> None:
+        while True:
+            await asyncio.sleep(interval_ms / 1000)
+            try:
+                await self._redis.xclaim(stream, group, consumer, 0, [msg_id], justid=True)
+            except RedisError:
+                # A transient Redis error must not abort the handler; the next tick retries.
+                # If refreshes keep failing, the claim lapses and the message is reclaimed:
+                # the at-least-once behaviour we had without a keepalive.
+                logger.warning("claim keepalive failed for %s %s", stream, msg_id, exc_info=True)
+
+    async def _process(
+        self, stream, group, consumer, entries, handler, keepalive_ms=None
+    ) -> ConsumeResult:
         processed = failed = dead = 0
         for msg_id, fields in entries:
             if fields is None:  # entry was deleted from the stream while pending
@@ -73,7 +128,10 @@ class StreamBus:
                 continue
             try:
                 payload = json.loads(fields["data"])
-                await handler(msg_id, payload)
+                async with self.keepalive(
+                    stream, group, consumer, msg_id, interval_ms=keepalive_ms
+                ):
+                    await handler(msg_id, payload)
             except Exception as exc:  # noqa: BLE001 - any handler failure counts as a failed delivery
                 if await self._delivery_count(stream, group, msg_id) >= self._max_deliveries:
                     await self._redis.xadd(
