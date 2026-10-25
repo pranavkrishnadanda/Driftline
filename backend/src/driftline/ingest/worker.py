@@ -39,7 +39,8 @@ ConnectorFactory = Callable[[str, dict[str, Any]], Connector]
 # --- one rule for "stale" -------------------------------------------------------------
 # A source is `stale_source` once its fetches have failed `stale_after_failures` times in
 # a row. Failed scheduler discoveries (`driftline.drift.worker.SourcePoller`) and failed
-# ingest fetches feed the same Redis streak; a successful fetch or discovery resets it.
+# ingest fetches feed the same Redis streak. Only a successful fetch (`handle_ingest`)
+# resets it and makes a stale source `active` again; a successful discovery does not.
 
 
 def failure_key(source_id: UUID) -> str:

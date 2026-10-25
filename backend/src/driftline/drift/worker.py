@@ -9,7 +9,8 @@
 - `SourcePoller` is the scheduler: it enqueues ingest jobs for every source whose
   `schedule` is due, and marks a source `stale_source` once `stale_after_failures`
   fetches in a row failed (discoveries here and ingest fetches share one streak,
-  `driftline.ingest.worker.record_fetch_failure`).
+  `driftline.ingest.worker.record_fetch_failure`). Only a successful ingest fetch
+  resets the streak or revives a stale source; a successful discovery does neither.
 """
 
 import asyncio
@@ -26,12 +27,7 @@ from redis.asyncio import Redis
 
 from driftline.clock import Clock
 from driftline.drift.engine import DriftEngine
-from driftline.ingest.worker import (
-    ConnectorFactory,
-    clear_fetch_failures,
-    enqueue_ingest,
-    record_fetch_failure,
-)
+from driftline.ingest.worker import ConnectorFactory, enqueue_ingest, record_fetch_failure
 from driftline.streams.bus import StreamBus, keepalive_interval_ms
 
 logger = logging.getLogger(__name__)
@@ -162,12 +158,16 @@ class SourcePoller:
     A source is due when it has a `schedule`, is not `paused`, and
     `last_polled_at + interval <= now` (or it was never polled). Each pass claims a due
     source by moving `last_polled_at` to now with a compare-and-set, so concurrent
-    pollers enqueue it once. `stale_source` sources are still polled, so they recover.
+    pollers enqueue it once. `stale_source` sources are still polled, so their next
+    successful fetch (in the ingest worker) can make them `active` again.
 
     A failed discovery still advances `last_polled_at`: a broken source is retried at its
     own cadence, not hammered every pass. The consecutive-failure streak lives in Redis
-    (`poll:failures:{source}`), is shared with the ingest worker's fetch failures, and
-    resets on the next successful discovery or fetch.
+    (`poll:failures:{source}`) and is shared with the ingest worker's fetch failures. A
+    failed discovery counts towards it, but a successful one does not reset it, nor
+    does it make a stale source `active`: listing documents proves nothing about
+    fetching them, and a source whose discovery works but whose fetches always fail
+    must still go stale. Only a successful fetch resets the streak.
     """
 
     def __init__(
@@ -256,7 +256,6 @@ class SourcePoller:
                 logger.warning("source %s: discovery failed", source_id, exc_info=True)
                 await self._record_failure(source_id, result)
                 continue
-            await clear_fetch_failures(self._redis, source_id)
             try:
                 for external_id in ids:
                     result.jobs.append(
@@ -267,12 +266,6 @@ class SourcePoller:
             except Exception:
                 await self._unclaim(row, polled_at)  # let the next pass retry it
                 raise
-            async with self._pool.acquire() as conn:
-                await conn.execute(
-                    "UPDATE sources SET status = 'active' "
-                    "WHERE id = $1 AND status = 'stale_source'",
-                    source_id,
-                )
             result.polled.append(source_id)
         return result
 

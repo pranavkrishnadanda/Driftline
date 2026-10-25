@@ -1,5 +1,5 @@
 """Source scheduler (`python -m driftline.drift poll`): enqueue ingest jobs for sources
-whose schedule is due, and mark sources whose discovery keeps failing `stale_source`.
+whose schedule is due, and count failed discoveries towards the `stale_source` streak.
 Real Postgres, real Redis, the real upload connector and `ManualClock`."""
 
 import asyncio
@@ -161,33 +161,42 @@ async def test_repeated_fetch_failures_mark_source_stale(
     assert await queued_sources(redis_client) == []
     assert await fresh_conn.fetchval("SELECT count(*) FROM jobs") == 0
 
-    # A stale source is still polled, and recovers once discovery works again.
+    # A stale source is still polled, but a working discovery alone does not revive it:
+    # only the next successful fetch of the queued job does (in the ingest worker).
     missing.mkdir()
     (missing / "a.md").write_text("# A\n\nbody\n")
     clock.advance(HOUR)
     result = await poller.poll_once()
     assert result.polled == [source] and result.failed == []
-    assert (await source_row(fresh_conn, source))["status"] == "active"
+    assert (await source_row(fresh_conn, source))["status"] == "stale_source"
     assert await queued_sources(redis_client) == [str(source)]
 
 
-async def test_failure_streak_resets_on_success(
+async def test_successful_discovery_does_not_reset_failure_streak(
     fresh_pool, fresh_conn, redis_client, http, tmp_path
 ):
+    """Only a successful fetch resets the streak (tested in tests/ingest). A discovery
+    that succeeds between two failed ones proves nothing about fetching, so the streak
+    keeps counting: fail, fail, succeed, fail is 3 failures and the source goes stale."""
     root = tmp_path / "flaky"
     source = await add_source(fresh_conn, root, schedule="1h", polled_ago=None)
     clock = ManualClock(NOW)
     poller = make_poller(fresh_pool, redis_client, http, clock, stale_after=3)
 
-    for exists in (False, False, True, False, False):  # never 3 failures in a row
+    for exists in (False, False, True):
         if exists and not root.exists():
             root.mkdir()
         if not exists and root.exists():
             root.rmdir()
         await poller.poll_once()
         clock.advance(HOUR)
+        assert (await source_row(fresh_conn, source))["status"] == "active"
 
-    assert (await source_row(fresh_conn, source))["status"] == "active"
+    root.rmdir()
+    result = await poller.poll_once()
+
+    assert result.failed == [source] and result.stale == [source]
+    assert (await source_row(fresh_conn, source))["status"] == "stale_source"
 
 
 async def test_invalid_schedule_is_skipped_not_counted_as_failure(
