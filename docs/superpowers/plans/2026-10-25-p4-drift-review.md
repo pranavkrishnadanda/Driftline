@@ -227,6 +227,6 @@ Same as P3. In short:
 
 ## Follow-ups from Wave 0
 
-- **T5:** `ingest/supersession.py` inserts `review_items` without `tenant_id`, so the column is nullable for now. Set `tenant_id` there (from the source of the new version), add a test, then add migration `0005` making `review_items.tenant_id` NOT NULL.
+- **T5:** `ingest/supersession.py` inserts `review_items` without `tenant_id`, so the column is nullable for now. Set `tenant_id` there (from the source of the new version), add a test, then add migration `0006` (down_revision "0005"; 0005 is the revert migration) making `review_items.tenant_id` NOT NULL.
 - **T2 and T5:** nothing on main writes `answers`/`answer_citations` until P3 T9 (the agent worker persists the final answer). Until then, tests use `dbseed.seed_watched_answer(conn, tenant_id, version_id, chunk_ids, claims, *, question, as_of, confidence)`, where `claims` is a list of `(text, quote)` pairs and claim i cites `chunk_ids[i]`.
 - `AlertEvent` lives in `ALERT_EVENT_ADAPTER = AlertEvent | ErrorEvent`, not in `ASK_EVENT_ADAPTER`.
