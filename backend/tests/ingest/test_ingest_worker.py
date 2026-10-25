@@ -204,6 +204,54 @@ async def test_ingest_and_scheduler_failures_share_one_streak(
         )
 
 
+async def test_discovery_succeeds_but_fetches_fail_marks_source_stale(
+    worker, fresh_pool, redis_client, tmp_path
+):
+    """Regression: a successful discovery must not reset the streak. Discovery lists
+    `a.md` every cycle, but every fetch of it fails: after 3 cycles the source is stale.
+    Only a successful fetch makes it `active` again; a successful discovery alone does not."""
+    listed = tmp_path / "listed"
+    listed.mkdir()
+    write(listed, "a.md", "# A\n\nbody\n", T1)
+    fetched = tmp_path / "fetched"  # the worker fetches from here: a.md is missing
+    fetched.mkdir()
+    source = await upload_source(fresh_pool, fetched)
+    async with fresh_pool.acquire() as conn:
+        await conn.execute("UPDATE sources SET schedule = '1h' WHERE id = $1", source)
+    clock = ManualClock(T2)
+    poller = SourcePoller(
+        pool=fresh_pool,
+        bus=StreamBus(redis_client),
+        redis=redis_client,
+        connector_factory=lambda kind, config: UploadConnector(str(listed)),
+        clock=clock,
+        stale_after_failures=3,
+    )
+
+    async def status() -> str:
+        async with fresh_pool.acquire() as conn:
+            return await conn.fetchval("SELECT status FROM sources WHERE id = $1", source)
+
+    for cycle in (1, 2, 3):
+        result = await poller.poll_once()
+        assert result.polled == [source] and result.failed == [], cycle
+        assert await worker.run_once() == 0  # the fetch failed
+        assert await redis_client.get(failure_key(source)) == str(cycle)
+        clock.advance(3600)
+    assert await status() == "stale_source"
+
+    # A stale source is still polled, but a successful discovery alone does not revive it.
+    assert (await poller.poll_once()).polled == [source]
+    assert await status() == "stale_source"
+    assert await redis_client.get(failure_key(source)) == "3"
+
+    # The next successful fetch does: the queued job now finds the file.
+    write(fetched, "a.md", "# A\n\nbody\n", T1)
+    assert await worker.run_once() == 1
+    assert await status() == "active"
+    assert await redis_client.get(failure_key(source)) is None
+
+
 async def test_embed_event_embeds_runs_extraction_and_dedupes(
     worker, fresh_pool, redis_client, det, tmp_path
 ):
