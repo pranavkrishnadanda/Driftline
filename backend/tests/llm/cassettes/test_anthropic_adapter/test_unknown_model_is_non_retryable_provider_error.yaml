@@ -1,0 +1,89 @@
+interactions:
+- request:
+    body: '{"max_tokens":1024,"messages":[{"role":"user","content":"hi"}],"model":"claude-does-not-exist-xyz"}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      anthropic-version:
+      - '2026-10-21'
+      connection:
+      - keep-alive
+      content-length:
+      - '99'
+      content-type:
+      - application/json
+      host:
+      - api.anthropic.com
+      user-agent:
+      - AsyncAnthropic/Python 2.3.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.3.0
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.12.3
+      x-stainless-timeout:
+      - '600'
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/6tWKqksSFWyUkotKsovUtKB0lbVMPG8/JL4tPzSvJR4mIrc1OLixHSQXG5+SmqO
+        lUJyTmJpSqpuSn5qsS5QuW5qRWZxiW5FZZVSrY5SUWphaWpxSXxmClADkBNvYGjonO7nYh6VkucY
+        ZmbkZZoZVlBVmJmvVAsA0GsPxIwAAAA=
+    headers:
+      anthropic-organization-id:
+      - e0510282-6d40-47cb-b151-dcef383cb0bb
+      anthropic-workspace-id:
+      - wrkspc_01BTfLLtez7HAeLJDHwXPHZT
+      cf-cache-status:
+      - DYNAMIC
+      cf-ray:
+      - a4fdf9b058314981-MAA
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-security-policy:
+      - default-src 'none'; frame-ancestors 'none'
+      content-type:
+      - application/json
+      date:
+      - Sun, 25 Oct 2026 03:01:12 GMT
+      request-id:
+      - req_011CgND7ZdnAV62J5iVpzqio
+      server:
+      - cloudflare
+      server-timing:
+      - x-originResponse;dur=116
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      traceresponse:
+      - 00-69c6bebe3f99ab870a38de37af66d950-691c6a2cd0ede0a6-01
+      transfer-encoding:
+      - chunked
+      vary:
+      - Accept-Encoding
+      x-robots-tag:
+      - none
+      x-should-retry:
+      - 'false'
+    status:
+      code: 404
+      message: Not Found
+version: 1
