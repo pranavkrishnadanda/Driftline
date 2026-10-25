@@ -223,7 +223,7 @@ Next.js (App Router) + TypeScript, Tailwind v4, shadcn/ui, TanStack Query.
 - Every animation honors `prefers-reduced-motion`.
 - Never run Motion and anime.js on the same element.
 
-Assumption to confirm: "Coconut UI" refers to **Kokonut UI** (kokonut-labs/kokonutui).
+"Coconut UI" in the original request means **Kokonut UI** (kokonut-labs/kokonutui) — confirmed.
 
 ## 10. Error handling
 
@@ -243,6 +243,16 @@ Assumption to confirm: "Coconut UI" refers to **Kokonut UI** (kokonut-labs/kokon
 - Prometheus metrics endpoint: queue depth, pending/claimed counts, DLQ size, breaker state, cache hit rate.
 
 ## 12. Testing and evaluation
+
+**Test policy (mandatory):**
+- **TDD.** Every unit of behavior starts as a failing test, then gets the minimal implementation, then a refactor.
+- **No mocking of real functions.** Test files must not use `unittest.mock`, `patch`, `MagicMock`, `monkeypatch` of project code, `jest.mock`/`vi.mock`, or any equivalent.
+  - Tests exercise real code against real dependencies: Postgres and Redis via testcontainers, and a real FastAPI app via `httpx.AsyncClient`.
+- **LLM calls in tests** use real provider responses recorded at the HTTP layer (VCR cassettes, re-recordable with `--record`). The adapter code still runs for real.
+- `DeterministicAdapter` is a real implementation of the provider interface that ships in the codebase (`driftline.llm.adapters.deterministic`). It is not a mock.
+  - Benchmarks use it.
+  - Router tests use it to exercise retry, fallback and circuit-breaker paths, because provider outages can't be recorded on demand.
+- Time-dependent code takes an injected `Clock`. Tests pass `ManualClock`, which is a real class in `driftline.clock`, rather than patching `time`.
 
 **Tests:**
 - **Unit** (pytest): temporal filter, diff, idempotency, token bucket, circuit breaker, SSE schemas, RRF fusion.
