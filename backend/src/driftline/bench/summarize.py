@@ -104,6 +104,15 @@ def _machine_lines(machine: dict[str, Any]) -> list[str]:
     ]
 
 
+def _reranker_label(run: dict[str, Any]) -> str:
+    """The run's reranker mode; flags a reranker the kernel OOM-killed mid-run, whose
+    asks then fell back to RRF order (faster, lower quality)."""
+    mode = run.get("config", {}).get("reranker", "n/a")
+    if any("reranker" in name for name in run.get("oom_killed") or []):
+        return f"{mode}, **OOM-killed: RRF fallback**"
+    return mode
+
+
 def _run_key(run: dict[str, Any]) -> tuple[bool, int]:
     """Reranker-on rows first, then by worker count."""
     return (run.get("config", {}).get("reranker", "on") != "on", run["workers"])
@@ -149,7 +158,7 @@ def _where_the_time_goes(runs: Sequence[dict[str, Any]]) -> list[str]:
             f"{e['Name'].removeprefix('driftline-bench-')} {e['CPUPerc']}" for e in busiest
         )
         lines.append(
-            f"| {run['workers']} | {st['asks']} | {run.get('config', {}).get('reranker', 'n/a')} | "
+            f"| {run['workers']} | {st['asks']} | {_reranker_label(run)} | "
             + " | ".join(cells)
             + f" | {_pct(st.get('rerank_ran_share'))} | {cpu or 'n/a'} |"
         )
@@ -163,6 +172,7 @@ def render_readme(
     machine: dict[str, Any],
     ingest: dict[str, Any] | None,
     chaos: dict[str, Any] | None,
+    notes: str | None = None,
 ) -> str:
     lines = [
         f"# Driftline bench results: `{sha}`",
@@ -188,12 +198,13 @@ def render_readme(
             s, cfg = run["summary"], run.get("config", {})
             lat, ttft = s["latency_ms"], s["ttft_ms"]
             oom = ", ".join(run.get("oom_killed") or []) or "none"
+            rerank = _reranker_label(run)
             lines.append(
                 f"| {run['workers']} | {cfg.get('vus', 'n/a')} | {s.get('window_s', 0):.0f} "
                 f"| {s['completed']} | {s['throughput_per_s']:.2f} | {_ms(lat['p50'])} "
                 f"| {_ms(lat['p95'])} | {_ms(lat['p99'])} | {_ms(ttft['p50'])} "
                 f"| {_ms(ttft['p95'])} | {_pct(s['rate_429'])} | {_pct(s['error_rate'])} "
-                f"| {cfg.get('reranker', 'n/a')} | {oom} |"
+                f"| {rerank} | {oom} |"
             )
     else:
         lines.append("Ask load: not run.")
@@ -230,5 +241,7 @@ def render_readme(
         ]
     else:
         lines.append("Chaos: not run.")
+    if notes:
+        lines += ["", "## Notes", "", notes.strip()]
     lines += ["", "## Machine", "", *_machine_lines(machine), ""]
     return "\n".join(lines)

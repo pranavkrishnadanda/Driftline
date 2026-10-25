@@ -1,0 +1,157 @@
+{
+  "commit": "cd66852df1d8",
+  "config": {
+    "corpus": {
+      "documents": 6,
+      "embedded_chunks": 31
+    },
+    "duration": "180s",
+    "llm_median_ms": 800,
+    "llm_seed": 0,
+    "llm_sigma": 0.5,
+    "per_worker_seed": "seed ^ crc32(consumer)",
+    "reranker": "on",
+    "semantic_cache": "off",
+    "vus": 16,
+    "warmup": "20s"
+  },
+  "container_stats_mid_run": [
+    {
+      "CPUPerc": "1.25%",
+      "MemPerc": "3.66%",
+      "MemUsage": "216.4MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-1"
+    },
+    {
+      "CPUPerc": "0.35%",
+      "MemPerc": "3.57%",
+      "MemUsage": "211.1MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-2"
+    },
+    {
+      "CPUPerc": "2.36%",
+      "MemPerc": "3.60%",
+      "MemUsage": "212.9MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-3"
+    },
+    {
+      "CPUPerc": "1.30%",
+      "MemPerc": "3.59%",
+      "MemUsage": "212.1MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-4"
+    },
+    {
+      "CPUPerc": "18.68%",
+      "MemPerc": "39.34%",
+      "MemUsage": "805.7MiB / 2GiB",
+      "Name": "driftline-bench-embedder-1"
+    },
+    {
+      "CPUPerc": "1.13%",
+      "MemPerc": "3.72%",
+      "MemUsage": "219.6MiB / 5.772GiB",
+      "Name": "driftline-bench-gateway-1"
+    },
+    {
+      "CPUPerc": "0.09%",
+      "MemPerc": "3.11%",
+      "MemUsage": "184MiB / 5.772GiB",
+      "Name": "driftline-bench-outbox-relay-1"
+    },
+    {
+      "CPUPerc": "1.11%",
+      "MemPerc": "1.56%",
+      "MemUsage": "92MiB / 5.772GiB",
+      "Name": "driftline-bench-postgres-1"
+    },
+    {
+      "CPUPerc": "0.71%",
+      "MemPerc": "0.14%",
+      "MemUsage": "8.008MiB / 5.772GiB",
+      "Name": "driftline-bench-redis-1"
+    },
+    {
+      "CPUPerc": "280.44%",
+      "MemPerc": "72.26%",
+      "MemUsage": "2.168GiB / 3GiB",
+      "Name": "driftline-bench-reranker-1"
+    }
+  ],
+  "k6_exit_code": 0,
+  "llm": "stub LLM",
+  "oom_killed": [],
+  "stages": {
+    "asks": 91,
+    "draft": {
+      "mean": 1027.7,
+      "n": 91,
+      "p50": 947.7,
+      "p95": 1996.6
+    },
+    "plan": {
+      "mean": 856.3,
+      "n": 91,
+      "p50": 778.7,
+      "p95": 1722.8
+    },
+    "queue": {
+      "mean": 24855.9,
+      "n": 91,
+      "p50": 26829.9,
+      "p95": 29438.0
+    },
+    "rerank_ran_share": 1.0,
+    "retrieve": {
+      "mean": 4330.0,
+      "n": 91,
+      "p50": 4351.2,
+      "p95": 6030.4
+    },
+    "verify": {
+      "mean": 2763.5,
+      "n": 91,
+      "p50": 2564.6,
+      "p95": 4414.5
+    },
+    "wall": {
+      "mean": 33852.5,
+      "n": 91,
+      "p50": 35666.5,
+      "p95": 39388.5
+    },
+    "worker": {
+      "mean": 8996.7,
+      "n": 91,
+      "p50": 8772.9,
+      "p95": 11240.0
+    }
+  },
+  "summary": {
+    "attempts": 91,
+    "completed": 91,
+    "error_rate": 0.0,
+    "failed": 0,
+    "http_reqs": 184,
+    "latency_ms": {
+      "count": 91,
+      "max": 42018.0,
+      "mean": 33860.81318681319,
+      "p50": 35670.0,
+      "p95": 39398.0,
+      "p99": 40881.299999999996
+    },
+    "rate_429": 0.0,
+    "rejected_429": 0,
+    "throughput_per_s": 0.43334935694169835,
+    "ttft_ms": {
+      "count": 91,
+      "max": 36082.0,
+      "mean": 30326.32967032967,
+      "p50": 32397.0,
+      "p95": 34862.5,
+      "p99": 36072.1
+    },
+    "window_s": 209.992235
+  },
+  "workers": 4
+}

@@ -1,0 +1,44 @@
+{
+  "corpus": "10 copies of the 6 bench/corpus Markdown documents (headings suffixed per copy), upload connector",
+  "embedder": "TEI BAAI/bge-base-en-v1.5 on CPU, one replica",
+  "extraction": "off (no LLM key)",
+  "runs": [
+    {
+      "chunks": 310,
+      "chunks_missing_embedding": 0,
+      "chunks_per_min": 785.78,
+      "docs_per_min": 152.09,
+      "documents": 60,
+      "exit_codes": "0",
+      "jobs_not_succeeded": 0,
+      "oom_killed": [],
+      "seconds": 23.67,
+      "workers": 1
+    },
+    {
+      "chunks": 310,
+      "chunks_missing_embedding": 0,
+      "chunks_per_min": 813.22,
+      "docs_per_min": 157.4,
+      "documents": 60,
+      "exit_codes": "0,0",
+      "jobs_not_succeeded": 0,
+      "oom_killed": [],
+      "seconds": 22.87,
+      "workers": 2
+    },
+    {
+      "chunks": 310,
+      "chunks_missing_embedding": 0,
+      "chunks_per_min": 758.25,
+      "docs_per_min": 146.76,
+      "documents": 60,
+      "exit_codes": "0,0,0,0",
+      "jobs_not_succeeded": 0,
+      "oom_killed": [],
+      "seconds": 24.53,
+      "workers": 4
+    }
+  ],
+  "timing": "enqueue first, then wall clock from starting W `worker --drain` containers until the last exits (includes ~container start-up)"
+}

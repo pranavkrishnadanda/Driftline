@@ -145,8 +145,10 @@ def test_readme_shows_where_the_time_goes_from_stage_timings_and_container_cpu()
         {"Name": "driftline-bench-reranker-1", "CPUPerc": "215.75%", "MemUsage": "2.25GiB"},
         {"Name": "driftline-bench-agent-worker-1", "CPUPerc": "0.95%", "MemUsage": "226MiB"},
     ]
+    run["oom_killed"] = ["driftline-bench-reranker-1"]
     md = render_readme(sha="abc", runs=[run], machine={}, ingest=None, chaos=None)
     assert "## Where the time goes" in md
     row = next(line for line in md.splitlines() if line.startswith("| 1 | 28 "))
     assert all(v in row for v in ("18000", "4400", "2700", "9000", "100.0%"))
     assert "reranker-1 215.75%" in md
+    assert "OOM-killed: RRF fallback" in md

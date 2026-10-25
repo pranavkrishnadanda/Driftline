@@ -1,0 +1,139 @@
+{
+  "commit": "cd66852df1d8",
+  "config": {
+    "corpus": {
+      "documents": 6,
+      "embedded_chunks": 31
+    },
+    "duration": "180s",
+    "llm_median_ms": 800,
+    "llm_seed": 0,
+    "llm_sigma": 0.5,
+    "per_worker_seed": "seed ^ crc32(consumer)",
+    "reranker": "on",
+    "semantic_cache": "off",
+    "vus": 4,
+    "warmup": "20s"
+  },
+  "container_stats_mid_run": [
+    {
+      "CPUPerc": "0.35%",
+      "MemPerc": "3.84%",
+      "MemUsage": "227.2MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-1"
+    },
+    {
+      "CPUPerc": "0.41%",
+      "MemPerc": "39.08%",
+      "MemUsage": "800.4MiB / 2GiB",
+      "Name": "driftline-bench-embedder-1"
+    },
+    {
+      "CPUPerc": "0.25%",
+      "MemPerc": "4.09%",
+      "MemUsage": "241.6MiB / 5.772GiB",
+      "Name": "driftline-bench-gateway-1"
+    },
+    {
+      "CPUPerc": "0.27%",
+      "MemPerc": "3.38%",
+      "MemUsage": "199.8MiB / 5.772GiB",
+      "Name": "driftline-bench-outbox-relay-1"
+    },
+    {
+      "CPUPerc": "0.24%",
+      "MemPerc": "0.95%",
+      "MemUsage": "56.09MiB / 5.772GiB",
+      "Name": "driftline-bench-postgres-1"
+    },
+    {
+      "CPUPerc": "0.78%",
+      "MemPerc": "0.07%",
+      "MemUsage": "4.289MiB / 5.772GiB",
+      "Name": "driftline-bench-redis-1"
+    },
+    {
+      "CPUPerc": "1.53%",
+      "MemPerc": "72.38%",
+      "MemUsage": "2.171GiB / 3GiB",
+      "Name": "driftline-bench-reranker-1"
+    }
+  ],
+  "k6_exit_code": 0,
+  "llm": "stub LLM",
+  "oom_killed": [],
+  "stages": {
+    "asks": 29,
+    "draft": {
+      "mean": 1418.1,
+      "n": 29,
+      "p50": 1253.3,
+      "p95": 2352.0
+    },
+    "plan": {
+      "mean": 818.9,
+      "n": 29,
+      "p50": 749.6,
+      "p95": 1520.2
+    },
+    "queue": {
+      "mean": 19762.1,
+      "n": 29,
+      "p50": 20945.6,
+      "p95": 24150.4
+    },
+    "rerank_ran_share": 1.0,
+    "retrieve": {
+      "mean": 2134.2,
+      "n": 29,
+      "p50": 2125.8,
+      "p95": 2229.9
+    },
+    "verify": {
+      "mean": 2629.7,
+      "n": 29,
+      "p50": 2460.5,
+      "p95": 4744.0
+    },
+    "wall": {
+      "mean": 26777.4,
+      "n": 29,
+      "p50": 27745.9,
+      "p95": 31087.3
+    },
+    "worker": {
+      "mean": 7015.3,
+      "n": 29,
+      "p50": 6920.9,
+      "p95": 9043.1
+    }
+  },
+  "summary": {
+    "attempts": 29,
+    "completed": 29,
+    "error_rate": 0.0,
+    "failed": 0,
+    "http_reqs": 58,
+    "latency_ms": {
+      "count": 29,
+      "max": 32876.0,
+      "mean": 26782.655172413793,
+      "p50": 27751.0,
+      "p95": 31092.6,
+      "p99": 32400.28
+    },
+    "rate_429": 0.0,
+    "rejected_429": 0,
+    "throughput_per_s": 0.14228325979995454,
+    "ttft_ms": {
+      "count": 29,
+      "max": 27506.0,
+      "mean": 23048.137931034482,
+      "p50": 24357.0,
+      "p95": 27250.8,
+      "p99": 27436.0
+    },
+    "window_s": 203.818777
+  },
+  "workers": 1
+}

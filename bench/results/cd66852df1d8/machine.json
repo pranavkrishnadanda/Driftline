@@ -1,0 +1,22 @@
+{
+  "colima_vm": {
+    "arch": "aarch64",
+    "cpus": 4,
+    "disk_gib": 100.0,
+    "memory_gib": 6.0,
+    "runtime": "docker"
+  },
+  "cpu": "Apple M4",
+  "docker_client": "29.9.2",
+  "docker_compose": "5.6.1",
+  "docker_server": "29.5.2",
+  "docker_vm_visible": {
+    "cpus": 4,
+    "kernel": "6.8.0-117-generic",
+    "mem_gib": 5.77
+  },
+  "host_cpus": 10,
+  "host_ram_gib": 16.0,
+  "k6": "k6 v2.3.0 (go1.27.1, darwin/arm64)",
+  "os": "macOS 26.6.2 (arm64)"
+}

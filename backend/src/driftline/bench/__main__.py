@@ -2,7 +2,7 @@
 
 - `k6 RAW --meta META --out OUT`: summarise one k6 NDJSON run (`RAW`, optionally .gz) and
   write `OUT` = META's fields + `"summary"`.
-- `readme DIR`: render `DIR/README.md` from `DIR/workers-*.json`, `machine.json`,
+- `readme DIR`: render `DIR/README.md` from `DIR/workers-*.json`, `machine.json`, `NOTES.md`,
   `ingest.json` and `chaos.json` (each optional).
 """
 
@@ -43,6 +43,7 @@ def main(argv: list[str]) -> int:
         machine=_load(args.dir / "machine.json") or {},
         ingest=_load(args.dir / "ingest.json"),
         chaos=_load(args.dir / "chaos.json"),
+        notes=(args.dir / "NOTES.md").read_text() if (args.dir / "NOTES.md").is_file() else None,
     )
     (args.dir / "README.md").write_text(md)
     return 0
