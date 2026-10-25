@@ -7,8 +7,9 @@
   3rd failed delivery. The engine is idempotent per (answer, new version, claim), so a
   redelivered or reclaimed event records nothing twice.
 - `SourcePoller` is the scheduler: it enqueues ingest jobs for every source whose
-  `schedule` is due, and marks a source `stale_source` once its fetch has failed on
-  `stale_after_failures` consecutive scheduled polls.
+  `schedule` is due, and marks a source `stale_source` once `stale_after_failures`
+  fetches in a row failed (discoveries here and ingest fetches share one streak,
+  `driftline.ingest.worker.record_fetch_failure`).
 """
 
 import asyncio
@@ -25,7 +26,12 @@ from redis.asyncio import Redis
 
 from driftline.clock import Clock
 from driftline.drift.engine import DriftEngine
-from driftline.ingest.worker import ConnectorFactory, enqueue_ingest
+from driftline.ingest.worker import (
+    ConnectorFactory,
+    clear_fetch_failures,
+    enqueue_ingest,
+    record_fetch_failure,
+)
 from driftline.streams.bus import StreamBus, keepalive_interval_ms
 
 logger = logging.getLogger(__name__)
@@ -141,10 +147,6 @@ def parse_schedule(schedule: str) -> float:
     return float(int(match[1]) * _UNITS[match[2] or "s"])
 
 
-def failure_key(source_id: UUID) -> str:
-    return f"poll:failures:{source_id}"
-
-
 @dataclass
 class PollResult:
     polled: list[UUID] = field(default_factory=list)  # discovered and enqueued
@@ -164,7 +166,8 @@ class SourcePoller:
 
     A failed discovery still advances `last_polled_at`: a broken source is retried at its
     own cadence, not hammered every pass. The consecutive-failure streak lives in Redis
-    (`poll:failures:{source}`) and resets on the next successful discovery.
+    (`poll:failures:{source}`), is shared with the ingest worker's fetch failures, and
+    resets on the next successful discovery or fetch.
     """
 
     def __init__(
@@ -228,19 +231,13 @@ class SourcePoller:
 
     async def _record_failure(self, source_id: UUID, result: PollResult) -> None:
         result.failed.append(source_id)
-        streak = await self._redis.incr(failure_key(source_id))
-        if streak >= self._stale_after:
-            async with self._pool.acquire() as conn:
-                marked = await conn.fetchval(
-                    "UPDATE sources SET status = 'stale_source' "
-                    "WHERE id = $1 AND status = 'active' RETURNING id",
-                    source_id,
-                )
-            if marked is not None:
-                logger.warning(
-                    "source %s failed %d polls in a row: stale_source", source_id, streak
-                )
-                result.stale.append(source_id)
+        if await record_fetch_failure(
+            self._pool, self._redis, source_id, stale_after=self._stale_after
+        ):
+            logger.warning(
+                "source %s failed %d fetches in a row: stale_source", source_id, self._stale_after
+            )
+            result.stale.append(source_id)
 
     async def poll_once(self) -> PollResult:
         result = PollResult()
@@ -259,7 +256,7 @@ class SourcePoller:
                 logger.warning("source %s: discovery failed", source_id, exc_info=True)
                 await self._record_failure(source_id, result)
                 continue
-            await self._redis.delete(failure_key(source_id))
+            await clear_fetch_failures(self._redis, source_id)
             try:
                 for external_id in ids:
                     result.jobs.append(

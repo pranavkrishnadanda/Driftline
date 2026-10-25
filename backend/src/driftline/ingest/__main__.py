@@ -132,6 +132,7 @@ async def amain(argv: list[str], settings: Settings, *, clock: Clock | None = No
                 chunk_tokens=settings.chunk_tokens,
                 overlap_tokens=settings.chunk_overlap_tokens,
                 clock=clock,
+                stale_after_failures=settings.source_stale_after_failures,
             )
             await run_with_heartbeat(worker.run(stop), stop, settings.heartbeat_path)
             return 0

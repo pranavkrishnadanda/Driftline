@@ -31,8 +31,51 @@ EMBED_GROUP = "embed-workers"
 RECLAIM_IDLE_MS = 60_000  # spec section 3: reclaim stalled messages after 60 s
 KEEPALIVE_MS = keepalive_interval_ms(RECLAIM_IDLE_MS)
 DEDUPE_TTL_S = 7 * 24 * 3600
+FAILURE_TTL_S = 7 * 24 * 3600  # how long one failed job is remembered as already counted
 
 ConnectorFactory = Callable[[str, dict[str, Any]], Connector]
+
+
+# --- one rule for "stale" -------------------------------------------------------------
+# A source is `stale_source` once its fetches have failed `stale_after_failures` times in
+# a row. Failed scheduler discoveries (`driftline.drift.worker.SourcePoller`) and failed
+# ingest fetches feed the same Redis streak; a successful fetch or discovery resets it.
+
+
+def failure_key(source_id: UUID) -> str:
+    return f"poll:failures:{source_id}"
+
+
+async def record_fetch_failure(
+    db: asyncpg.Pool | asyncpg.Connection,
+    redis: Redis,
+    source_id: UUID,
+    *,
+    stale_after: int,
+    attempt: str | None = None,
+) -> bool:
+    """Count one failed fetch towards the source's streak; returns True when this failure
+    marked the source `stale_source`. `attempt` names the failure (an ingest job id): a
+    redelivery of the same failed job is not counted twice."""
+    if attempt is not None:
+        first = await redis.set(
+            f"{failure_key(source_id)}:attempt:{attempt}", "1", nx=True, ex=FAILURE_TTL_S
+        )
+        if not first:
+            return False
+    streak = await redis.incr(failure_key(source_id))
+    if streak < stale_after:
+        return False
+    marked = await db.fetchval(
+        "UPDATE sources SET status = 'stale_source' WHERE id = $1 AND status = 'active' "
+        "RETURNING id",
+        source_id,
+    )
+    return marked is not None
+
+
+async def clear_fetch_failures(redis: Redis, source_id: UUID) -> None:
+    await redis.delete(failure_key(source_id))
 
 
 def default_connector_factory(settings: Settings, http: httpx.AsyncClient) -> ConnectorFactory:
@@ -110,7 +153,11 @@ class IngestWorker:
         chunk_tokens: int = 256,
         overlap_tokens: int = 32,
         clock: Clock | None = None,
+        stale_after_failures: int = 3,
     ) -> None:
+        if stale_after_failures < 1:
+            raise ValueError("stale_after_failures must be at least 1")
+        self._stale_after = stale_after_failures
         self._pool = pool
         self._bus = bus
         self._redis = redis
@@ -148,8 +195,12 @@ class IngestWorker:
                     await upsert_version(conn, source_id=source_id, raw=raw, chunks=chunks)
                     await save_cursor(conn, source_id, external_id, raw.version_key)
             except SourceFetchError as exc:
-                await conn.execute(
-                    "UPDATE sources SET status = 'stale_source' WHERE id = $1", source_id
+                await record_fetch_failure(
+                    conn,
+                    self._redis,
+                    source_id,
+                    stale_after=self._stale_after,
+                    attempt=str(job_id),
                 )
                 await conn.execute(
                     "UPDATE jobs SET status = 'failed', error = $2, finished_at = now() "
@@ -162,6 +213,7 @@ class IngestWorker:
                 "UPDATE sources SET status = 'active', last_polled_at = now() WHERE id = $1",
                 source_id,
             )
+            await clear_fetch_failures(self._redis, source_id)
             await conn.execute(
                 "UPDATE jobs SET status = 'succeeded', error = NULL, finished_at = now() "
                 "WHERE id = $1",
