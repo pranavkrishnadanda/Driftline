@@ -5,8 +5,10 @@ Systems (spec section 12):
   re-retrieval, respond), with the semantic cache off so every case is really answered.
   An answer that would pause for human review is scored as proposed.
 - `plain_rag`: the same retriever and reranker with the as-of filter disabled
-  (`RetrievalQuery(in_force_only=False)`), then a single draft with the same draft prompt
-  and model tier. No planner, no verifier, no re-retrieval.
+  (`RetrievalQuery(in_force_only=False)`), then a single draft with the same draft system
+  prompt, schema and model tier. Its user prompt says the chunks "were retrieved for the
+  question" instead of the graph's "only these chunks were in force then", which would be
+  false for unfiltered evidence. No planner, no verifier, no re-retrieval.
 - `no_retrieval`: the answer tier alone, with a closed-book prompt and no evidence.
 
 A case whose expected version no longer exists in the database (e.g. after a re-ingest)
@@ -202,7 +204,11 @@ class _Systems:
         if not outcome.items:
             return Produced("insufficient_evidence", "", [], [])
         request = build_draft_request(
-            case.question, as_of, outcome.items, max_output_tokens=cfg.draft_max_tokens
+            case.question,
+            as_of,
+            outcome.items,
+            max_output_tokens=cfg.draft_max_tokens,
+            in_force=False,  # unfiltered evidence: no claim that it was in force
         )
         return await self._draft(request, job_id)
 

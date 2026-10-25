@@ -12,6 +12,7 @@ from dbseed import EMBED_MODEL, VersionSeed, embed_all, seed_history, seed_sourc
 from driftline.agents.graph import AgentConfig, AgentDeps
 from driftline.agents.llm import AgentLLM
 from driftline.agents.offline import ExtractiveResponder
+from driftline.agents.prompts import DRAFT_SCHEMA, DRAFT_SYSTEM
 from driftline.clock import ManualClock
 from driftline.config import Settings
 from driftline.eval.__main__ import amain
@@ -180,6 +181,35 @@ async def test_driftline_beats_plain_rag_on_outdated_citations_for_trap_question
         assert report.metrics["cost_per_answer_usd"] == 0.0  # the deterministic models are free
         assert report.metrics["latency_p95_ms"] == 0.0  # a ManualClock timer
         assert (report.corpus, report.git_sha) == ("pharma", SHA)
+
+
+def draft_prompts(det: DeterministicAdapter) -> list[str]:
+    """The full text (system and user) of every draft request the adapter received."""
+    return [
+        "\n".join(m.content for m in r.messages)
+        for r in det.requests
+        if r.schema_name == DRAFT_SCHEMA
+    ]
+
+
+async def test_plain_rag_prompt_makes_no_in_force_claim_about_its_unfiltered_evidence(
+    corpus, make_deps
+):
+    """Baseline fairness: plain_rag's chunks are NOT filtered by as_of, so its prompt must
+    not tell the model they were in force. Everything else matches the Driftline draft."""
+    cases = golden_set(corpus["versions"])[:3]
+    det, deps = make_deps(corpus)
+    await run("pharma", "plain_rag", cases, deps)
+    plain = draft_prompts(det)
+    assert len(plain) == 3
+    for prompt in plain:
+        assert "in force" not in prompt.lower()
+        assert "these chunks were retrieved" in prompt
+        assert DRAFT_SYSTEM in prompt  # same rules, same schema, same tier
+
+    det, deps = make_deps(corpus)
+    await run("pharma", "driftline", cases, deps)
+    assert all("in force" in p for p in draft_prompts(det))  # the filtered system's claim
 
 
 async def test_stale_case_is_excluded_from_metrics_and_counted(corpus, make_deps):
