@@ -44,8 +44,10 @@ teardown() {
 up_base() {
   local services=(postgres redis embedder gateway outbox-relay)
   [[ "$BENCH_RERANKER" == "on" ]] && services+=(reranker)
+  # Build every backend image (the scaled workers too) from this checkout first.
+  compose build gateway outbox-relay ingest-worker agent-worker >&2
   blog "up: ${services[*]}"
-  compose up -d --build --wait --wait-timeout 900 "${services[@]}" >&2
+  compose up -d --wait --wait-timeout 900 "${services[@]}" >&2
 }
 
 # Stable mtimes: the upload connector dates a version by its file's mtime.
