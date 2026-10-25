@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     embed_dim: int = 768
     # Haiku 5.5 thinks by default and thinking tokens count against max_tokens.
     default_max_output_tokens: int = 2048
+    # Per-request LLM timeout (seconds) instead of the Anthropic SDK's 600 s default.
+    llm_timeout_s: float = 120.0
 
     # Ingestion (P2)
     github_token: str | None = None  # optional; raises GitHub's limit from 60 to 5,000/hour
