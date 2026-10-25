@@ -69,9 +69,12 @@ def _usage(message: SdkMessage) -> Usage:
 class AnthropicAdapter:
     name = "anthropic"
 
-    def __init__(self, api_key: str, *, clock: Clock | None = None) -> None:
-        # Retries belong to the router; the SDK must not retry underneath it.
-        self._client = anthropic.AsyncAnthropic(api_key=api_key, max_retries=0)
+    def __init__(
+        self, api_key: str, *, clock: Clock | None = None, timeout_s: float = 120.0
+    ) -> None:
+        # Retries belong to the router; the SDK must not retry underneath it. The timeout
+        # is explicit (Settings.llm_timeout_s) instead of the SDK's 600 s default.
+        self._client = anthropic.AsyncAnthropic(api_key=api_key, max_retries=0, timeout=timeout_s)
         self._clock = clock or SystemClock()
 
     async def complete(self, model: str, request: CompletionRequest) -> CompletionResult:
