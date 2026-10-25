@@ -71,3 +71,14 @@ class Settings(BaseSettings):
     drift_enabled: bool = True
     drift_batch: int = 50  # watched answers re-checked per drift-worker pass
     review_confidence_threshold: float = 0.6  # below this an answer goes to human review
+    # Per-tenant alert log (events:alerts:{tenant}); alerts outlive asks, so a longer TTL.
+    alert_events_maxlen: int = 10_000
+    alert_events_ttl_s: int = 30 * 24 * 3600
+    # `python -m driftline.drift poll`: seconds between scheduler passes.
+    poll_interval_s: float = 60.0
+    # A scheduled source is marked `stale_source` after this many CONSECUTIVE scheduled
+    # polls whose fetch (discovery) failed. One or two failures are usually a blip (a
+    # rate limit, a 5xx, a network hiccup) that the next cycle recovers from; three in a
+    # row means the source has been unreachable for ~3 of its own intervals, which is
+    # worth surfacing. It also matches the stream bus's 3-delivery dead-letter rule.
+    source_stale_after_failures: int = 3

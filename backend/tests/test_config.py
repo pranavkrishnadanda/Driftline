@@ -82,3 +82,11 @@ def test_drift_and_review_defaults():
     assert s.drift_enabled is True
     assert s.drift_batch == 50
     assert s.review_confidence_threshold == 0.6
+
+
+def test_drift_worker_and_scheduler_settings():
+    s = Settings(_env_file=None)
+    assert s.source_stale_after_failures == 3
+    assert s.poll_interval_s == 60.0
+    assert s.alert_events_maxlen == 10_000
+    assert s.alert_events_ttl_s == 30 * 24 * 3600
