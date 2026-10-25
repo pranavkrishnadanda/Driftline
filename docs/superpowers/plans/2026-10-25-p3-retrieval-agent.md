@@ -182,3 +182,9 @@
 - On `main`: the full suite, ruff, the no-mock grep and the cassette leak check;
 - `git log --format=%B | grep -ci co-authored` returns 0;
 - push to `origin main`, and GitHub CI is green.
+
+## Follow-ups from Wave 1 reviews (owned by later tasks)
+
+- **T7:** if a client's `Last-Event-ID` is higher than the log's `last_id`, it currently gets only heartbeats until the job ends. Clamp it to `last_id` (and send `events_expired` if a gap is detected) instead. Pin this with a test.
+- **T8:** do **not** store `insufficient_evidence` (uncited) answers in the semantic cache. With no cited versions they can never be invalidated, so newly ingested documents would be ignored until the TTL expires. Pin this with a test.
+- **T9:** `obs.cost.job_cost(conn, job_id)` filters by `job_id` only. Add a `tenant_id` parameter and filter, and update the worker's call.
