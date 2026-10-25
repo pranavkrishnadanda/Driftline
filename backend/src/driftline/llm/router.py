@@ -80,16 +80,16 @@ class LLMRouter:
             provider = self.providers[route.provider]
             for attempt in range(self._max_attempts):
                 bucket = self._buckets.get(route.model)
-                if bucket is not None:
-                    try:
-                        await bucket.acquire(1.0, timeout=self._bucket_timeout_s)
-                    except RateLimitTimeout as exc:
-                        # The provider was never called: hand back any half-open probe
-                        # so the breaker is not left waiting for an outcome forever.
-                        breaker.release_probe()
-                        errors.append((route, exc))
-                        break
                 try:
+                    if bucket is not None:
+                        try:
+                            await bucket.acquire(1.0, timeout=self._bucket_timeout_s)
+                        except RateLimitTimeout as exc:
+                            # The provider was never called: hand back any half-open probe
+                            # so the breaker is not left waiting for an outcome forever.
+                            breaker.release_probe()
+                            errors.append((route, exc))
+                            break
                     result = await call(provider, route.model)
                 except ProviderError as exc:
                     breaker.record_failure()
@@ -99,6 +99,11 @@ class LLMRouter:
                         break
                     await self._clock.sleep(self._backoff(attempt))
                     continue
+                except BaseException:
+                    # Bugs, cancellation or infrastructure errors say nothing about the
+                    # provider's health: release any probe, then propagate unchanged.
+                    breaker.release_probe()
+                    raise
                 breaker.record_success()
                 return result, index
         raise AllRoutesFailed(errors)

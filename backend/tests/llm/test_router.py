@@ -181,3 +181,29 @@ async def test_rate_limit_timeout_during_half_open_probe_does_not_wedge_breaker(
     assert p.calls == ["pro", "pro"]
     assert third.provider == "p"
     assert third.degraded is False
+
+
+async def test_unexpected_error_during_half_open_probe_releases_probe():
+    clock = ManualClock()
+    p = DeterministicAdapter("p", script=[ValueError("bug in adapter"), None])
+    s = DeterministicAdapter("s")
+    r = router(
+        p,
+        s,
+        clock,
+        breaker_factory=lambda: CircuitBreaker(
+            clock=clock, failure_threshold=1, cooldown_seconds=5
+        ),
+    )
+    r.breaker(Route("p", "pro")).record_failure()  # open the primary breaker
+    clock.advance(5)  # half-open
+
+    with pytest.raises(ValueError):
+        await r.complete("answer", req())  # the probe raises a bug-type error
+    assert p.calls == ["pro"]
+    assert s.calls == []  # Review Focus #2: no fallback
+
+    result = await r.complete("answer", req())
+    assert p.calls == ["pro", "pro"]
+    assert result.provider == "p"
+    assert s.calls == []
