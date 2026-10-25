@@ -880,6 +880,155 @@
         "title": "NearestSource",
         "type": "object"
       },
+      "ResolveRequest": {
+        "additionalProperties": false,
+        "description": "`edit` goes with action `edit` only: `{\"kind\": ...}` for a relation, or\n`{\"answer\": \"...\"}` for an answer item.",
+        "properties": {
+          "action": {
+            "enum": [
+              "approve",
+              "edit",
+              "reject"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "by": {
+            "description": "who resolved it",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "By",
+            "type": "string"
+          },
+          "edit": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edit"
+          }
+        },
+        "required": [
+          "action",
+          "by"
+        ],
+        "title": "ResolveRequest",
+        "type": "object"
+      },
+      "ReviewItem": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "relation",
+              "broken_answer",
+              "low_confidence_answer",
+              "answer"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "ref_id": {
+            "format": "uuid",
+            "title": "Ref Id",
+            "type": "string"
+          },
+          "resolution": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "resolved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved By"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "resolved"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tenant_id": {
+            "format": "uuid",
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "ref_id",
+          "tenant_id",
+          "status",
+          "payload",
+          "created_at"
+        ],
+        "title": "ReviewItem",
+        "type": "object"
+      },
+      "ReviewItemList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "ReviewItemList",
+        "type": "object"
+      },
       "StepEvent": {
         "properties": {
           "detail": {
@@ -900,7 +1049,8 @@
               "retry",
               "hit",
               "miss",
-              "failed"
+              "failed",
+              "waiting"
             ],
             "title": "Status",
             "type": "string"
@@ -1846,6 +1996,204 @@
         "summary": "Events",
         "tags": [
           "ask"
+        ]
+      }
+    },
+    "/v1/review": {
+      "get": {
+        "description": "This tenant's review items, oldest first.",
+        "operationId": "list_review_v1_review_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "relation",
+                    "broken_answer",
+                    "low_confidence_answer",
+                    "answer"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "default": "open",
+              "enum": [
+                "open",
+                "resolved"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "tenant name; optional with a bearer key, which must then match it",
+            "in": "query",
+            "name": "tenant",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tenant name; optional with a bearer key, which must then match it",
+              "title": "Tenant"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewItemList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "missing or invalid API key"
+          },
+          "403": {
+            "description": "the API key is not the named tenant's"
+          },
+          "404": {
+            "description": "unknown tenant or review item"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Review",
+        "tags": [
+          "review"
+        ]
+      }
+    },
+    "/v1/review/{item_id}/resolve": {
+      "post": {
+        "description": "Approve, edit or reject an item. Resolving a paused answer resumes its ask; an\napproved broken answer is regenerated; an edit becomes an eval case.",
+        "operationId": "resolve_v1_review__item_id__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "tenant name; optional with a bearer key, which must then match it",
+            "in": "query",
+            "name": "tenant",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tenant name; optional with a bearer key, which must then match it",
+              "title": "Tenant"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewItem"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "missing or invalid API key"
+          },
+          "403": {
+            "description": "the API key is not the named tenant's"
+          },
+          "404": {
+            "description": "unknown tenant or review item"
+          },
+          "409": {
+            "description": "already resolved"
+          },
+          "422": {
+            "description": "the action or edit does not fit this item"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Resolve",
+        "tags": [
+          "review"
         ]
       }
     }

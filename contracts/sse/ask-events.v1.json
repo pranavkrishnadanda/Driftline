@@ -726,7 +726,8 @@
               "retry",
               "hit",
               "miss",
-              "failed"
+              "failed",
+              "waiting"
             ],
             "title": "Status",
             "type": "string"

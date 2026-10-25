@@ -13,6 +13,7 @@ from driftline.drift.alerts import AlertLog
 from driftline.gateway.ask import build_ask_router
 from driftline.gateway.contract import install_event_schemas
 from driftline.gateway.drift import build_drift_router
+from driftline.gateway.review import build_review_router
 from driftline.streams.bus import StreamBus
 
 
@@ -62,6 +63,7 @@ def create_app(settings: Settings) -> FastAPI:
     )
     app.include_router(build_ask_router())
     app.include_router(build_drift_router())
+    app.include_router(build_review_router())
     install_event_schemas(app)
 
     @app.get("/healthz")

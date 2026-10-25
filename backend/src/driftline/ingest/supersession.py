@@ -201,6 +201,7 @@ async def apply_relations(
         if key not in best or rel.confidence > best[key].confidence:
             best[key] = rel
     applied = pending = 0
+    tenant_id = (await _version_context(conn, version_id))["tenant_id"]
     async with conn.transaction():
         if await conn.fetchval("SELECT 1 FROM relations WHERE src_version_id = $1", version_id):
             return ExtractionOutcome(skipped=True)
@@ -225,8 +226,10 @@ async def apply_relations(
                 continue
             pending += 1
             await conn.execute(
-                "INSERT INTO review_items (kind, ref_id, payload) VALUES ('relation', $1, $2::jsonb)",
+                "INSERT INTO review_items (kind, ref_id, tenant_id, payload) "
+                "VALUES ('relation', $1, $2, $3::jsonb)",
                 relation_id,
+                tenant_id,
                 json.dumps(
                     {
                         "reason": "low_confidence" if found else "evidence_not_found",
@@ -245,6 +248,7 @@ async def record_malformed(
     conn: asyncpg.Connection, version_id: UUID, detail: str, raw: str
 ) -> None:
     """Queue one review item per version whose extraction reply could not be parsed."""
+    tenant_id = (await _version_context(conn, version_id))["tenant_id"]
     async with conn.transaction():
         exists = await conn.fetchval(
             "SELECT 1 FROM review_items WHERE ref_id = $1 "
@@ -253,8 +257,10 @@ async def record_malformed(
         )
         if not exists:
             await conn.execute(
-                "INSERT INTO review_items (kind, ref_id, payload) VALUES ('relation', $1, $2::jsonb)",
+                "INSERT INTO review_items (kind, ref_id, tenant_id, payload) "
+                "VALUES ('relation', $1, $2, $3::jsonb)",
                 version_id,
+                tenant_id,
                 json.dumps(
                     {"error": "malformed_extraction", "detail": detail[:500], "raw": raw[:2000]}
                 ),

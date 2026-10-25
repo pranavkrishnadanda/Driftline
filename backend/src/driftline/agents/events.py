@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, TypeAdapter
 
 from driftline.agents.schemas import AnswerSchema, Citation
 
-StepStatus = Literal["started", "completed", "skipped", "retry", "hit", "miss", "failed"]
+StepStatus = Literal["started", "completed", "skipped", "retry", "hit", "miss", "failed", "waiting"]
 
 
 class StepEvent(BaseModel):

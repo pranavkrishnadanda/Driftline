@@ -12,11 +12,12 @@ from redis.asyncio import Redis
 
 from driftline.agents.eventlog import AskEventLog
 from driftline.agents.events import ErrorEvent, FinalEvent
-from driftline.agents.graph import run_ask
+from driftline.agents.graph import ReviewPending, run_ask
 from driftline.agents.schemas import AGENT_GROUP, AGENT_STREAM, AnswerSchema, AskJob
 from driftline.clock import Clock, SystemClock
 from driftline.llm.router import AllRoutesFailed
 from driftline.obs.cost import job_cost
+from driftline.review.queue import ReviewQueue
 from driftline.streams.bus import StreamBus, keepalive_interval_ms
 
 RECLAIM_IDLE_MS = 60_000  # spec section 3: reclaim stalled messages after 60 s
@@ -35,6 +36,8 @@ async def persist_answer(
     One answer row per job: a rerun (redelivery, two workers) reuses the existing row."""
     cost = await job_cost(conn, job.job_id, tenant_id=job.tenant_id)
     answer = answer.model_copy(update={"cost_usd": float(cost.cost_usd)})
+    if job.answer_id is not None:
+        return await _replace_watched_answer(conn, job, answer, cost.cost_usd)
     async with conn.transaction():
         answer_id = await conn.fetchval(
             "INSERT INTO answers (tenant_id, question, as_of, body, confidence, job_id, "
@@ -69,6 +72,42 @@ async def persist_answer(
             job.tenant_id,
         )
     return answer.model_copy(update={"answer_id": answer_id})
+
+
+async def _replace_watched_answer(
+    conn: asyncpg.Connection, job: AskJob, answer: AnswerSchema, cost_usd
+) -> AnswerSchema:
+    """A regeneration (`job.answer_id`) rewrites that answer in place, so it keeps its id
+    and its watch; its citations are replaced. Rerunning it writes the same rows."""
+    async with conn.transaction():
+        found = await conn.fetchval(
+            "UPDATE answers SET as_of = $3, body = $4::jsonb, confidence = $5, status = $6, "
+            "degraded = $7, cost_usd = $8 WHERE id = $1 AND tenant_id = $2 "
+            "RETURNING id",
+            job.answer_id,
+            job.tenant_id,
+            answer.as_of,
+            answer.model_dump_json(exclude={"answer_id"}),
+            answer.confidence,
+            answer.status,
+            answer.degraded,
+            cost_usd,
+        )
+        if found is None:
+            raise LookupError(f"no answer {job.answer_id} for tenant {job.tenant_id}")
+        await conn.execute("DELETE FROM answer_citations WHERE answer_id = $1", job.answer_id)
+        await conn.executemany(
+            "INSERT INTO answer_citations (answer_id, claim_idx, chunk_id) "
+            "VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+            [(job.answer_id, c.idx, cit.chunk_id) for c in answer.claims for cit in c.citations],
+        )
+        await conn.execute(
+            "UPDATE jobs SET status = 'succeeded', error = NULL, finished_at = now() "
+            "WHERE id = $1 AND tenant_id = $2",
+            job.job_id,
+            job.tenant_id,
+        )
+    return answer.model_copy(update={"answer_id": job.answer_id})
 
 
 async def _published_job_ids(redis: Redis, start_ms: int, wanted: set[str]) -> set[str]:
@@ -157,6 +196,7 @@ class AgentWorker:
         self._reclaim_idle_ms = reclaim_idle_ms
         self._max_deliveries = max_deliveries  # must match the bus's, see _is_last_delivery
         self._next_reap: float | None = None
+        self._reviews = ReviewQueue(pool)
 
     async def setup(self) -> None:
         await self._bus.ensure_group(AGENT_STREAM, AGENT_GROUP)
@@ -172,6 +212,34 @@ class AgentWorker:
                 job.job_id,
                 job.tenant_id,
                 error,
+            )
+
+    async def _await_review(self, job: AskJob, request: dict[str, Any]) -> None:
+        """Park a paused ask: open its review item and mark the job `needs_review`, in
+        one transaction. The item's ref is the job id (= the graph thread id). Once an
+        item for this ask was resolved, its decision is already on its way to the graph,
+        so a late redelivery of the original ask must not open a second one."""
+        original = job.model_copy(update={"resume": None})
+        async with self._pool.acquire() as conn, conn.transaction():
+            decided = await conn.fetchval(
+                "SELECT 1 FROM review_items WHERE kind = 'low_confidence_answer' "
+                "AND ref_id = $1 AND status = 'resolved'",
+                job.job_id,
+            )
+            if decided:
+                return
+            await self._reviews.open(
+                "low_confidence_answer",
+                job.job_id,
+                job.tenant_id,
+                {**request, "job": original.model_dump(mode="json")},
+                conn=conn,
+            )
+            await conn.execute(
+                "UPDATE jobs SET status = 'needs_review' WHERE id = $1 AND tenant_id = $2 "
+                "AND status IN ('queued', 'running')",
+                job.job_id,
+                job.tenant_id,
             )
 
     async def _is_last_delivery(self, msg_id: str) -> bool:
@@ -195,6 +263,8 @@ class AgentWorker:
                 raise LookupError(f"no ask job {job.job_id} for tenant {job.tenant_id}")
             if status in ("succeeded", "failed"):
                 return  # redelivered after completion
+            if status == "needs_review" and job.resume is None:
+                return  # redelivered while paused: only a reviewer's decision resumes it
             await conn.execute(
                 "UPDATE jobs SET status = 'running' WHERE id = $1 AND status = 'queued'",
                 job.job_id,
@@ -207,6 +277,9 @@ class AgentWorker:
             answer = await run_ask(self._graph, job, emit=emit, clock=self._clock)
             async with self._pool.acquire() as conn:
                 answer = await persist_answer(conn, job, answer)
+        except ReviewPending as pending:
+            await self._await_review(job, pending.request)
+            return
         except AllRoutesFailed:
             # Every model route is down: a terminal, explained failure (spec section 10).
             await self._fail(job, "llm_unavailable")

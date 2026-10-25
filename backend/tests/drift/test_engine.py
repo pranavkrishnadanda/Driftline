@@ -202,6 +202,7 @@ async def test_removed_section_is_broken_and_queued_for_review(engine, judge, fr
     [item] = await fresh_conn.fetch(
         "SELECT kind, ref_id, tenant_id, status, payload FROM review_items"
     )
+    assert item["kind"] == "broken_answer"
     assert (item["ref_id"], item["tenant_id"], item["status"]) == (answer, tenant, "open")
     assert json.loads(item["payload"])["reason"] == "broken"
     [payload] = await alert_payloads(fresh_conn)

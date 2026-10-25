@@ -90,12 +90,12 @@ def _json(value: Any) -> Any:
 async def queue_broken_answer(
     conn: asyncpg.Connection, tenant_id: UUID, answer_id: UUID, payload: dict[str, Any]
 ) -> None:
-    """Default `regenerate_hook`: open one review item per broken answer (idempotent
-    through the open-item partial unique index). The 0001 CHECK on review_items.kind
-    only allows 'answer' and 'relation', so the reason travels in the payload."""
+    """Default `regenerate_hook`: open one `broken_answer` review item per broken answer
+    (idempotent through the open-item partial unique index). Approving it regenerates
+    the answer through the answer graph (`driftline.review.queue`)."""
     await conn.execute(
         "INSERT INTO review_items (kind, ref_id, tenant_id, payload) "
-        "VALUES ('answer', $1, $2, $3::jsonb) "
+        "VALUES ('broken_answer', $1, $2, $3::jsonb) "
         "ON CONFLICT (kind, ref_id) WHERE status = 'open' DO NOTHING",
         answer_id,
         tenant_id,
