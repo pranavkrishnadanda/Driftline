@@ -98,6 +98,25 @@ describe("AskView: answering", () => {
     expect(screen.getByText("How often should ALT be checked?")).toBeInTheDocument();
   });
 
+  it("shows the agent timeline above the answer, lit in graph order", async () => {
+    await setup(ANSWERED_EVENTS);
+    const user = renderView(api!.url);
+
+    await ask(user);
+
+    const answer = await screen.findByRole("region", { name: "Answer" });
+    const timeline = screen.getByRole("region", { name: "Agent timeline" });
+    // Above the answer in document order.
+    expect(timeline.compareDocumentPosition(answer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const lit = [...timeline.querySelectorAll<HTMLElement>("[data-lit-order]")]
+      .sort((a, b) => Number(a.dataset.litOrder) - Number(b.dataset.litOrder))
+      .map((el) => el.dataset.node);
+    expect(lit).toEqual(["classify", "cache", "plan", "subagent", "merge", "draft", "verify", "respond"]);
+    expect(timeline.querySelector('[aria-live="polite"]')).toHaveTextContent(
+      "Done: 1 of 1 claims verified.",
+    );
+  });
+
   it("shows the streamed text while the answer is being written", async () => {
     const progress = ANSWERED_EVENTS.filter((e) => e.event !== "final");
     await setup(progress, { events: progress, connections: [{ hold: true }] });
@@ -171,6 +190,8 @@ describe("AskView: human review", () => {
     expect(pending).toHaveTextContent(ANSWERED_TEXT);
     expect(pending).toHaveTextContent("confidence is below the review threshold");
     expect(screen.getByRole("status")).toHaveTextContent("Waiting for human review.");
+    const timeline = screen.getByRole("region", { name: "Agent timeline" });
+    expect(timeline.querySelector('[data-node="review"]')).toHaveAttribute("data-status", "waiting");
     // Not an error, and not an endless spinner: the prompt is free again.
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Answer in progress" })).not.toBeInTheDocument();

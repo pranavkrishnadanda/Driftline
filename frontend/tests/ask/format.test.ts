@@ -189,6 +189,8 @@ describe("stepLabel", () => {
     expect(stepLabel("plan")).toBe("Planning");
     expect(stepLabel("subagent")).toBe("Searching sources");
     expect(stepLabel("verify")).toBe("Verifying claims");
+    expect(stepLabel("re_retrieve")).toBe("Searching again");
+    expect(stepLabel("review")).toBe("Human review");
     expect(stepLabel("mystery_node")).toBe("mystery_node");
   });
 });
