@@ -146,6 +146,7 @@ class EvalReport(BaseModel):
     system: System
     corpus: Slug
     git_sha: Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{7,40}$")]
+    llm: Text  # what answered, e.g. "offline extractive LLM (...)" or the Claude models
     metrics: dict[str, float]
     cases: list[CaseResult]
 

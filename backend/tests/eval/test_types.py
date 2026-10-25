@@ -119,6 +119,7 @@ def test_eval_report_round_trips_and_counts_stale_cases():
         system="driftline",
         corpus="pharma",
         git_sha="14e550a",
+        llm="offline extractive LLM",
         metrics={"citation_precision": 0.93, "outdated_citation_rate": 0.02},
         cases=[
             result(),
@@ -130,7 +131,7 @@ def test_eval_report_round_trips_and_counts_stale_cases():
 
 
 def test_eval_report_validates_system_sha_and_unique_cases():
-    base = {"corpus": "pharma", "metrics": {}, "cases": [result()]}
+    base = {"corpus": "pharma", "llm": "offline extractive LLM", "metrics": {}, "cases": [result()]}
     with pytest.raises(ValidationError):
         EvalReport(system="gpt_only", git_sha="14e550a", **base)
     with pytest.raises(ValidationError):
@@ -140,9 +141,12 @@ def test_eval_report_validates_system_sha_and_unique_cases():
             system="no_retrieval",
             git_sha="14e550a",
             corpus="pharma",
+            llm="offline extractive LLM",
             metrics={},
             cases=[result(), result()],
         )
+    with pytest.raises(ValidationError, match="llm"):  # every report says what answered
+        EvalReport(system="plain_rag", git_sha="14e550a", **(base | {"llm": " "}))
 
 
 def seed(**overrides) -> EvalCase:

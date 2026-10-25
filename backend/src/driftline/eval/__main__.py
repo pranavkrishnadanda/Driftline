@@ -5,7 +5,11 @@ run      --corpus C --system S [--cases PATH] [--tenant NAME] [--reports-dir DIR
          against the corpus's tenant (default: the tenant named like the corpus).
          Exit 1 when any case errored.
 compare  --base <sha|path> --head <path> [--reports-dir DIR]
-         The CI gate (spec section 12). Exit 0 pass, 1 regression, 2 no usable base.
+         The CI gate (spec section 12). Exit 0 pass, 1 regression, 2 no usable base
+         (missing, or a run of another corpus, system or LLM).
+load-snapshot --path FILE
+         Load an eval-gate DB snapshot (driftline.eval.snapshot) into the configured,
+         freshly migrated database. Exit 2 when it is altered or the database is not empty.
 """
 
 import argparse
@@ -25,6 +29,7 @@ from driftline.config import Settings
 from driftline.eval.curate import add_curate_parser, curate
 from driftline.eval.metrics import gate
 from driftline.eval.runner import SYSTEMS, EvalDeps, report_path, run
+from driftline.eval.snapshot import SnapshotError, load_snapshot
 from driftline.eval.types import EvalReport, GoldenCase
 from driftline.obs.cost import CostLedger
 from driftline.retrieval.hybrid import HybridRetriever
@@ -50,6 +55,8 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--base", required=True, help="a commit sha or a report path")
     c.add_argument("--head", required=True, type=Path, help="the head report path")
     c.add_argument("--reports-dir", type=Path, default=DEFAULT_REPORTS)
+    s = sub.add_parser("load-snapshot", help="load an eval-gate DB snapshot")
+    s.add_argument("--path", required=True, type=Path, help="the .snapshot.gz file")
     add_curate_parser(sub)
     return parser
 
@@ -136,14 +143,25 @@ def _compare(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 2
+    if base.llm != head.llm:
+        print(
+            f"the base must be answered by the same LLM: base is {base.llm!r}, "
+            f"head is {head.llm!r}",
+            file=sys.stderr,
+        )
+        return 2
     failures = gate(base.metrics, head.metrics)
     print(f"## Eval gate: {head.corpus} / {head.system} ({base.git_sha} -> {head.git_sha})")
     print()
-    print("| Metric | Base | Head |")
-    print("|---|---|---|")
+    print(f"LLM: {head.llm}")
+    print()
+    print("| Metric | Base | Head | Change (points) |")
+    print("|---|---|---|---|")
     for name in GATED:
         cells = [f"{r.metrics[name]:.4f}" if name in r.metrics else "-" for r in (base, head)]
-        print(f"| {name} | {cells[0]} | {cells[1]} |")
+        both = name in base.metrics and name in head.metrics
+        change = f"{(head.metrics[name] - base.metrics[name]) * 100:+.2f}" if both else "-"
+        print(f"| {name} | {cells[0]} | {cells[1]} | {change} |")
     print()
     if failures:
         print("**FAIL**")
@@ -154,10 +172,25 @@ def _compare(args: argparse.Namespace) -> int:
     return 0
 
 
+async def _load_snapshot(args: argparse.Namespace, settings: Settings) -> int:
+    conn = await asyncpg.connect(settings.database_url)
+    try:
+        rows = await load_snapshot(conn, args.path)
+    except SnapshotError as exc:
+        print(f"snapshot not loaded: {exc}", file=sys.stderr)
+        return 2
+    finally:
+        await conn.close()
+    print(f"loaded {args.path}: {rows}")
+    return 0
+
+
 async def amain(argv: list[str], settings: Settings | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "compare":
         return _compare(args)
+    if args.command == "load-snapshot":
+        return await _load_snapshot(args, settings or Settings())
     if args.command == "curate":
         return await curate(args)
     return await _run(args, settings or Settings())

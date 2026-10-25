@@ -16,7 +16,14 @@ from driftline.agents.prompts import DRAFT_SCHEMA, DRAFT_SYSTEM
 from driftline.clock import ManualClock
 from driftline.config import Settings
 from driftline.eval.__main__ import amain
-from driftline.eval.runner import EvalDeps, render_markdown, report_path, run
+from driftline.eval.runner import (
+    OFFLINE_LLM,
+    EvalDeps,
+    describe_llm,
+    render_markdown,
+    report_path,
+    run,
+)
 from driftline.eval.types import EvalReport, GoldenCase
 from driftline.llm.adapters.deterministic import DeterministicAdapter
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
@@ -264,6 +271,7 @@ async def test_writes_eval_runs_and_json_and_markdown_reports(
     assert EvalReport.model_validate_json(path.read_text()) == report
     markdown = path.with_suffix(".md").read_text()
     assert markdown == render_markdown(report)
+    assert report.llm.startswith(OFFLINE_LLM) and OFFLINE_LLM in markdown
     assert "citation_precision" in markdown and "pharma-005" in markdown
     assert "stale_case" in markdown
 
@@ -331,3 +339,26 @@ async def test_cli_run_evaluates_a_cases_file_offline(
     assert code == 0
     report = EvalReport.model_validate_json((reports / SHA / "pharma.plain_rag.json").read_text())
     assert report.stale_case_count == 1 and report.metrics["scored"] == 4.0
+
+
+def test_describe_llm_labels_the_offline_extractive_router_and_names_real_models():
+    det = DeterministicAdapter("deterministic", responder=ExtractiveResponder())
+    tiers = {t: [Route("deterministic", f"offline-{t}")] for t in ("extract", "answer", "judge")}
+    offline = LLMRouter(providers={"deterministic": det}, chains=tiers, clock=ManualClock())
+    label = describe_llm(offline)
+    assert label.startswith("offline extractive LLM")
+    assert "answer=deterministic/offline-answer" in label
+
+    plain = DeterministicAdapter("anthropic")  # no extractive responder: not "offline"
+    chains = {
+        "extract": [Route("anthropic", "claude-haiku-5-5")],
+        "answer": [Route("anthropic", "claude-sonnet-5-5"), Route("gemini", "gemini-x")],
+        "judge": [Route("anthropic", "claude-sonnet-5-5")],
+        "embed": [Route("tei", EMBED_MODEL)],
+    }
+    real = LLMRouter(providers={"anthropic": plain}, chains=chains, clock=ManualClock())
+    assert describe_llm(real) == (
+        "extract=anthropic/claude-haiku-5-5; "
+        "answer=anthropic/claude-sonnet-5-5>gemini/gemini-x; "
+        "judge=anthropic/claude-sonnet-5-5"
+    )
