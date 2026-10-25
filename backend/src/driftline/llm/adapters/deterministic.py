@@ -60,6 +60,10 @@ class DeterministicAdapter:
         self._responder = responder
         self._clock = clock or SystemClock()
 
+    @property
+    def responder(self) -> Responder | None:
+        return self._responder
+
     async def _step(self, model: str) -> ScriptEntry:
         self.calls.append(model)
         outcome = self._script.pop(0) if self._script else None

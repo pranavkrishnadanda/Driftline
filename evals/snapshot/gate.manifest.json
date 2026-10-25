@@ -1,0 +1,73 @@
+{
+  "format": 1,
+  "file": "gate.snapshot.gz",
+  "sha256": "27f5d94b2ab296ef8198ef9d44eb2e760c06100653615c7c9fe2a5ccbe7bccd4",
+  "bytes": 25623958,
+  "schema_version": "0006",
+  "rows": {
+    "tenants": 1,
+    "sources": 2,
+    "documents": 21,
+    "doc_versions": 101,
+    "chunks": 7964
+  },
+  "columns": {
+    "tenants": [
+      "id",
+      "name",
+      "skill_pack",
+      "api_key_hash",
+      "created_at"
+    ],
+    "sources": [
+      "id",
+      "tenant_id",
+      "kind",
+      "config",
+      "schedule",
+      "last_polled_at",
+      "status"
+    ],
+    "documents": [
+      "id",
+      "source_id",
+      "external_id",
+      "title"
+    ],
+    "doc_versions": [
+      "id",
+      "document_id",
+      "version_no",
+      "content_hash",
+      "valid_from",
+      "valid_to",
+      "raw_uri",
+      "diff_from_prev",
+      "created_at",
+      "version_key",
+      "section_hashes",
+      "source_meta"
+    ],
+    "chunks": [
+      "id",
+      "version_id",
+      "ord",
+      "section_path",
+      "text",
+      "embedding",
+      "embed_model",
+      "tags"
+    ]
+  },
+  "cases": {
+    "pharma": 40,
+    "k8s": 40
+  },
+  "per_corpus": 40,
+  "golden_sha256": {
+    "pharma": "d84379576dff1beb867abfdb14f33ba1bcf5738bc17b99fbc00c2f20bfa7fcfb",
+    "k8s": "1839fd1f4d032f8b98d1bfe3b466165f185e6ff43b49321693357c3c44ec2303"
+  },
+  "expected_versions": 52,
+  "source": "golden-set curation database, pg_dump custom format, sha256 d51e7f513a76f7c59d4b303711c86c0fd185a0f2ab94ec8c0e886068d2ddfe1b (2026-10-25)"
+}

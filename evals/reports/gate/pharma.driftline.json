@@ -1,0 +1,869 @@
+{
+  "system": "driftline",
+  "corpus": "pharma",
+  "git_sha": "ce44d2b91109426c9ab416d7b58816da61b44d92",
+  "llm": "offline extractive LLM (DeterministicAdapter + ExtractiveResponder; extract=deterministic/offline-extract; answer=deterministic/offline-answer; judge=deterministic/offline-judge)",
+  "metrics": {
+    "citation_precision": 1.0,
+    "outdated_citation_rate": 0.0,
+    "trap_citation_precision": 1.0,
+    "trap_outdated_citation_rate": 0.0,
+    "faithfulness": 1.0,
+    "insufficient_evidence_accuracy": 1.0,
+    "latency_p95_ms": 84.58089828491211,
+    "cost_per_answer_usd": 0.0,
+    "scored": 40.0,
+    "citations": 119.0,
+    "claims": 119.0,
+    "claims_judged": 0.0,
+    "cases": 40.0,
+    "stale_case_count": 0.0,
+    "error_count": 0.0
+  },
+  "cases": [
+    {
+      "case_id": "pharma-001",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Medication Guide Zolpidem Tartrate Tablets, USP C-IV (ZOL-pih-dem) Read the Medication Guide that comes with zolpidem tartrate tablets before you start taking it and each time you get a refill. Who should not take zolpidem tartrate tablets? Tell your healthcare provider about all of the medicines you take, including prescription and nonprescription medicines, vitamins and herbal supplements.",
+      "cited_version_ids": [
+        "c999f1d9-6834-48f2-9318-16f4923990c3"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 154.64496612548828,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-004",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Medication Guide Zolpidem Tartrate Tablets C-IV Read the Medication Guide that comes with zolpidem tartrate tablets before you start taking it and each time you get a refill. Zolpidem tartrate tablets should be used with caution in patients with sleep apnea syndrome or myasthenia gravis. Zolpidem tartrate tablets, like other sedative/hypnotic drugs, have CNS-depressant effects.",
+      "cited_version_ids": [
+        "59ef3141-516d-45c1-b41e-693b94f7dc15"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 62.95013427734375,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-008",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "COCs containing ethinyl estradiol may inhibit the metabolism of other compounds. Ascorbic acid andacetaminophen may increase plasma EE concentrations, possibly by inhibition of conjugation. After oral administration of estradiol valerate, approximately 3% of the dose is directly bioavailable as estradiol.",
+      "cited_version_ids": [
+        "9865cf01-1dd8-4e57-8c8d-a4b92eebd995",
+        "b5a6f160-11a8-4bef-ad84-ebc2d2c797d1"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 73.03714752197266,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-015",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Therapy with TIKOSYN must be initiated (and, if necessary, re-initiated) in a setting that provides continuous electrocardiographic (ECG) monitoring and in the presence of personnel trained in the management of serious ventricular arrhythmias. The studies examined the effectiveness of TIKOSYN in conversion to sinus rhythm and maintenance of normal sinus rhythm after conversion in patients with atrial fibrillation/flutter of >1 week duration.",
+      "cited_version_ids": [
+        "e1097835-6acc-4c30-81c9-0e096bf55a9c"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 124.27282333374023,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-019",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As with all therapeutic proteins, there is a potential for immunogenicity. CINQAIR (reslizumab) is a humanized interleukin-5 antagonist monoclonal antibody (IgG4κ). The pharmacokinetics (PK) of reslizumab were characterized in healthy adults (n=130), in patients with asthma (n=438), and in other patient populations (n=236).",
+      "cited_version_ids": [
+        "c850c9f9-51da-4e40-b903-7b88bb45bad1"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 69.3819522857666,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-020",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Extravasation of doxorubicin HCl can result in severe local tissue injury manifesting as blistering, ulceration, and necrosis requiring wide excision of the affected area and skin grafting. Management of Suspected Extravasation Discontinue doxorubicin HCl for burning or stinging sensation or other evidence indicating peri-venous infiltration or extravasation. DOXORUBICIN (dok-suh-roo-buh-sin) HYDROCHLORIDE Injection, for intravenous use What is the most important information I should know about Doxorubicin?",
+      "cited_version_ids": [
+        "b9172bc0-5835-49d6-a5c1-adad6be1ee19"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 62.36886978149414,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-024",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Breakthrough bleeding and spotting sometimes occur in patients on COCs, especially during the first three months of use. Two multicenter phase 3 clinical trials evaluated the safety and efficacy of Natazia for pregnancy prevention. The study conducted in North America (U.S.",
+      "cited_version_ids": [
+        "ae0d1e34-0852-410a-8e97-6909842645b5"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 60.22000312805176,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-028",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Table 2 provides dose reductions and modifications for adverse reactions. The most common (≥2%) adverse reactions leading to permanent discontinuation were intestinal obstruction (2%) and thrombocytopenia (2%). ELAHERE can cause severe ocular adverse reactions, including visual impairment, keratopathy (corneal disorders), dry eye, photophobia, eye pain, and uveitis.",
+      "cited_version_ids": [
+        "493c8d0e-cb33-4c6d-b1bf-85952f2dd0bb"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 65.92583656311035,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-038",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Pharmacokinetic studies conducted in patients with various types of tumors have shown that doxorubicin follows multiphasic disposition after intravenous injection. Doxorubicin Hydrochloride is a cytotoxic, anthracycline, topoisomerase II inhibitor isolated from cultures of Streptomyces peucetius var. DOXORUBICIN (dok-suh-roo-buh-sin) HYDROCHLORIDE Injection, for intravenous use What is the most important information I should know about Doxorubicin?",
+      "cited_version_ids": [
+        "b9172bc0-5835-49d6-a5c1-adad6be1ee19"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 57.229042053222656,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-039",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Prior to initiating treatment with AZSTARYS, assess for the presence of cardiac disease (i.e., perform a careful history, family history of sudden death or ventricular arrhythmia, and physical exam) [see Warnings and Precautions (5.2)]. Anxiety, psychosis, hostility, aggression, suicidal or homicidal ideation have also been observed. This Medication Guide has been approved by the U.S.",
+      "cited_version_ids": [
+        "ce1cde12-5339-46d9-be16-fb056fe0f056"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 59.74411964416504,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-042",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "ELAHERE™ is indicated for the treatment of adult patients with folate receptor-alpha (FRα) positive, platinum-resistant epithelial ovarian, fallopian tube, or primary peritoneal cancer, who have received one to three prior systemic treatment regimens. Select patients for the treatment of platinum-resistant epithelial ovarian, fallopian tube, or primary peritoneal cancer with ELAHERE based on the presence of FRα tumor expression [see Indications & Usage (1) and Clinical Studies (14)] using an FDA-approved test. The efficacy of ELAHERE was evaluated in Study 0417 (NCT04296890), a single-arm trial of patients with FRα positive, platinum-resistant epithelial ovarian, fallopian tube, or primary peritoneal cancer (n=106).",
+      "cited_version_ids": [
+        "493c8d0e-cb33-4c6d-b1bf-85952f2dd0bb"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 74.13220405578613,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-045",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Risk Summary Based on its mechanism of action and data from animal reproduction studies, ODOMZO can cause fetal harm when administered to a pregnant woman [see Clinical Pharmacology (12.1) ]. Drug Interaction Studies Effects of CYP3A Inhibitors on Sonidegib Strong CYP3A inhibitor: The geometric mean sonidegib AUC0-10d increased by 2.2-fold and the Cmax increased by 1.5-fold when ODOMZO at a dose of 800 mg was taken with ketoconazole compared to ODOMZO alone [see Drug Interactions (7.1) ]. Carcinogenicity studies with sonidegib have not been performed.",
+      "cited_version_ids": [
+        "24f9606e-570a-4cb5-ab97-d916f929a4c0"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 62.760353088378906,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-048",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Consecutive Missed Doses In: Escalation Phase Maintenance Phase 1 missed dose First dose after a missed dose: Administer last tolerated dose Second and subsequent doses after missed dose: Resume dose escalation at next infusion according to Table 1 for adult patients or Table 2 for pediatric patients First and subsequent doses after missed dose: Administer maintenance dose 2 consecutive missed doses First dose after missed dose: Administer 1 dose below last tolerated dose Second and subsequent doses after missed dose: Resume dose escalation according to Table 1 for adults or Table 2 for pediatric patients First dose after missed dose: Administer 1 dose below the maintenance dose Second and subsequent doses after missed dose: Resume the maintenance dose 3 or more consecutive missed doses First and subsequent doses after missed doses: Resume dose escalation at 0.3 mg/kg and follow Table 1 for adults or Table 2 for pediatric patients First and subsequent doses after missed doses: Restart dosing at 0.3 mg/kg and follow Table 1 for adult patients or Table 2 for pediatric patients A dose is considered missed when it is not administered within 3 days of the scheduled date. Dose Escalation Phase The recommended starting dose of XENPOZYME in adults is 0.1 mg/kg.",
+      "cited_version_ids": [
+        "6190e54c-16a0-4f01-a02d-e329a3b09f5a"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 80.45816421508789,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-051",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The observed incidence of anti-drug antibodies is highly dependent on the sensitivity and specificity of the assay. None of these 9 patients had NAb that inhibit the cellular uptake of olipudase alfa-rpcp. Immunogenicity: Antidrug Antibody-Associated Adverse Reactions In Trial 1, infusion-associated reactions (including hypersensitivity reactions) occurred in a higher percentage in XENPOZYME-treated patients who developed IgG ADA compared to those who did not develop IgG ADA (73% versus 44%) [see Clinical Pharmacology (12.6) and Clinical Studies (14.2)].",
+      "cited_version_ids": [
+        "946bf614-c620-4499-abc7-68b0aaabfde4"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 84.58089828491211,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-059",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Risk Summary It is not known whether reslizumab is present in human milk, and the effects of reslizumab on the breast fed infant and on milk production are not known. This may cause other symptoms that were controlled by the corticosteroid medicine to come back. When added to other medicines for asthma, CINQAIR helps prevent severe asthma attacks (exacerbations) and can improve your breathing.",
+      "cited_version_ids": [
+        "cde7b512-a92f-4ed1-aecb-258ca349b7e3"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 60.09316444396973,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-061",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Drug Interaction Studies Effects of CYP3A Inhibitors on Sonidegib Strong CYP3A inhibitor: The geometric mean sonidegib AUC0-10d increased by 2.2-fold and the Cmax increased by 1.5-fold when ODOMZO at a dose of 800 mg was taken with ketoconazole compared to ODOMZO alone [see Drug Interactions (7.1) ]. ODOMZO can cause embryo-fetal death or severe birth defects when administered to a pregnant woman. Effects of CYP3A Inducers on Sonidegib Strong CYP3A inducer: The geometric mean sonidegib AUC0-10d decreased by 72% and the Cmax decreased by 54% when ODOMZO at a dose of 800 mg was taken with rifampicin compared to ODOMZO alone [see Drug Interactions (7.1) ].",
+      "cited_version_ids": [
+        "98096e2d-c372-468a-9d9d-5cdd7c18738d"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 53.9090633392334,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-070",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "WARNING: DO NOT DISCONTINUE ABRUPTLY Abrupt discontinuation of intrathecal baclofen, regardless of the cause, has resulted in sequelae that include high fever, altered mental status, exaggerated rebound spasticity, and muscle rigidity, that in rare cases has advanced to rhabdomyolysis, multiple organ-system failure and death. In most cases, symptoms of withdrawal appeared within hours to a few days following interruption of baclofen therapy. Special attention must be given to recognizing the signs and symptoms of overdosage, especially during the initial screening and dose-titration phase of treatment, but also during re-introduction of GABLOFEN after a period of interruption in therapy.",
+      "cited_version_ids": [
+        "28d5f146-b3c1-4e3e-9ad2-daaf11ce0e33"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 71.10285758972168,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-072",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Because clinical trials are conducted under widely varying conditions, adverse reaction rates observed in the clinical trials of a drug cannot be directly compared to rates in the clinical trials of another drug and may not reflect the rates observed in clinical practice. While a lower dose of CINQAIR 0.3 mg/kg (n=103) was included in a clinical trial, 3 mg/kg is the only recommended dose [see Dosage and Administration (2.1)]. The asthma development program for CINQAIR 3 mg/kg (administered once every 4 weeks) included 4 randomized, double-blind, placebo-controlled studies (Studies I-IV) 16 to 52 weeks in duration involving 981 patients 12 years of age and older.",
+      "cited_version_ids": [
+        "3f426558-2587-4e79-8a44-a04216e2366c"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 57.45387077331543,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-073",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Concomitant food intake in women resulted in a 28% decrease for dienogest Cmax and 23% increase of estradiol Cmax while the exposure (AUC) of both dienogest and estradiol did not change. John’s wort) should not choose Natazia as their oral contraceptive while using these inducers and for at least 28 days after discontinuation of these inducers due to the possibility of decreased contraceptive efficacy. Guide for Using Natazia WARNING TO WOMEN WHO SMOKE Do not use Natazia if you smoke cigarettes and are over 35 years old.",
+      "cited_version_ids": [
+        "b5a6f160-11a8-4bef-ad84-ebc2d2c797d1"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 63.73190879821777,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-074",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Increases in serum transaminases have been reported with use of LIPITOR [see Adverse Reactions (6.1)]. Stop using LIPITOR and get medical help right away if you have symptoms of a serious allergic reaction including: oswelling of your face, lips, tongue or throat oproblems breathing or swallowing ofainting or feeling dizzy overy rapid heartbeat osevere skin rash or itching oflu-like symptoms including fever, sore throat, cough, tiredness, and joint pain See the end of this leaflet for a complete list of ingredients in LIPITOR. In this double-blind, placebo-controlled trial, patients were treated with anti-hypertensive therapy (goal BP <140/90 mm Hg for patients without diabetes; <130/80 mm Hg for patients with diabetes) and allocated to either LIPITOR 10 mg daily (n=5168) or placebo (n=5137), using a covariate adaptive method which took into account the distribution of nine baseline characteristics of patients already enrolled and minimized the imbalance of those characteristics across the groups.",
+      "cited_version_ids": [
+        "567b2220-3f57-4fc9-8cb8-c05dbdc3c7d1"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 52.12807655334473,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-077",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The safety and effectiveness of XENPOZYME for the treatment of non-central nervous system manifestations of acid sphingomyelinase deficiency (ASMD) have been established in pediatric patients down to birth. The efficacy of XENPOZYME for the treatment of non–central nervous system manifestations of acid sphingomyelinase deficiency (ASMD) has been evaluated in 3 clinical trials involving a total of 61 patients with ASMD: Trial 1 in adult patients (NCT02004691), Trial 2 in pediatric patients (NCT02292654), and Trial 3 a long-term trial in pediatric patients (NCT02004704). None of these 9 patients had NAb that inhibit the cellular uptake of olipudase alfa-rpcp.",
+      "cited_version_ids": [
+        "efb9b7df-f1a5-46a7-832a-af2fdedab6d3"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 79.7429084777832,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-078",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "AZSTARYS contains dexmethylphenidate hydrochloride, a Schedule II controlled substance, and serdexmethylphenidate, a Schedule IV controlled substance. AZSTARYS (serdexmethylphenidate and dexmethylphenidate) capsules contain dexmethylphenidate, a CNS stimulant, and serdexmethylphenidate, a prodrug of dexmethylphenidate. What is AZSTARYS?",
+      "cited_version_ids": [
+        "ce1cde12-5339-46d9-be16-fb056fe0f056"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 81.93111419677734,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-079",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Eosinophils may be involved in the immunological response to some helminth infections. PATIENT INFORMATION PATIENT INFORMATION CINQAIR (sink-ayr’) (reslizumab) injection for intravenous use What is the most important information I should know about CINQAIR? This may cause other symptoms that were controlled by the corticosteroid medicine to come back.",
+      "cited_version_ids": [
+        "cde7b512-a92f-4ed1-aecb-258ca349b7e3"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 70.40905952453613,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-084",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The effects of ENTRESTO on amyloid-β concentrations in CSF and brain tissue were assessed in young (2 to 4 years old) cynomolgus monkeys treated with ENTRESTO (24 mg sacubitril/26 mg valsartan/kg/day) for 2 weeks. QT Prolongation: In a thorough QTc clinical study in healthy male subjects, single doses of ENTRESTO 194 mg sacubitril/206 mg valsartan and 583 mg sacubitril/617 mg valsartan had no effect on cardiac repolarization. At steady state, sacubitril and valsartan do not accumulate significantly, whereas LBQ657 accumulates by 1.6-fold.",
+      "cited_version_ids": [
+        "add44e96-0fb1-4f55-8c50-f522454b2b5d"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 70.55807113647461,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-091",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The antibody is produced by mammalian (Chinese hamster ovary) cells, and the small molecule components are produced by chemical synthesis. How Supplied Each ELAHERE (mirvetuximab soravtansine-gynx) injection carton (NDC 72903-853-01) contains: One single-dose vial containing 100 mg of mirvetuximab soravtansine-gynx in 20 mL (5 mg/mL) of clear to slightly opalescent, colorless sterile solution. MEDICATION GUIDE ELAHERE (el-ah-HERE)(mirvetuximab soravtansine-gynx)injection, for intravenous use This Medication Guide has been approved by the U.S.",
+      "cited_version_ids": [
+        "493c8d0e-cb33-4c6d-b1bf-85952f2dd0bb"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 63.06910514831543,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-095",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Hypersensitivity including rash, angioedema or hematologic reaction has been reported in patients receiving Plavix, including patients with a history of hypersensitivity or hematologic reaction to other thienopyridines [see Contraindications (4.2) and Adverse Reactions (6.2)]. See FDA approved patient labeling (Patient Information). The following adverse reactions have been identified during postapproval use of Plavix.",
+      "cited_version_ids": [
+        "7ef3ab24-0d2d-44b5-96aa-f1e91e0c84b2",
+        "1324ea9c-d172-4dfa-a010-98b928d9ad2d"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 71.00701332092285,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-096",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Clopidogrel must be metabolized by CYP450 enzymes to produce the active metabolite that inhibits platelet aggregation. It has a specific optical rotation of about +56°. Plavix (clopidogrel tablets) is a thienopyridine class inhibitor of P2Y12 ADP platelet receptors.",
+      "cited_version_ids": [
+        "803c8f7b-ef1a-4697-b463-53820798c678"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 54.160118103027344,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-098",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Gemfibrozil may cause myopathy when given alone. LIPITOR exposure may be increased by drug interactions due to inhibition of cytochrome P450 enzyme 3A4 (CYP3A4) and/or transporters (e.g., breast cancer resistant protein [BCRP], organic anion-transporting polypeptide [OATP1B1/OATP1B3] and P-glycoprotein [P-gp]), resulting in an increased risk of myopathy and rhabdomyolysis. LIPITOR is a substrate of CYP3A4 and transporters (e.g., OATP1B1/1B3, P-gp, or BCRP).",
+      "cited_version_ids": [
+        "9874b616-53fb-46ef-ae49-cd677076d3fa"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 70.62697410583496,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-099",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The safety and effectiveness of LIPITOR as an adjunct to diet to reduce LDL-C have been established pediatric patients 10 years of age and older with HeFH. Table 11: Open-Label Crossover Trial of 16 Patients with Dysbetalipoproteinemia Median % Change (min, max) Median (min, max) at Baseline (mg/dL) LIPITOR 10 mg LIPITOR 80 mg Total-C 442 (225, 1320) -37 (-85, 17) -58 (-90, -31) TG 678 (273, 5990) -39 (-92, -8) -53 (-95, -30) IDL-C + VLDL-C 215 (111, 613) -32 (-76, 9) -63 (-90, -8) non-HDL-C 411 (218, 1272) -43 (-87, -19) -64 (-92, -36) HoFH in Adults and Pediatric Patients In a trial without a concurrent control group, 29 patients (mean age of 22 years, median age of 24 years, 31% <18 years) with HoFH received maximum daily doses of 20 to 80 mg of LIPITOR. LIPITOR is indicated: •To reduce the risk of: oMyocardial infarction (MI), stroke, revascularization procedures, and angina in adults with multiple risk factors for coronary heart disease (CHD) but without clinically evident CHD oMI and stroke in adults with type 2 diabetes mellitus with multiple risk factors for CHD but without clinically evident CHD oNon-fatal MI, fatal and non-fatal stroke, revascularization procedures, hospitalization for congestive heart failure, and angina in adults with clinically evident CHD •As an adjunct to diet to reduce low-density lipoprotein cholesterol (LDL-C) in: oAdults with primary hyperlipidemia.",
+      "cited_version_ids": [
+        "9874b616-53fb-46ef-ae49-cd677076d3fa"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 67.12985038757324,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-105",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "CYP2C19 is involved in the formation of both the active metabolite and the 2-oxo-clopidogrel intermediate metabolite. The effectiveness of Plavix results from its antiplatelet activity, which is dependent on its conversion to an active metabolite by the cytochrome P450 (CYP) system, principally CYP2C19 [see Warnings and Precautions (5.1), Clinical Pharmacology (12.3)]. Clopidogrel is a prodrug.",
+      "cited_version_ids": [
+        "902f85b7-7fad-4b1d-a2b2-b32af21c8e6c"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 71.23899459838867,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-109",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "One patient has been rechallenged using slower infusion rates at a dosage lower than the recommended dosage. Hypersensitivity reactions in adults included urticaria, pruritus, erythema, rash, rash erythematous, eczema, angioedema, and erythema nodosum. Patients treated with XENPOZYME have experienced life-threatening hypersensitivity reactions, including anaphylaxis.",
+      "cited_version_ids": [
+        "bb62241d-1712-4e0b-8144-43d905720dae"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 74.19109344482422,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-110",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "There is inadequate systematic experience with the use of intrathecal baclofen in combination with other medications to predict specific drug-drug interactions. An autopsy revealed pulmonary congestion and bilateral pleural effusions. GABLOFEN is indicated for use in the management of severe spasticity in adult and pediatric patients age 4 years and above.",
+      "cited_version_ids": [
+        "d9668abe-4771-437b-9306-ac5bfeee6adc"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 66.18785858154297,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-111",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "In placebo-controlled clinical studies, 6/1028 (0.6%) patients receiving 3 mg/kg CINQAIR had at least 1 malignant neoplasm reported compared to 2/730 (0.3%) patients in the placebo group. Because clinical trials are conducted under widely varying conditions, adverse reaction rates observed in the clinical trials of a drug cannot be directly compared to rates in the clinical trials of another drug and may not reflect the rates observed in clinical practice. As with all therapeutic proteins, there is a potential for immunogenicity.",
+      "cited_version_ids": [
+        "3f426558-2587-4e79-8a44-a04216e2366c"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 76.32112503051758,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-118",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "After adjustment for creatinine clearance, no additional dose adjustment is required for patients with mild or moderate hepatic impairment. There was no clinically significant alteration in the pharmacokinetics of dofetilide in volunteers with mild to moderate hepatic impairment (Child-Pugh Class A and B) compared to age- and weight-matched healthy volunteers. TIKOSYN (dofetilide) can cause serious ventricular arrhythmias, primarily Torsade de Pointes (TdP) type ventricular tachycardia, a polymorphic ventricular tachycardia associated with QT interval prolongation.",
+      "cited_version_ids": [
+        "e1097835-6acc-4c30-81c9-0e096bf55a9c"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 64.93282318115234,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-131",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "In clinical studies with CINQAIR 3 mg/kg, reductions in blood eosinophil counts were observed following the first dose and maintained through 52 weeks of treatment with no signs of tachyphylaxis. FEV1 was the primary endpoint in the 16-week lung function studies: Study III (Figure 2) and Study IV. The asthma development program for CINQAIR 3 mg/kg (administered once every 4 weeks) included 4 randomized, double-blind, placebo-controlled studies (Studies I-IV) 16 to 52 weeks in duration involving 981 patients 12 years of age and older.",
+      "cited_version_ids": [
+        "1324ea9c-d172-4dfa-a010-98b928d9ad2d"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 75.49309730529785,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-132",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "If TIKOSYN needs to be discontinued to allow dosing of other potentially interacting drug(s), a washout period of at least two days should be followed before starting the other drug(s). TIKOSYN is contraindicated in patients with congenital or acquired long QT syndromes. •Therapy with TIKOSYN must be initiated (and, if necessary, re-initiated) in a setting that provides continuous electrocardiographic (ECG) monitoring and in the presence of personnel trained in the management of serious ventricular arrhythmias.",
+      "cited_version_ids": [
+        "e0a3efec-5c19-4f63-af0f-167babd88755"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 66.33329391479492,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-135",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "If you must stop Plavix because of bleeding, your risk of a heart attack may be higher. Plavix is a blood thinner medicine that lowers the chance of blood clots forming in your body. CURE In CURE, Plavix use with aspirin was associated with an increase in major bleeding (primarily gastrointestinal and at puncture sites) compared to placebo with aspirin (see Table 1).",
+      "cited_version_ids": [
+        "7ef3ab24-0d2d-44b5-96aa-f1e91e0c84b2"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 51.07879638671875,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-145",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The following clinically significant adverse reactions are described elsewhere in the labeling: •Hypersensitivity reactions [see Warnings and Precautions (5.2)] The following clinically significant adverse reactions are described elsewhere in the labeling: Musculoskeletal Adverse Reactions [see Warnings and Precautions (5.2) ]. The following clinically significant adverse reactions are described elsewhere in the labeling: Hypersensitivity Reactions Including Anaphylaxis [see Warnings and Precautions (5.1)] Infusion-Associated Reactions (IARs) [see Warnings and Precautions (5.2)] Elevated Transaminase Levels [see Warnings and Precautions (5.3)]",
+      "cited_version_ids": [
+        "8ee338a2-c7df-4eeb-a4a5-aca6ef973de8",
+        "861a8159-8eff-4824-b480-872d2728e9a9",
+        "efb9b7df-f1a5-46a7-832a-af2fdedab6d3"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 57.50298500061035,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-147",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Olipudase alfa-rpcp is a hydrolytic lysosomal sphingomyelin-specific enzyme consisting of 570 amino acids produced in a Chinese hamster ovary cell line by recombinant DNA technology. How Supplied XENPOZYME (olipudase alfa-rpcp) for injection is supplied as a sterile white to off-white lyophilized powder for reconstitution in a single-dose vial. Prior to administration, inspect the syringe or infusion bag for foaming.",
+      "cited_version_ids": [
+        "efb9b7df-f1a5-46a7-832a-af2fdedab6d3"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 67.73495674133301,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "pharma-148",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "PAXLOVID is not indicated for the post-exposure prophylaxis of COVID-19. Because clinical trials are conducted under widely varying conditions, adverse reaction rates observed in the clinical trials of a drug cannot be directly compared to rates in the clinical trials of another drug and may not reflect the rates observed in practice. PAXLOVID is not indicated for the treatment of COVID-19 in patients without a risk factor for progression to severe COVID-19.",
+      "cited_version_ids": [
+        "c59ca9c2-1768-48ff-8c70-e91b40efffe6"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 62.014102935791016,
+      "cost_usd": 0.0,
+      "error": null
+    }
+  ]
+}

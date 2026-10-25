@@ -12,10 +12,18 @@ from dbseed import EMBED_MODEL, VersionSeed, embed_all, seed_history, seed_sourc
 from driftline.agents.graph import AgentConfig, AgentDeps
 from driftline.agents.llm import AgentLLM
 from driftline.agents.offline import ExtractiveResponder
+from driftline.agents.prompts import DRAFT_SCHEMA, DRAFT_SYSTEM
 from driftline.clock import ManualClock
 from driftline.config import Settings
 from driftline.eval.__main__ import amain
-from driftline.eval.runner import EvalDeps, render_markdown, report_path, run
+from driftline.eval.runner import (
+    OFFLINE_LLM,
+    EvalDeps,
+    describe_llm,
+    render_markdown,
+    report_path,
+    run,
+)
 from driftline.eval.types import EvalReport, GoldenCase
 from driftline.llm.adapters.deterministic import DeterministicAdapter
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
@@ -182,6 +190,35 @@ async def test_driftline_beats_plain_rag_on_outdated_citations_for_trap_question
         assert (report.corpus, report.git_sha) == ("pharma", SHA)
 
 
+def draft_prompts(det: DeterministicAdapter) -> list[str]:
+    """The full text (system and user) of every draft request the adapter received."""
+    return [
+        "\n".join(m.content for m in r.messages)
+        for r in det.requests
+        if r.schema_name == DRAFT_SCHEMA
+    ]
+
+
+async def test_plain_rag_prompt_makes_no_in_force_claim_about_its_unfiltered_evidence(
+    corpus, make_deps
+):
+    """Baseline fairness: plain_rag's chunks are NOT filtered by as_of, so its prompt must
+    not tell the model they were in force. Everything else matches the Driftline draft."""
+    cases = golden_set(corpus["versions"])[:3]
+    det, deps = make_deps(corpus)
+    await run("pharma", "plain_rag", cases, deps)
+    plain = draft_prompts(det)
+    assert len(plain) == 3
+    for prompt in plain:
+        assert "in force" not in prompt.lower()
+        assert "these chunks were retrieved" in prompt
+        assert DRAFT_SYSTEM in prompt  # same rules, same schema, same tier
+
+    det, deps = make_deps(corpus)
+    await run("pharma", "driftline", cases, deps)
+    assert all("in force" in p for p in draft_prompts(det))  # the filtered system's claim
+
+
 async def test_stale_case_is_excluded_from_metrics_and_counted(corpus, make_deps):
     cases = golden_set(corpus["versions"])
     det, deps = make_deps(corpus)
@@ -234,6 +271,7 @@ async def test_writes_eval_runs_and_json_and_markdown_reports(
     assert EvalReport.model_validate_json(path.read_text()) == report
     markdown = path.with_suffix(".md").read_text()
     assert markdown == render_markdown(report)
+    assert report.llm.startswith(OFFLINE_LLM) and OFFLINE_LLM in markdown
     assert "citation_precision" in markdown and "pharma-005" in markdown
     assert "stale_case" in markdown
 
@@ -301,3 +339,26 @@ async def test_cli_run_evaluates_a_cases_file_offline(
     assert code == 0
     report = EvalReport.model_validate_json((reports / SHA / "pharma.plain_rag.json").read_text())
     assert report.stale_case_count == 1 and report.metrics["scored"] == 4.0
+
+
+def test_describe_llm_labels_the_offline_extractive_router_and_names_real_models():
+    det = DeterministicAdapter("deterministic", responder=ExtractiveResponder())
+    tiers = {t: [Route("deterministic", f"offline-{t}")] for t in ("extract", "answer", "judge")}
+    offline = LLMRouter(providers={"deterministic": det}, chains=tiers, clock=ManualClock())
+    label = describe_llm(offline)
+    assert label.startswith("offline extractive LLM")
+    assert "answer=deterministic/offline-answer" in label
+
+    plain = DeterministicAdapter("anthropic")  # no extractive responder: not "offline"
+    chains = {
+        "extract": [Route("anthropic", "claude-haiku-5-5")],
+        "answer": [Route("anthropic", "claude-sonnet-5-5"), Route("gemini", "gemini-x")],
+        "judge": [Route("anthropic", "claude-sonnet-5-5")],
+        "embed": [Route("tei", EMBED_MODEL)],
+    }
+    real = LLMRouter(providers={"anthropic": plain}, chains=chains, clock=ManualClock())
+    assert describe_llm(real) == (
+        "extract=anthropic/claude-haiku-5-5; "
+        "answer=anthropic/claude-sonnet-5-5>gemini/gemini-x; "
+        "judge=anthropic/claude-sonnet-5-5"
+    )

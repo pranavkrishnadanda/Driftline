@@ -5,8 +5,10 @@ Systems (spec section 12):
   re-retrieval, respond), with the semantic cache off so every case is really answered.
   An answer that would pause for human review is scored as proposed.
 - `plain_rag`: the same retriever and reranker with the as-of filter disabled
-  (`RetrievalQuery(in_force_only=False)`), then a single draft with the same draft prompt
-  and model tier. No planner, no verifier, no re-retrieval.
+  (`RetrievalQuery(in_force_only=False)`), then a single draft with the same draft system
+  prompt, schema and model tier. Its user prompt says the chunks "were retrieved for the
+  question" instead of the graph's "only these chunks were in force then", which would be
+  false for unfiltered evidence. No planner, no verifier, no re-retrieval.
 - `no_retrieval`: the answer tier alone, with a closed-book prompt and no evidence.
 
 A case whose expected version no longer exists in the database (e.g. after a re-ingest)
@@ -32,6 +34,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from driftline.agents.graph import AgentDeps, ReviewPending, build_answer_graph, run_ask
 from driftline.agents.guardrails import evidence_index, verify_claim
+from driftline.agents.offline import ExtractiveResponder
 from driftline.agents.prompts import DRAFT_SCHEMA, build_draft_request, build_judge_request
 from driftline.agents.schemas import (
     AnswerSchema,
@@ -44,12 +47,15 @@ from driftline.agents.schemas import (
 from driftline.clock import Clock, SystemClock
 from driftline.eval.metrics import CaseOutcome, ScoredCitation, VersionWindow, aggregate
 from driftline.eval.types import CaseResult, EvalReport, GoldenCase, System
-from driftline.llm.router import StructuredOutputError
+from driftline.llm.adapters.deterministic import DeterministicAdapter
+from driftline.llm.router import LLMRouter, StructuredOutputError
 from driftline.llm.types import CompletionRequest, Message, Role
 from driftline.obs.cost import job_cost
 from driftline.retrieval.types import Evidence, RetrievalQuery
 
 SYSTEMS: tuple[str, ...] = get_args(System)
+OFFLINE_LLM = "offline extractive LLM"
+LLM_TIERS = ("extract", "answer", "judge")
 
 NO_RETRIEVAL_SYSTEM = """You answer questions from your own knowledge; no documents are \
 provided. Answer as of the given date. Return one claim per statement, each with an empty \
@@ -202,7 +208,11 @@ class _Systems:
         if not outcome.items:
             return Produced("insufficient_evidence", "", [], [])
         request = build_draft_request(
-            case.question, as_of, outcome.items, max_output_tokens=cfg.draft_max_tokens
+            case.question,
+            as_of,
+            outcome.items,
+            max_output_tokens=cfg.draft_max_tokens,
+            in_force=False,  # unfiltered evidence: no claim that it was in force
         )
         return await self._draft(request, job_id)
 
@@ -269,6 +279,27 @@ async def _judge(deps: EvalDeps, claim: DraftClaim, job_id: UUID) -> bool:
     return verdict.entailed
 
 
+def describe_llm(router: LLMRouter) -> str:
+    """What answers each LLM tier, for the report: `tier=provider/model` (fallbacks after
+    `>`). When every tier is the in-repo DeterministicAdapter running ExtractiveResponder,
+    the label starts with OFFLINE_LLM: those numbers measure retrieval, the as-of filter
+    and the citation machinery, not a language model."""
+    routes = {t: router.chains.get(t, []) for t in LLM_TIERS}
+    tiers = "; ".join(
+        f"{t}=" + ">".join(f"{r.provider}/{r.model}" for r in chain)
+        for t, chain in routes.items()
+        if chain
+    )
+    providers = [router.providers.get(r.provider) for chain in routes.values() for r in chain]
+    offline = bool(providers) and all(
+        isinstance(p, DeterministicAdapter) and isinstance(p.responder, ExtractiveResponder)
+        for p in providers
+    )
+    if offline:
+        return f"{OFFLINE_LLM} (DeterministicAdapter + ExtractiveResponder; {tiers})"
+    return tiers
+
+
 def report_path(reports_dir: Path, git_sha: str, corpus: str, system: str) -> Path:
     return reports_dir / git_sha / f"{corpus}.{system}.json"
 
@@ -289,7 +320,10 @@ def render_markdown(report: EvalReport) -> str:
     lines = [
         f"# Eval: {report.corpus} / {report.system}",
         "",
-        f"Commit `{report.git_sha}`. {report.stale_case_count} stale case(s) excluded.",
+        (
+            f"Commit `{report.git_sha}`. LLM: {report.llm}. "
+            f"{report.stale_case_count} stale case(s) excluded."
+        ),
         "",
         "| Metric | Value |",
         "|---|---|",
@@ -428,7 +462,12 @@ async def run(corpus: str, system: str, cases: Sequence[GoldenCase], deps: EvalD
         "error_count": float(sum(r.status == "error" for r in results)),
     }
     report = EvalReport(
-        system=system, corpus=corpus, git_sha=deps.git_sha, metrics=metrics, cases=results
+        system=system,
+        corpus=corpus,
+        git_sha=deps.git_sha,
+        llm=describe_llm(deps.agent.llm.router),
+        metrics=metrics,
+        cases=results,
     )
     await _record(deps, report)
     return report

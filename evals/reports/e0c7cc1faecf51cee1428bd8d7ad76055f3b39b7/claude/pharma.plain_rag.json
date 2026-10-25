@@ -1,0 +1,822 @@
+{
+  "system": "plain_rag",
+  "corpus": "pharma",
+  "git_sha": "e0c7cc1faecf51cee1428bd8d7ad76055f3b39b7",
+  "llm": "extract=anthropic/claude-haiku-5-5>gemini/gemini-3.8-flash; answer=anthropic/claude-sonnet-5-5>anthropic/claude-haiku-5-5>gemini/gemini-3.8-flash; judge=anthropic/claude-sonnet-5-5>anthropic/claude-haiku-5-5>gemini/gemini-3.8-flash",
+  "metrics": {
+    "citation_precision": 0.7916666666666666,
+    "outdated_citation_rate": 0.20833333333333334,
+    "trap_citation_precision": 0.8888888888888888,
+    "trap_outdated_citation_rate": 0.1111111111111111,
+    "faithfulness": 0.8,
+    "insufficient_evidence_accuracy": 0.775,
+    "latency_p95_ms": 14285.551071166992,
+    "cost_per_answer_usd": 0.01334855,
+    "scored": 40.0,
+    "citations": 48.0,
+    "claims": 50.0,
+    "claims_judged": 0.0,
+    "cases": 40.0,
+    "stale_case_count": 0.0,
+    "error_count": 0.0
+  },
+  "cases": [
+    {
+      "case_id": "pharma-001",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "A person should not take zolpidem tartrate tablets if they are allergic to zolpidem or any of the tablets' other ingredients. They also should not take them if they have had an allergic reaction to drugs containing zolpidem, such as zolpidem tartrate extended-release tablets, Edluar, Zolpimist, or Intermezzo.",
+      "cited_version_ids": [
+        "c999f1d9-6834-48f2-9318-16f4923990c3"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11679.652690887451,
+      "cost_usd": 0.01799,
+      "error": null
+    },
+    {
+      "case_id": "pharma-004",
+      "status": "scored",
+      "answer_status": "insufficient_evidence",
+      "answer": "The retrieved evidence does not cover the label in effect on 2012-12-07, so I can't answer for that date. The only earlier version (version 2) expired on 2008-08-18, and every other version took effect on or after 2013-05-30.",
+      "cited_version_ids": [],
+      "scores": {
+        "insufficient_evidence_accuracy": 0.0,
+        "citations": 0.0,
+        "claims": 0.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 13938.383102416992,
+      "cost_usd": 0.01416,
+      "error": null
+    },
+    {
+      "case_id": "pharma-008",
+      "status": "scored",
+      "answer_status": "insufficient_evidence",
+      "answer": "The evidence does not address whether inhibition of the CYP enzyme system affects the metabolism of drospirenone in YAZ. The provided chunks only describe pharmacodynamics, such as drospirenone being a spironolactone analogue and the ovulation inhibition data.",
+      "cited_version_ids": [],
+      "scores": {
+        "insufficient_evidence_accuracy": 0.0,
+        "citations": 0.0,
+        "claims": 0.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11324.029922485352,
+      "cost_usd": 0.008032,
+      "error": null
+    },
+    {
+      "case_id": "pharma-015",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "During maintenance therapy, TIKOSYN should be discontinued if QTc exceeds 500 milliseconds, or 550 msec in patients with ventricular conduction abnormalities. Patients should then be carefully monitored until QTc returns to baseline. The most recent retrieved version's validity ended 2018-10-29, before the as_of date, but the wording is identical in all retrieved versions.",
+      "cited_version_ids": [
+        "097aaa54-fe3a-4139-a415-6ca76868b766"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 14008.121967315674,
+      "cost_usd": 0.01498,
+      "error": null
+    },
+    {
+      "case_id": "pharma-019",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "No. In the label version in effect on 2018-10-25, product-specific IgE antibodies were not evaluated in the immunogenicity assessment of CINQAIR.",
+      "cited_version_ids": [
+        "c850c9f9-51da-4e40-b903-7b88bb45bad1"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11876.23906135559,
+      "cost_usd": 0.01559,
+      "error": null
+    },
+    {
+      "case_id": "pharma-020",
+      "status": "scored",
+      "answer_status": "insufficient_evidence",
+      "answer": "The evidence does not answer this for the as_of date of 2020-01-04. Every retrieved version of the doxorubicin label took effect on or after 2020-03-06, so none was in effect on 2020-01-04, and I cannot state what the label recommended then.",
+      "cited_version_ids": [],
+      "scores": {
+        "insufficient_evidence_accuracy": 0.0,
+        "citations": 0.0,
+        "claims": 0.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 12436.884880065918,
+      "cost_usd": 0.01389,
+      "error": null
+    },
+    {
+      "case_id": "pharma-024",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "According to the labeling in effect as of 2011-05-10, 38 of 2,266 subjects (1.7%) in three clinical trials discontinued Natazia due to metrorrhagia or irregular menstruation. Separately, in the two contraception phase 3 trials, metrorrhagia and irregular menstruation led to discontinuation in 1.9% of women.",
+      "cited_version_ids": [
+        "ae0d1e34-0852-410a-8e97-6909842645b5"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9917.050838470459,
+      "cost_usd": 0.015932,
+      "error": null
+    },
+    {
+      "case_id": "pharma-028",
+      "status": "scored",
+      "answer_status": "insufficient_evidence",
+      "answer": "The provided evidence does not answer this question. The retrieved ELAHERE dosage modification text covers keratitis/keratopathy, uveitis and pneumonitis, but it does not include the row for a Grade 3 other adverse reaction.",
+      "cited_version_ids": [],
+      "scores": {
+        "insufficient_evidence_accuracy": 0.0,
+        "citations": 0.0,
+        "claims": 0.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9180.842876434326,
+      "cost_usd": 0.014012,
+      "error": null
+    },
+    {
+      "case_id": "pharma-038",
+      "status": "scored",
+      "answer_status": "insufficient_evidence",
+      "answer": "The evidence does not state the terminal half-life of doxorubicin hydrochloride injection. The doxorubicin chunks only cover dosing for adjuvant breast cancer, and the terminal half-life figures provided are for warfarin.",
+      "cited_version_ids": [],
+      "scores": {
+        "insufficient_evidence_accuracy": 0.0,
+        "citations": 0.0,
+        "claims": 0.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 8452.343702316284,
+      "cost_usd": 0.008338,
+      "error": null
+    },
+    {
+      "case_id": "pharma-039",
+      "status": "scored",
+      "answer_status": "insufficient_evidence",
+      "answer": "The evidence does not answer the question as of 2023-01-27. Every provided version of the AZSTARYS label took effect later, with the earliest valid from 2023-10-18, so none was in effect on that date.",
+      "cited_version_ids": [],
+      "scores": {
+        "insufficient_evidence_accuracy": 0.0,
+        "citations": 0.0,
+        "claims": 0.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9912.705183029175,
+      "cost_usd": 0.013956,
+      "error": null
+    },
+    {
+      "case_id": "pharma-042",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Yes, as of 2023-07-23. The version of the label in effect then (version 1, valid 2022-11-18 to 2024-03-27) states the indication was approved under accelerated approval based on tumor response rate and durability of response. Later versions no longer include that statement.",
+      "cited_version_ids": [
+        "493c8d0e-cb33-4c6d-b1bf-85952f2dd0bb"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11203.691959381104,
+      "cost_usd": 0.012492,
+      "error": null
+    },
+    {
+      "case_id": "pharma-045",
+      "status": "scored",
+      "answer_status": "insufficient_evidence",
+      "answer": "The retrieved evidence does not answer this question. The chunks cover pregnancy and animal reproduction data and one pharmacokinetic interaction, but none of them mention carcinogenicity studies for sonidegib.",
+      "cited_version_ids": [],
+      "scores": {
+        "insufficient_evidence_accuracy": 0.0,
+        "citations": 0.0,
+        "claims": 0.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9019.505023956299,
+      "cost_usd": 0.011672,
+      "error": null
+    },
+    {
+      "case_id": "pharma-048",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2024-04-29, adult patients who miss 3 or more consecutive doses during dose escalation should resume dose escalation at 0.3 mg/kg and follow Table 1.",
+      "cited_version_ids": [
+        "6190e54c-16a0-4f01-a02d-e329a3b09f5a"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11027.523756027222,
+      "cost_usd": 0.016552,
+      "error": null
+    },
+    {
+      "case_id": "pharma-051",
+      "status": "scored",
+      "answer_status": "insufficient_evidence",
+      "answer": "The provided evidence cannot answer this as of 2022-12-17. Every chunk that reports the antibody figure comes from a label version that became valid on 2023-04-05 or later, and no version in effect on 2022-12-17 was provided.",
+      "cited_version_ids": [],
+      "scores": {
+        "insufficient_evidence_accuracy": 0.0,
+        "citations": 0.0,
+        "claims": 0.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 14244.274854660034,
+      "cost_usd": 0.014546,
+      "error": null
+    },
+    {
+      "case_id": "pharma-059",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "No. According to the CINQAIR labeling in effect as of 2018-09-11, it is not known whether reslizumab is present in human milk. Human IgG is known to be present in human milk, and reslizumab was found in the milk of lactating mice.",
+      "cited_version_ids": [
+        "cde7b512-a92f-4ed1-aecb-258ca349b7e3"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 14776.613712310791,
+      "cost_usd": 0.015656,
+      "error": null
+    },
+    {
+      "case_id": "pharma-061",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "ODOMZO (sonidegib) is indicated for adult patients with locally advanced basal cell carcinoma (BCC) that has recurred after surgery or radiation therapy, or who are not candidates for surgery or radiation therapy.",
+      "cited_version_ids": [
+        "98096e2d-c372-468a-9d9d-5cdd7c18738d"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10796.102285385132,
+      "cost_usd": 0.01041,
+      "error": null
+    },
+    {
+      "case_id": "pharma-070",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "According to the Gablofen boxed warning, abrupt discontinuation of intrathecal baclofen has resulted in high fever, altered mental status, exaggerated rebound spasticity, and muscle rigidity. In rare cases this has advanced to rhabdomyolysis, multiple organ-system failure and death.",
+      "cited_version_ids": [
+        "28d5f146-b3c1-4e3e-9ad2-daaf11ce0e33"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 13591.338157653809,
+      "cost_usd": 0.016646,
+      "error": null
+    },
+    {
+      "case_id": "pharma-072",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Overall, 2195 subjects received at least one dose of CINQAIR in clinical trials, according to the label version in effect on 2017-07-22.",
+      "cited_version_ids": [
+        "3f426558-2587-4e79-8a44-a04216e2366c"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10022.3708152771,
+      "cost_usd": 0.01324,
+      "error": null
+    },
+    {
+      "case_id": "pharma-073",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Concomitant food intake in women decreased the dienogest Cmax of NATAZIA by 28%, and the dienogest exposure (AUC) did not change.",
+      "cited_version_ids": [
+        "b5a6f160-11a8-4bef-ad84-ebc2d2c797d1"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 14225.016832351685,
+      "cost_usd": 0.01005,
+      "error": null
+    },
+    {
+      "case_id": "pharma-074",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "LIPITOR is contraindicated in patients with hypersensitivity to atorvastatin or any excipients in LIPITOR. Reported hypersensitivity reactions include anaphylaxis, angioneurotic edema, erythema multiforme, Stevens-Johnson syndrome, and toxic epidermal necrolysis.",
+      "cited_version_ids": [
+        "567b2220-3f57-4fc9-8cb8-c05dbdc3c7d1"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11236.707925796509,
+      "cost_usd": 0.014442,
+      "error": null
+    },
+    {
+      "case_id": "pharma-077",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "XENPOZYME's efficacy for non-central nervous system manifestations of ASMD was evaluated in 3 clinical trials involving a total of 61 patients with ASMD. These were Trial 1 in adults, Trial 2 in pediatric patients, and Trial 3, a long-term pediatric trial.",
+      "cited_version_ids": [
+        "efb9b7df-f1a5-46a7-832a-af2fdedab6d3"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 12106.704950332642,
+      "cost_usd": 0.015804,
+      "error": null
+    },
+    {
+      "case_id": "pharma-078",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The dexmethylphenidate hydrochloride in AZSTARYS is a Schedule II controlled substance. The serdexmethylphenidate component is Schedule IV.",
+      "cited_version_ids": [
+        "ce1cde12-5339-46d9-be16-fb056fe0f056"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11283.175945281982,
+      "cost_usd": 0.010508,
+      "error": null
+    },
+    {
+      "case_id": "pharma-079",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "If a patient becomes infected with a helminth while receiving CINQAIR and does not respond to anti-helminth treatment, CINQAIR should be discontinued until the infection resolves.",
+      "cited_version_ids": [
+        "cde7b512-a92f-4ed1-aecb-258ca349b7e3"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10561.506032943726,
+      "cost_usd": 0.011336,
+      "error": null
+    },
+    {
+      "case_id": "pharma-084",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "In the 39-week toxicology study in cynomolgus monkeys given ENTRESTO at 146 mg sacubitril/154 mg valsartan/kg/day, no amyloid-β accumulation was found in the brain.",
+      "cited_version_ids": [
+        "add44e96-0fb1-4f55-8c50-f522454b2b5d"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11128.489017486572,
+      "cost_usd": 0.015008,
+      "error": null
+    },
+    {
+      "case_id": "pharma-091",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "ELAHERE is supplied as a single-dose vial containing 100 mg of mirvetuximab soravtansine-gynx in 20 mL, which is a strength of 5 mg/mL.",
+      "cited_version_ids": [
+        "493c8d0e-cb33-4c6d-b1bf-85952f2dd0bb"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 14285.551071166992,
+      "cost_usd": 0.013846,
+      "error": null
+    },
+    {
+      "case_id": "pharma-095",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The Plavix label (Warnings and Precautions 5.5, Cross-Reactivity among Thienopyridines) says hypersensitivity, including rash, angioedema or hematologic reaction, has been reported in patients receiving Plavix, including patients with a history of hypersensitivity or hematologic reaction to other thienopyridines. Separately, Plavix is contraindicated in patients with hypersensitivity (e.g., anaphylaxis) to clopidogrel or any component of the product.",
+      "cited_version_ids": [
+        "7ef3ab24-0d2d-44b5-96aa-f1e91e0c84b2"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 13319.967985153198,
+      "cost_usd": 0.013782,
+      "error": null
+    },
+    {
+      "case_id": "pharma-096",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The current Plavix label (Medication Guide, version 4, effective 2025-05-30) specifies storage at 59°F to 86°F (15°C to 30°C). Earlier versions of the label give the same temperature.",
+      "cited_version_ids": [
+        "803c8f7b-ef1a-4697-b463-53820798c678",
+        "902f85b7-7fad-4b1d-a2b2-b32af21c8e6c"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 13629.384994506836,
+      "cost_usd": 0.013372,
+      "error": null
+    },
+    {
+      "case_id": "pharma-098",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "No. The current LIPITOR labeling says concomitant use of cyclosporine or gemfibrozil with LIPITOR is not recommended, because it increases the risk of myopathy and rhabdomyolysis.",
+      "cited_version_ids": [
+        "9874b616-53fb-46ef-ae49-cd677076d3fa"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11299.14379119873,
+      "cost_usd": 0.017864,
+      "error": null
+    },
+    {
+      "case_id": "pharma-099",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The recommended starting dosage of Lipitor in pediatric patients 10 years of age and older with HoFH is 10 mg to 20 mg once daily, with a dosage range of 10 mg to 80 mg once daily.",
+      "cited_version_ids": [
+        "9874b616-53fb-46ef-ae49-cd677076d3fa"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10696.799993515015,
+      "cost_usd": 0.011,
+      "error": null
+    },
+    {
+      "case_id": "pharma-105",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Approximately 2% of White patients are CYP2C19 poor metabolizers, according to the Plavix labeling.",
+      "cited_version_ids": [
+        "902f85b7-7fad-4b1d-a2b2-b32af21c8e6c"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9974.232196807861,
+      "cost_usd": 0.011768,
+      "error": null
+    },
+    {
+      "case_id": "pharma-109",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "If a severe hypersensitivity reaction such as anaphylaxis occurs, XENPOZYME should be discontinued immediately and appropriate medical treatment started. In patients with severe reactions, a desensitization procedure may be considered, and the risks and benefits of re-administering the drug should be weighed.",
+      "cited_version_ids": [
+        "efb9b7df-f1a5-46a7-832a-af2fdedab6d3"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 4.0,
+        "claims": 4.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 13779.358863830566,
+      "cost_usd": 0.018662,
+      "error": null
+    },
+    {
+      "case_id": "pharma-110",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Hypotension and dyspnea are the interactions attributed to combined use of GABLOFEN and epidural morphine. The label also says there is inadequate systematic experience to predict specific drug-drug interactions with intrathecal baclofen. No retrieved version is dated as covering 2022-06-10 itself, so this relies on the most recent earlier version, whose text matches the other versions.",
+      "cited_version_ids": [
+        "a3b92f2a-71d1-44f2-81d5-cd831d373efd"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 16080.80792427063,
+      "cost_usd": 0.0147,
+      "error": null
+    },
+    {
+      "case_id": "pharma-111",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "In placebo-controlled clinical studies, 6 of 1028 patients (0.6%) receiving CINQAIR 3 mg/kg had at least one malignant neoplasm reported, compared with 2 of 730 (0.3%) in the placebo group.",
+      "cited_version_ids": [
+        "808fca40-1b71-4db6-90c4-b50f97abe00c"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11082.30710029602,
+      "cost_usd": 0.011612,
+      "error": null
+    },
+    {
+      "case_id": "pharma-118",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "No. After adjustment for creatinine clearance, TIKOSYN needs no additional dose adjustment in patients with mild or moderate hepatic impairment. Severe hepatic impairment has not been studied, so TIKOSYN should be used with particular caution in those patients.",
+      "cited_version_ids": [
+        "e1097835-6acc-4c30-81c9-0e096bf55a9c"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11684.613227844238,
+      "cost_usd": 0.010382,
+      "error": null
+    },
+    {
+      "case_id": "pharma-131",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "At Week 52, patients given Cinqair 3 mg/kg had a 92% reduction in mean blood eosinophil counts (to 55 cells/mcL from a baseline of 696 cells/mcL), compared with a 21% reduction in the placebo group.",
+      "cited_version_ids": [
+        "1324ea9c-d172-4dfa-a010-98b928d9ad2d"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11254.780769348145,
+      "cost_usd": 0.016556,
+      "error": null
+    },
+    {
+      "case_id": "pharma-132",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "A washout period of at least two days should be followed after stopping TIKOSYN before starting the other potentially interacting drug(s).",
+      "cited_version_ids": [
+        "e0a3efec-5c19-4f63-af0f-167babd88755"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9719.840049743652,
+      "cost_usd": 0.008866,
+      "error": null
+    },
+    {
+      "case_id": "pharma-135",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Plavix is contraindicated in patients with active pathological bleeding, such as peptic ulcer or intracranial hemorrhage.",
+      "cited_version_ids": [
+        "7ef3ab24-0d2d-44b5-96aa-f1e91e0c84b2"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 8761.8989944458,
+      "cost_usd": 0.008294,
+      "error": null
+    },
+    {
+      "case_id": "pharma-145",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The clinically significant adverse reaction of PAXLOVID described elsewhere in its labeling is hypersensitivity reactions, referenced to Warnings and Precautions (5.2).",
+      "cited_version_ids": [
+        "8ee338a2-c7df-4eeb-a4a5-aca6ef973de8"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9967.988014221191,
+      "cost_usd": 0.008616,
+      "error": null
+    },
+    {
+      "case_id": "pharma-147",
+      "status": "scored",
+      "answer_status": "insufficient_evidence",
+      "answer": "The provided evidence does not state what technique should be used during preparation of XENPOZYME. It only describes the product as a lyophilized powder for reconstitution and dilution and gives the reconstitution diluent, but it does not mention any preparation technique such as aseptic technique.",
+      "cited_version_ids": [],
+      "scores": {
+        "insufficient_evidence_accuracy": 0.0,
+        "citations": 0.0,
+        "claims": 0.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10118.419170379639,
+      "cost_usd": 0.010892,
+      "error": null
+    },
+    {
+      "case_id": "pharma-148",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "A total of 2,736 subjects were randomized (1:1:1) in the PAXLOVID post-exposure prophylaxis trial, to PAXLOVID for 5 days, PAXLOVID for 10 days, or placebo. This figure is the same in every version of the label, including the current one.",
+      "cited_version_ids": [
+        "c59ca9c2-1768-48ff-8c70-e91b40efffe6",
+        "183cf8e4-ae4d-44df-bb86-a7beee16ec7f"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.6666666666666666,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10944.155931472778,
+      "cost_usd": 0.018488,
+      "error": null
+    }
+  ]
+}

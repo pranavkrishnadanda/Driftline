@@ -36,8 +36,13 @@ def test_gate_fails_when_head_lost_a_gated_metric_but_not_when_base_never_had_it
     assert gate({}, {"citation_precision": 0.1}) == []
 
 
-def report(metrics: dict, *, sha="a1b2c3d", system="driftline", corpus="pharma") -> EvalReport:
-    return EvalReport(system=system, corpus=corpus, git_sha=sha, metrics=metrics, cases=[])
+OFFLINE = "offline extractive LLM"
+
+
+def report(
+    metrics: dict, *, sha="a1b2c3d", system="driftline", corpus="pharma", llm=OFFLINE
+) -> EvalReport:
+    return EvalReport(system=system, corpus=corpus, git_sha=sha, llm=llm, metrics=metrics, cases=[])
 
 
 def write(tmp_path, rep: EvalReport):
@@ -67,3 +72,35 @@ async def test_cli_compare_fails_loudly_without_a_matching_base(tmp_path, capsys
     other = write(tmp_path, report(BASE, sha="1111111", system="plain_rag"))
     assert await amain([*args, str(other)]) == 2  # a different system is no baseline
     assert "same corpus and system" in capsys.readouterr().err
+
+
+async def test_cli_compare_refuses_a_base_answered_by_another_llm(tmp_path, capsys):
+    """An offline run is no baseline for a Claude run (or the reverse): the numbers
+    measure different things, so the gate refuses instead of comparing them."""
+    head = write(tmp_path, report(BASE, sha="2222222"))
+    claude = write(tmp_path, report(BASE, sha="1111111", llm="answer=anthropic/claude-sonnet-5-5"))
+    args = ["compare", "--reports-dir", str(tmp_path), "--head", str(head), "--base"]
+    assert await amain([*args, str(claude)]) == 2
+    assert "same LLM" in capsys.readouterr().err
+
+
+async def test_cli_compare_names_the_llm_and_shows_every_gated_metric_with_its_change(
+    tmp_path, capsys
+):
+    base = write(tmp_path, report(BASE, sha="1111111"))
+    head = write(tmp_path, report(BASE | {"outdated_citation_rate": 0.0}, sha="2222222"))
+    args = ["compare", "--reports-dir", str(tmp_path), "--head", str(head), "--base"]
+    assert await amain([*args, str(base)]) == 0
+    out = capsys.readouterr().out
+    assert OFFLINE in out
+    assert "| outdated_citation_rate | 0.0500 | 0.0000 | -5.00 |" in out
+    assert "| citation_precision | 0.9000 | 0.9000 | +0.00 |" in out
+
+
+async def test_cli_compare_fails_loudly_when_the_base_report_file_is_missing(tmp_path, capsys):
+    """Review Focus 3: a missing baseline must fail the gate, never skip it."""
+    head = write(tmp_path, report(BASE, sha="2222222"))
+    missing = tmp_path / "base" / "pharma.driftline.json"
+    args = ["compare", "--reports-dir", str(tmp_path), "--head", str(head), "--base"]
+    assert await amain([*args, str(missing)]) == 2
+    assert "no base report" in capsys.readouterr().err
