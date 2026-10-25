@@ -2,6 +2,8 @@
 group `drift`) and runs the drift engine. Real Postgres, real Redis, the real outbox
 relay, and DeterministicAdapter as the judge."""
 
+import asyncio
+import contextlib
 import json
 from datetime import UTC, datetime
 
@@ -11,6 +13,7 @@ from dbseed import seed_source, seed_watched_answer
 from driftline.agents.offline import ExtractiveResponder
 from driftline.clock import ManualClock
 from driftline.config import Settings
+from driftline.drift.__main__ import amain
 from driftline.drift.alerts import AlertLog
 from driftline.drift.engine import DriftEngine
 from driftline.drift.worker import DRIFT_GROUP, DRIFT_STREAM, DriftWorker
@@ -155,3 +158,56 @@ async def test_redelivered_event_records_one_drift_event(fresh_pool, redis_clien
 
     assert await drift_verdicts(fresh_pool) == ["still_valid"]
     assert await pending(redis_client) == 0
+
+
+# --- `python -m driftline.drift worker --drain` (the nightly batch run) ---------------
+
+
+@contextlib.asynccontextmanager
+async def running_relay(pool, redis_client):
+    """The outbox relay running beside the worker, as in the drift-watch workflow."""
+    stop = asyncio.Event()
+    relay_task = asyncio.create_task(
+        OutboxRelay(pool, StreamBus(redis_client), alerts=AlertLog(redis_client)).run(
+            stop, idle_sleep_s=0.05
+        )
+    )
+    try:
+        yield
+    finally:
+        stop.set()
+        await relay_task
+
+
+def offline_settings(fresh_dsn, redis_url) -> Settings:
+    return Settings(_env_file=None, database_url=fresh_dsn, redis_url=redis_url, llm_offline=True)
+
+
+async def test_cli_worker_drain_processes_backlog_then_exits(
+    fresh_dsn, fresh_pool, redis_url, redis_client
+):
+    await watched_answer_then_new_version(fresh_pool)  # v2's event is not relayed yet
+
+    async with running_relay(fresh_pool, redis_client):
+        code = await amain(
+            ["worker", "--drain", "--timeout", "60"], offline_settings(fresh_dsn, redis_url)
+        )
+
+    assert code == 0
+    assert await drift_verdicts(fresh_pool) == ["still_valid"]
+    assert await pending(redis_client) == 0
+    async with fresh_pool.acquire() as conn:
+        assert await conn.fetchval("SELECT count(*) FROM outbox WHERE published_at IS NULL") == 0
+
+
+async def test_cli_worker_drain_times_out_when_outbox_never_drains(
+    fresh_dsn, fresh_pool, redis_url, redis_client
+):
+    await watched_answer_then_new_version(fresh_pool)  # no relay: the event never arrives
+
+    code = await amain(
+        ["worker", "--drain", "--timeout", "1"], offline_settings(fresh_dsn, redis_url)
+    )
+
+    assert code == 1
+    assert await drift_verdicts(fresh_pool) == []

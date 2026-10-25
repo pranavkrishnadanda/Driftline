@@ -1,0 +1,118 @@
+name: drift-watch
+# Nightly: ingest a small pinned set of real sources into a fresh database, run drift
+# detection, and commit reports/drift-log.md and reports/drift-latest.json when they
+# change. The LLM runs offline (DRIFTLINE_LLM_OFFLINE=true), so no paid key is needed.
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: drift-watch
+  cancel-in-progress: false
+
+jobs:
+  drift-watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: driftline
+          POSTGRES_PASSWORD: driftline
+          POSTGRES_DB: driftline
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U driftline"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      embedder:
+        # Hugging Face TEI (x86_64 CPU image); MODEL_ID is TEI's env form of --model-id.
+        image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.4
+        env:
+          MODEL_ID: BAAI/bge-base-en-v1.5
+        ports: ["8080:80"]
+        options: >-
+          --health-cmd "curl -fsS http://localhost:80/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 60
+          --health-start-period 30s
+    env:
+      UV_LINK_MODE: copy
+      DRIFTLINE_DATABASE_URL: postgresql://driftline:driftline@localhost:5432/driftline
+      DRIFTLINE_REDIS_URL: redis://localhost:6379/0
+      DRIFTLINE_EMBED_URL: http://localhost:8080
+      DRIFTLINE_LLM_OFFLINE: "true"
+      DRIFTLINE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SOURCES: ${{ github.workspace }}/deploy/drift-watch/sources.json
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+
+      - name: Migrate
+        run: uv run python -m driftline.db.migrate
+
+      - name: Start the outbox relay
+        run: |
+          nohup uv run python -m driftline.ingest relay > "$RUNNER_TEMP/relay.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/relay.pid"
+
+      - name: Enqueue the pinned sources
+        run: |
+          tenant=$(jq -r '.tenant' "$SOURCES")
+          jq -c '.sources[]' "$SOURCES" | while read -r source; do
+            uv run python -m driftline.ingest enqueue \
+              --tenant "$tenant" \
+              --kind "$(jq -r '.kind' <<< "$source")" \
+              --config "$(jq -c '.config' <<< "$source")" \
+              --discover < /dev/null
+          done
+
+      - name: Ingest and embed until the queues drain
+        run: uv run python -m driftline.ingest worker --drain --timeout 3000
+
+      - name: Run drift detection until the queue drains
+        run: uv run python -m driftline.drift worker --drain --timeout 900
+
+      - name: Stop the outbox relay
+        if: always()
+        run: |
+          kill "$(cat "$RUNNER_TEMP/relay.pid")" 2>/dev/null || true
+          cat "$RUNNER_TEMP/relay.log" || true
+
+      - name: Write the drift report
+        run: uv run python -m driftline.drift report --out ../reports --tenant "$(jq -r '.tenant' "$SOURCES")"
+
+      - name: Commit the reports if they changed
+        working-directory: ${{ github.workspace }}
+        run: |
+          git add reports/drift-log.md reports/drift-latest.json
+          if git diff --cached --quiet; then
+            echo "reports unchanged; nothing to commit"
+            exit 0
+          fi
+          git config user.name "$(git log -1 --format=%an)"
+          git config user.email "$(git log -1 --format=%ae)"
+          git commit -m "chore(drift-watch): update drift report"
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"

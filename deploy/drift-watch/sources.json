@@ -1,0 +1,32 @@
+{
+  "tenant": "drift-watch",
+  "sources": [
+    {
+      "name": "openfda-labels",
+      "kind": "openfda",
+      "config": {
+        "search": "set_id:(\"a60cc18b-0631-4cf0-b021-9f52224ece65\" \"fda754f6-d0f3-4dce-a17a-927d64f912f7\" \"de8b0b67-eb25-4684-83b5-7ad785314227\" \"19a69a72-ac5d-45d5-a94d-a5aaecbe4730\" \"8a99d6d6-fd9e-45bb-b1bf-48c7f761232a\")",
+        "limit": 5
+      },
+      "pinned": [
+        {"set_id": "a60cc18b-0631-4cf0-b021-9f52224ece65", "label": "Lipitor (atorvastatin calcium) tablets, Viatris Specialty", "dailymed_versions_2026_10_25": 7},
+        {"set_id": "fda754f6-d0f3-4dce-a17a-927d64f912f7", "label": "Zoloft (sertraline hydrochloride), Viatris Specialty", "dailymed_versions_2026_10_25": 7},
+        {"set_id": "de8b0b67-eb25-4684-83b5-7ad785314227", "label": "Plavix (clopidogrel) tablets, Sanofi-Aventis U.S.", "dailymed_versions_2026_10_25": 5},
+        {"set_id": "19a69a72-ac5d-45d5-a94d-a5aaecbe4730", "label": "Jantoven (warfarin sodium) tablets, Upsher-Smith", "dailymed_versions_2026_10_25": 11},
+        {"set_id": "8a99d6d6-fd9e-45bb-b1bf-48c7f761232a", "label": "Paxlovid (nirmatrelvir and ritonavir), Pfizer", "dailymed_versions_2026_10_25": 12}
+      ]
+    },
+    {
+      "name": "kubernetes-docs",
+      "kind": "git_docs",
+      "config": {
+        "branches": ["release-1.35", "release-1.36"],
+        "paths": [
+          "content/en/docs/concepts/workloads/controllers/deployment.md",
+          "content/en/docs/reference/using-api/deprecation-guide.md"
+        ]
+      },
+      "note": "The last two Kubernetes releases with a docs branch in kubernetes/website. The current release's docs (v1.37) live on main until v1.38 ships and release-1.37 is cut; the connector reads release branches only."
+    }
+  ]
+}

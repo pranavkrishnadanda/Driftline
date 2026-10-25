@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 from datetime import UTC, datetime
@@ -225,6 +226,61 @@ async def test_cli_enqueue_discovers_and_queues_jobs(fresh_dsn, redis_url, redis
         assert await conn.fetchval("SELECT count(*) FROM jobs WHERE status = 'queued'") == 2
     finally:
         await conn.close()
+
+
+async def run_relay_beside(pool, redis_client, coro):
+    """Run `coro` (a worker CLI) with the real outbox relay running beside it."""
+    stop = asyncio.Event()
+    relay = OutboxRelay(pool, StreamBus(redis_client), alerts=AlertLog(redis_client))
+    relay_task = asyncio.create_task(relay.run(stop, idle_sleep_s=0.05))
+    try:
+        return await coro
+    finally:
+        stop.set()
+        await relay_task
+
+
+async def test_cli_worker_drain_ingests_relays_and_embeds_then_exits(
+    fresh_dsn, fresh_pool, redis_url, redis_client, embedder_url, tmp_path
+):
+    write(tmp_path, "a.md", "# A\n\n## Undo\n\nkubectl rollout undo.\n", T1)
+    write(tmp_path, "b.md", "# B\n\n## Scale\n\nkubectl scale deployment.\n", T1)
+    settings = Settings(
+        _env_file=None, database_url=fresh_dsn, redis_url=redis_url, embed_url=embedder_url
+    )
+    config = json.dumps({"root": str(tmp_path)})
+    enqueue = ["enqueue", "--tenant", "demo", "--kind", "upload", "--config", config, "--discover"]
+    assert await amain(enqueue, settings) == 0
+
+    code = await run_relay_beside(
+        fresh_pool, redis_client, amain(["worker", "--drain", "--timeout", "120"], settings)
+    )
+
+    assert code == 0
+    async with fresh_pool.acquire() as conn:
+        assert await conn.fetchval("SELECT count(*) FROM jobs WHERE status = 'succeeded'") == 2
+        assert await conn.fetchval("SELECT count(*) FROM doc_versions") == 2
+        assert await conn.fetchval("SELECT count(*) FROM chunks WHERE embedding IS NULL") == 0
+        assert await conn.fetchval("SELECT count(*) FROM outbox WHERE published_at IS NULL") == 0
+    for stream in (INGEST_STREAM, EMBED_STREAM):
+        groups = await redis_client.xinfo_groups(stream)
+        assert [g["pending"] for g in groups] == [0]
+    assert await redis_client.xlen("drift") == 2  # version.created also fans out to drift
+
+
+async def test_cli_worker_drain_times_out_without_a_relay(
+    fresh_dsn, redis_url, redis_client, embedder_url, tmp_path
+):
+    write(tmp_path, "a.md", "# A\n\nbody\n", T1)
+    settings = Settings(
+        _env_file=None, database_url=fresh_dsn, redis_url=redis_url, embed_url=embedder_url
+    )
+    config = json.dumps({"root": str(tmp_path)})
+    enqueue = ["enqueue", "--tenant", "demo", "--kind", "upload", "--config", config, "--discover"]
+    assert await amain(enqueue, settings) == 0
+
+    # The version is stored, but its outbox row is never published: not drained.
+    assert await amain(["worker", "--drain", "--timeout", "2"], settings) == 1
 
 
 def test_build_ingest_router_degrades_to_embed_only_without_llm_key(redis_client):
