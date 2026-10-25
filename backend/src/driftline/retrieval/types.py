@@ -9,7 +9,11 @@ from pydantic import BaseModel, ConfigDict
 
 @dataclass(frozen=True)
 class RetrievalQuery:
-    """One hybrid search, restricted to what was in force for `tenant_id` at `as_of`."""
+    """One hybrid search, restricted to what was in force for `tenant_id` at `as_of`.
+
+    `in_force_only=False` drops the temporal filter (the as-of window and supersession)
+    and searches every version of the tenant's documents. Only the plain-RAG eval
+    baseline (P7) uses it; the answer graph never does."""
 
     tenant_id: UUID
     text: str
@@ -17,6 +21,7 @@ class RetrievalQuery:
     source_kinds: tuple[str, ...] | None = None  # corpus filter: sources.kind values
     document_ids: tuple[UUID, ...] | None = None
     exclude_tags: tuple[str, ...] = ()
+    in_force_only: bool = True
 
     def __post_init__(self) -> None:
         if self.as_of.tzinfo is None:

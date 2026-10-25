@@ -4,7 +4,9 @@ reciprocal-rank fusion, restricted to what was in force at `as_of`.
 The temporal filter is part of both searches, not a post-filter: only chunks of versions
 with valid_from <= as_of < coalesce(valid_to, infinity), of the tenant's sources, whose
 document has not been replaced (an applied `supersedes`/`deprecates` relation from a
-version of the same tenant already in effect at as_of) are ever ranked.
+version of the same tenant already in effect at as_of) are ever ranked. The one
+exception is an explicit `RetrievalQuery(in_force_only=False)`, which the plain-RAG eval
+baseline uses to search every version.
 """
 
 from collections.abc import Sequence
@@ -40,20 +42,31 @@ WITH in_force AS (
 )
 """
 
-VECTOR_SQL = (
-    IN_FORCE
-    + """
+# Same parameters as IN_FORCE, without the temporal filter: every version of the
+# tenant's documents (the plain-RAG eval baseline). $2 is referenced only so both
+# variants take the same parameters.
+ANY_VERSION = """
+WITH in_force AS (
+  SELECT v.id AS version_id
+  FROM doc_versions v
+  JOIN documents d ON d.id = v.document_id
+  JOIN sources s ON s.id = d.source_id
+  WHERE s.tenant_id = $1
+    AND $2::timestamptz IS NOT NULL
+    AND ($3::text[] IS NULL OR s.kind = ANY($3::text[]))
+    AND ($4::uuid[] IS NULL OR v.document_id = ANY($4::uuid[]))
+)
+"""
+
+_VECTOR_TAIL = """
 SELECT c.id FROM chunks c JOIN in_force f ON f.version_id = c.version_id
 WHERE c.embedding IS NOT NULL AND c.embed_model = $5 AND NOT (c.tags && $6::text[])
 ORDER BY c.embedding <=> $7::vector, c.id
 LIMIT $8
 """
-)
 
 # OR semantics: a question rarely contains every word of the passage that answers it.
-TEXT_SQL = (
-    IN_FORCE
-    + """
+_TEXT_TAIL = """
 , q AS (
   SELECT regexp_replace(plainto_tsquery('english', $5)::text, '&|<->', '|', 'g')::tsquery AS q
 )
@@ -62,7 +75,11 @@ WHERE c.tsv @@ q.q AND NOT (c.tags && $6::text[])
 ORDER BY ts_rank_cd(c.tsv, q.q) DESC, c.id
 LIMIT $7
 """
-)
+
+VECTOR_SQL = IN_FORCE + _VECTOR_TAIL
+TEXT_SQL = IN_FORCE + _TEXT_TAIL
+VECTOR_SQL_ANY_VERSION = ANY_VERSION + _VECTOR_TAIL
+TEXT_SQL_ANY_VERSION = ANY_VERSION + _TEXT_TAIL
 
 DETAILS_SQL = """
 SELECT c.id AS chunk_id, c.version_id, v.document_id, d.external_id,
@@ -137,6 +154,11 @@ class HybridRetriever:
             list(query.document_ids) if query.document_ids is not None else None,
         )
         tags = list(query.exclude_tags)
+        vector_sql, text_sql = (
+            (VECTOR_SQL, TEXT_SQL)
+            if query.in_force_only
+            else (VECTOR_SQL_ANY_VERSION, TEXT_SQL_ANY_VERSION)
+        )
         # One snapshot for all three queries, so a chunk ranked by the searches cannot
         # vanish (or change version) before its details are read.
         async with (
@@ -144,14 +166,14 @@ class HybridRetriever:
             conn.transaction(isolation="repeatable_read", readonly=True),
         ):
             by_vector = await conn.fetch(
-                VECTOR_SQL,
+                vector_sql,
                 *base,
                 self._embed_model,
                 tags,
                 to_pgvector(vector),
                 candidates,
             )
-            by_text = await conn.fetch(TEXT_SQL, *base, query.text, tags, candidates)
+            by_text = await conn.fetch(text_sql, *base, query.text, tags, candidates)
             fused = rrf_fuse([[r["id"] for r in by_vector], [r["id"] for r in by_text]], k=rrf_k)[
                 :top_k
             ]

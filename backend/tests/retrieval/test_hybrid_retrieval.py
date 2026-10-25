@@ -133,6 +133,51 @@ async def test_applied_supersedes_relation_hides_the_replaced_document(
     assert {e.external_id for e in earlier} == {"lipitor"}  # the guide was not yet in effect
 
 
+async def test_in_force_only_false_ignores_time_and_supersession_but_not_tenancy(
+    retriever, corpus, fresh_conn, embedder_url
+):
+    """The plain-RAG eval baseline (P7) searches every version of the tenant's documents:
+    no as-of window and no supersession, but still the tenant's and the query's filters."""
+    old_v, new_v = corpus["versions"]
+    _, [guide_v], _ = await seed_history(
+        fresh_conn,
+        corpus["source"],
+        external_id="hepatic-guide",
+        title="Hepatic monitoring guide",
+        versions=[
+            VersionSeed(
+                datetime(2024, 1, 1, tzinfo=UTC), [("Liver", "Check ALT at baseline only.")]
+            )
+        ],
+    )
+    await embed_all(fresh_conn, embedder_url)
+    lipitor_doc = await fresh_conn.fetchval(
+        "SELECT document_id FROM doc_versions WHERE id = $1", old_v
+    )
+    await fresh_conn.execute(
+        "INSERT INTO relations (src_version_id, dst_document_id, kind, confidence, status) "
+        "VALUES ($1, $2, 'supersedes', 0.9, 'applied')",
+        guide_v,
+        lipitor_doc,
+    )
+    june = datetime(2024, 6, 1, tzinfo=UTC)
+    every = await retriever.retrieve(ask(corpus["tenant"], june, in_force_only=False))
+    assert {e.version_id for e in every} == {old_v, new_v, guide_v}
+    assert all("other tenant" not in e.text for e in every)
+    assert all(e.retrieved_as_of == june for e in every)
+    early = datetime(2020, 1, 1, tzinfo=UTC)  # before any version started
+    before_any = await retriever.retrieve(ask(corpus["tenant"], early, in_force_only=False))
+    assert {e.version_id for e in before_any} == {old_v, new_v, guide_v}
+    kinds = await retriever.retrieve(
+        ask(corpus["tenant"], june, in_force_only=False, source_kinds=("git_docs",))
+    )
+    assert kinds == []
+    # The default is still the in-force filter.
+    assert {e.version_id for e in await retriever.retrieve(ask(corpus["tenant"], june))} == {
+        guide_v
+    }
+
+
 async def test_another_tenants_relation_cannot_hide_this_tenants_document(
     retriever, corpus, fresh_conn
 ):
