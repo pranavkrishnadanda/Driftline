@@ -96,3 +96,13 @@ Same as P3, plus:
 - Manual check, reported: connect Claude Code to the running Compose stack, run `ask` once, and paste the transcript summary in the report.
 
 **Final P6 gate:** full suite, ruff, no-mock grep, no AI attribution, push, CI green.
+
+## Follow-ups from Wave 1
+
+- **T1b:**
+  - **Load packs in production.** Add a `DRIFTLINE_SKILLS_DIR` setting (default: repo `skills/`), pass it in `agents/__main__.py` `_run_worker`, and copy `skills/` into the backend Docker image.
+  - **Pack-aware cache.** Make the semantic cache key include the pack spec.
+  - **Rerank top_n.** It currently narrows only (`min(top_n, pack.rerank_top_n)`); make `graph.py` pass the pack's `rerank_top_n` exactly.
+  - **Check time-sensitive k8s glossary facts** against the official Kubernetes docs (beta APIs off by default since v1.24, the patch support window, kubelet skew since v1.28).
+- **T2b:** MCP transport security only accepts localhost Host headers by default, so requests through a Compose service name or a real host get 421. Make the allowed hosts configurable (`DRIFTLINE_MCP_ALLOWED_HOSTS`, default localhost and 127.0.0.1), and document it.
+- On mcp 2.3.0, the plan's `FastMCP` is named `MCPServer`. `/mcp` is mounted as a Starlette `Route` with `include_in_schema=False`, and MCP always requires a bearer key.

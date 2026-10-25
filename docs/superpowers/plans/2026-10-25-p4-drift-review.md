@@ -236,3 +236,8 @@ Same as P3. In short:
 - **T7:** add a `drift-poll` Compose service (`python -m driftline.drift poll`, heartbeat healthcheck, a single replica is fine because claims are CAS) and include it in the Compose smoke test.
 - **T7 (consistency):** the ingest worker marks a source `stale_source` on the **first** `SourceFetchError`, while the poller uses `source_stale_after_failures=3`. Make the ingest worker leave `status` alone and report fetch failures through the same Redis streak (`poll:failures:{source}`), so there's one rule for "stale". Pin it with a test.
 - `still_valid` verdicts write a `drift_events` row but **no** alert (spec §7: "re-point silently"). Alerts go out only for `changed` and `broken`.
+- **T5b (fix task):**
+  - **Stranded paused asks.** After a review resolve, the follow-up `agent` job is published only after commit. If that publish fails, the ask stays paused forever (the item is resolved, so a retry gets 409). Route the follow-up through the transactional outbox (topic `ask.resume` → stream `agent`).
+  - **Regenerated answers lose their job link.** A regeneration job doesn't move `answers.job_id`, so `GET /v1/jobs/{regen_job}` shows no answer. Point `answers.job_id` at the latest job.
+  - **Stale cache after a relation approval.** Approving a relation doesn't invalidate the semantic cache. Invalidate entries citing the superseded document's versions.
+- **T7:** the end-to-end flow needs **two** resolves for a broken answer. Resolve `broken_answer`, run the worker (it pauses for review), resolve `low_confidence_answer`, run the worker; the answer then cites v3.
