@@ -125,3 +125,8 @@ Same as P3, plus:
 - **T4 (baseline fairness):** `plain_rag` currently reuses the Driftline draft prompt, which tells the model "only these chunks were in force then". That's false for the unfiltered baseline and makes the comparison unfair to it. Give `plain_rag` a neutral prompt ("these chunks were retrieved; answer from them with citations") and keep everything else identical. Pin it with a test asserting the baseline prompt makes no claim about in-force status. The README and report must describe each baseline's exact setup.
 - **T4:** extend `tests/eval/test_compare.py` (created in T2), and record the judge cassette for `faithfulness_judge`.
 - `eval_runs.metrics` stores `{"system": ..., "metrics": {...}}`, with no separate column.
+- **T3 (from T5):**
+  - `bench/chaos.sh` already exists (written by T5; shellcheck-clean; uses `bench/k6/ask.js` if present, otherwise a curl loop; kills a random agent-worker every 20 s; fails on stuck, failed or unanswered asks, DLQ entries or pending entries; prints a JSON summary). Build `bench/k6/ask.js` and `bench/run.sh` to fit it, and run chaos as part of the bench.
+  - A restarted container reuses its hostname, which is the consumer name, so it reclaims its own pending entries.
+  - XAUTOCLAIM idle time uses the Redis server clock, so `ManualClock` can't trigger reclaims.
+- **Optional:** `IngestWorker` hard-codes `RECLAIM_IDLE_MS`/`KEEPALIVE_MS` (60 s). Add a `reclaim_idle_ms` constructor parameter for parity with the agent and drift workers.
