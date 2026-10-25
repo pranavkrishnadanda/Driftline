@@ -1,0 +1,10 @@
+# Extra bench overlay for BENCH_RERANKER=off: the agent workers no longer wait for the
+# reranker service, and DRIFTLINE_RERANK_URL is empty, so retrieval keeps the RRF order
+# (the documented fallback). Used when the reranker does not fit in the VM's memory.
+services:
+  agent-worker:
+    environment:
+      DRIFTLINE_RERANK_URL: ""
+    depends_on: !override
+      gateway: {condition: service_healthy}
+      embedder: {condition: service_healthy}

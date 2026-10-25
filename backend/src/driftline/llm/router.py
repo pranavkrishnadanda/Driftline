@@ -12,7 +12,7 @@ from driftline.clock import Clock
 from driftline.config import Settings
 from driftline.llm.adapters.anthropic import AnthropicAdapter
 from driftline.llm.adapters.gemini import GeminiAdapter
-from driftline.llm.adapters.latency import LatencyStubAdapter
+from driftline.llm.adapters.latency import LatencyStubAdapter, worker_seed
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.breaker import CircuitBreaker
 from driftline.llm.ratelimit import RateLimitTimeout, RedisTokenBucket
@@ -238,14 +238,17 @@ class LLMRouter:
         return self._base_backoff_s * (2**attempt) * random.uniform(0.5, 1.5)
 
 
-def build_bench_router(settings: Settings, *, clock: Clock) -> LLMRouter:
+def build_bench_router(
+    settings: Settings, *, clock: Clock, consumer: str | None = None
+) -> LLMRouter:
     """The `bench` chain: LatencyStubAdapter (replies from the in-repo ExtractiveResponder,
-    so structured outputs stay valid) on every LLM tier; embeddings stay on TEI."""
+    so structured outputs stay valid) on every LLM tier; embeddings stay on TEI. The stub
+    is seeded per worker (`worker_seed(llm_bench_seed, consumer)`)."""
     # Imported here: driftline.agents builds on the router, not the other way round.
     from driftline.agents.offline import ExtractiveResponder
 
     stub = LatencyStubAdapter(
-        seed=settings.llm_bench_seed,
+        seed=worker_seed(settings.llm_bench_seed, consumer),
         median_ms=settings.llm_bench_median_ms,
         sigma=settings.llm_bench_sigma,
         clock=clock,

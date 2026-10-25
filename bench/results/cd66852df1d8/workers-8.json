@@ -1,0 +1,177 @@
+{
+  "commit": "cd66852df1d8",
+  "config": {
+    "corpus": {
+      "documents": 6,
+      "embedded_chunks": 31
+    },
+    "duration": "180s",
+    "llm_median_ms": 800,
+    "llm_seed": 0,
+    "llm_sigma": 0.5,
+    "per_worker_seed": "seed ^ crc32(consumer)",
+    "reranker": "on",
+    "semantic_cache": "off",
+    "vus": 32,
+    "warmup": "20s"
+  },
+  "container_stats_mid_run": [
+    {
+      "CPUPerc": "0.00%",
+      "MemPerc": "3.71%",
+      "MemUsage": "219.4MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-1"
+    },
+    {
+      "CPUPerc": "0.22%",
+      "MemPerc": "3.69%",
+      "MemUsage": "218MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-2"
+    },
+    {
+      "CPUPerc": "0.24%",
+      "MemPerc": "3.76%",
+      "MemUsage": "222MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-3"
+    },
+    {
+      "CPUPerc": "0.10%",
+      "MemPerc": "3.72%",
+      "MemUsage": "220.1MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-4"
+    },
+    {
+      "CPUPerc": "1.17%",
+      "MemPerc": "3.73%",
+      "MemUsage": "220.7MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-5"
+    },
+    {
+      "CPUPerc": "5.29%",
+      "MemPerc": "3.73%",
+      "MemUsage": "220.2MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-6"
+    },
+    {
+      "CPUPerc": "4.44%",
+      "MemPerc": "3.68%",
+      "MemUsage": "217.5MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-7"
+    },
+    {
+      "CPUPerc": "1.38%",
+      "MemPerc": "3.70%",
+      "MemUsage": "218.7MiB / 5.772GiB",
+      "Name": "driftline-bench-agent-worker-8"
+    },
+    {
+      "CPUPerc": "7.66%",
+      "MemPerc": "40.30%",
+      "MemUsage": "825.4MiB / 2GiB",
+      "Name": "driftline-bench-embedder-1"
+    },
+    {
+      "CPUPerc": "3.52%",
+      "MemPerc": "3.87%",
+      "MemUsage": "228.8MiB / 5.772GiB",
+      "Name": "driftline-bench-gateway-1"
+    },
+    {
+      "CPUPerc": "0.16%",
+      "MemPerc": "3.10%",
+      "MemUsage": "183.4MiB / 5.772GiB",
+      "Name": "driftline-bench-outbox-relay-1"
+    },
+    {
+      "CPUPerc": "1.62%",
+      "MemPerc": "2.60%",
+      "MemUsage": "153.8MiB / 5.772GiB",
+      "Name": "driftline-bench-postgres-1"
+    },
+    {
+      "CPUPerc": "1.91%",
+      "MemPerc": "0.20%",
+      "MemUsage": "11.88MiB / 5.772GiB",
+      "Name": "driftline-bench-redis-1"
+    }
+  ],
+  "k6_exit_code": 0,
+  "llm": "stub LLM",
+  "oom_killed": [
+    "driftline-bench-reranker-1"
+  ],
+  "stages": {
+    "asks": 318,
+    "draft": {
+      "mean": 1151.7,
+      "n": 318,
+      "p50": 1052.3,
+      "p95": 2046.5
+    },
+    "plan": {
+      "mean": 946.8,
+      "n": 318,
+      "p50": 822.8,
+      "p95": 1931.8
+    },
+    "queue": {
+      "mean": 14126.9,
+      "n": 318,
+      "p50": 14662.2,
+      "p95": 16542.0
+    },
+    "rerank_ran_share": 0.0,
+    "retrieve": {
+      "mean": 42.9,
+      "n": 318,
+      "p50": 40.4,
+      "p95": 61.8
+    },
+    "verify": {
+      "mean": 2774.0,
+      "n": 318,
+      "p50": 2616.8,
+      "p95": 4294.3
+    },
+    "wall": {
+      "mean": 19055.7,
+      "n": 318,
+      "p50": 19524.3,
+      "p95": 21994.5
+    },
+    "worker": {
+      "mean": 4928.8,
+      "n": 318,
+      "p50": 4839.5,
+      "p95": 6688.8
+    }
+  },
+  "summary": {
+    "attempts": 318,
+    "completed": 318,
+    "error_rate": 0.0,
+    "failed": 0,
+    "http_reqs": 636,
+    "latency_ms": {
+      "count": 318,
+      "max": 24732.0,
+      "mean": 19062.754716981133,
+      "p50": 19526.5,
+      "p95": 21999.35,
+      "p99": 23010.749999999996
+    },
+    "rate_429": 0.0,
+    "rejected_429": 0,
+    "throughput_per_s": 1.597076598495636,
+    "ttft_ms": {
+      "count": 318,
+      "max": 20058.0,
+      "mean": 15402.738993710691,
+      "p50": 15856.0,
+      "p95": 18017.25,
+      "p99": 19111.12
+    },
+    "window_s": 199.113806
+  },
+  "workers": 8
+}

@@ -1,0 +1,47 @@
+# Bench overlay on deploy/compose/docker-compose.yml (bench/run.sh, bench/ingest.sh).
+# Run under its own project name (driftline-bench) and host ports, so it never touches
+# a dev stack. No paid LLM key reaches any container: the agent workers use the bench
+# chain (LatencyStubAdapter, labelled "stub LLM"), and ingest runs without supersession
+# extraction (it needs an LLM key).
+services:
+  postgres:
+    ports: !override ["${BENCH_POSTGRES_PORT:-55433}:5432"]
+  redis:
+    ports: !override ["${BENCH_REDIS_PORT:-56379}:6379"]
+  gateway:
+    environment:
+      DRIFTLINE_ANTHROPIC_API_KEY: ""
+      DRIFTLINE_GEMINI_API_KEY: ""
+  embedder:
+    ports: !override ["${BENCH_EMBED_PORT:-58080}:80"]
+  reranker:
+    ports: !override ["${BENCH_RERANK_PORT:-58081}:80"]
+  ingest-worker:
+    environment:
+      DRIFTLINE_ANTHROPIC_API_KEY: ""
+      DRIFTLINE_GEMINI_API_KEY: ""
+    volumes:
+      - "${BENCH_CORPUS_DIR:?set BENCH_CORPUS_DIR}:/data/bench-corpus:ro"
+  outbox-relay:
+    environment:
+      DRIFTLINE_ANTHROPIC_API_KEY: ""
+  agent-worker:
+    environment:
+      DRIFTLINE_ANTHROPIC_API_KEY: ""
+      DRIFTLINE_GEMINI_API_KEY: ""
+      DRIFTLINE_LLM_BENCH: "true"
+      DRIFTLINE_LLM_BENCH_SEED: "${BENCH_LLM_SEED:-0}"
+      DRIFTLINE_LLM_BENCH_MEDIAN_MS: "${BENCH_LLM_MEDIAN_MS:-800}"
+      DRIFTLINE_LLM_BENCH_SIGMA: "${BENCH_LLM_SIGMA:-0.5}"
+      # Every ask runs the full graph: with a fixed question list the semantic cache
+      # would answer nearly all of them and the bench would measure cache hits.
+      DRIFTLINE_SEMANTIC_CACHE_ENABLED: "false"
+      # Empty disables the cross-encoder (RRF order is kept); see BENCH_RERANKER.
+      DRIFTLINE_RERANK_URL: "${BENCH_RERANK_URL-http://reranker:80}"
+      DRIFTLINE_LANGFUSE_PUBLIC_KEY: ""
+      DRIFTLINE_LANGFUSE_SECRET_KEY: ""
+volumes:
+  # The TEI model cache survives `down -v` between runs (created by bench/lib.sh).
+  embedder-models: !override
+    name: driftline-bench-models
+    external: true

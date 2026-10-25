@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 import pytest
 from dbseed import EMBED_MODEL, VersionSeed, embed_all, seed_history, seed_source
 
-from driftline.agents.__main__ import amain, build_agent_router
+from driftline.agents.__main__ import amain, build_agent_router, setup_checkpointer
 from driftline.agents.eventlog import AskEventLog
 from driftline.agents.events import ErrorEvent, FinalEvent
 from driftline.agents.graph import AgentDeps, build_answer_graph
@@ -20,6 +20,7 @@ from driftline.agents.worker import AgentWorker, reap_lost_asks
 from driftline.clock import ManualClock
 from driftline.config import Settings
 from driftline.llm.adapters.deterministic import DeterministicAdapter
+from driftline.llm.adapters.latency import LatencyStubAdapter, worker_seed
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.router import LLMRouter, Route
 from driftline.llm.types import ProviderError
@@ -312,6 +313,46 @@ def test_offline_mode_builds_a_keyless_router(redis_client):
     assert "anthropic" not in router.providers and "gemini" not in router.providers
     with pytest.raises(ValueError):
         build_agent_router(Settings(_env_file=None), redis_client, clock=ManualClock())
+
+
+async def test_concurrent_worker_startups_set_up_the_checkpointer_once(fresh_dsn, fresh_pool):
+    """`--scale agent-worker=8` on a fresh database: every worker runs the checkpointer
+    setup at once. Unserialised, LangGraph's migrations race and all but one worker die
+    with UniqueViolation on checkpoint_migrations_pkey (seen in the P7 bench)."""
+    from contextlib import AsyncExitStack
+
+    from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+
+    async with AsyncExitStack() as stack:
+        savers = [
+            await stack.enter_async_context(AsyncPostgresSaver.from_conn_string(fresh_dsn))
+            for _ in range(8)
+        ]
+        await asyncio.gather(*(setup_checkpointer(s, fresh_pool) for s in savers))
+    async with fresh_pool.acquire() as conn:
+        versions = await conn.fetchval("SELECT count(*) FROM checkpoint_migrations")
+    assert versions > 0
+
+
+def test_bench_mode_wins_over_offline_mode(redis_client):
+    settings = Settings(_env_file=None, llm_offline=True, llm_bench=True)
+    router = build_agent_router(settings, redis_client, clock=ManualClock(), consumer="w1")
+    assert set(router.providers) == {"bench", "tei"}
+    assert isinstance(router.providers["bench"], LatencyStubAdapter)
+    for tier in ("extract", "answer", "judge"):
+        assert router.chains[tier] == [Route("bench", f"bench-{tier}")]
+
+
+def test_bench_stub_seed_is_derived_per_worker(redis_client):
+    settings = Settings(_env_file=None, llm_bench=True, llm_bench_seed=7)
+
+    def seed(consumer: str | None) -> int:
+        router = build_agent_router(settings, redis_client, clock=ManualClock(), consumer=consumer)
+        return router.providers["bench"].seed
+
+    assert seed("agent-1") == seed("agent-1") == worker_seed(7, "agent-1")
+    assert len({seed("agent-1"), seed("agent-2"), seed("agent-3")}) == 3
+    assert seed(None) == 7  # no consumer (a one-off CLI): the configured seed as-is
 
 
 async def test_reap_cli_fails_lost_asks(fresh_dsn, fresh_conn, redis_url, redis_client):

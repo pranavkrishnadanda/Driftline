@@ -1,0 +1,15 @@
+{
+  "asks": 86,
+  "dlq": 0,
+  "duration_s": 180,
+  "exit_code": 0,
+  "failed": 0,
+  "kill_every_s": 20,
+  "kills": 8,
+  "llm": "stub LLM",
+  "no_answer": 0,
+  "pending": 0,
+  "stuck": 0,
+  "succeeded": 86,
+  "workers": 4
+}

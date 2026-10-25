@@ -23,7 +23,7 @@ from driftline.config import Settings
 from driftline.health import run_with_heartbeat
 from driftline.llm.adapters.deterministic import DeterministicAdapter
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
-from driftline.llm.router import LLMRouter, Route, build_router
+from driftline.llm.router import LLMRouter, Route, build_bench_router, build_router
 from driftline.obs.cost import CostLedger
 from driftline.obs.tracing import build_tracer
 from driftline.retrieval.hybrid import HybridRetriever
@@ -31,10 +31,15 @@ from driftline.retrieval.rerank import TEIReranker
 from driftline.streams.bus import StreamBus
 
 
-def build_agent_router(settings: Settings, redis: Redis, *, clock: Clock) -> LLMRouter:
+def build_agent_router(
+    settings: Settings, redis: Redis, *, clock: Clock, consumer: str | None = None
+) -> LLMRouter:
     """Claude (and Gemini) when keys are set; the keyless offline ExtractiveResponder when
-    DRIFTLINE_LLM_OFFLINE=true. Embeddings always come from TEI. Raises ValueError when
-    neither a key nor offline mode is configured."""
+    DRIFTLINE_LLM_OFFLINE=true; the bench stub (seeded per `consumer`) when
+    DRIFTLINE_LLM_BENCH=true, which wins over both. Embeddings always come from TEI.
+    Raises ValueError when no key, offline or bench mode is configured."""
+    if settings.llm_bench:
+        return build_bench_router(settings, clock=clock, consumer=consumer)
     if settings.llm_offline:
         det = DeterministicAdapter("deterministic", responder=ExtractiveResponder())
         tiers = {
@@ -46,6 +51,34 @@ def build_agent_router(settings: Settings, redis: Redis, *, clock: Clock) -> LLM
             clock=clock,
         )
     return build_router(settings, redis, clock=clock)
+
+
+# Arbitrary constant key for pg_advisory_lock: "checkpointer setup" across all workers.
+CHECKPOINTER_SETUP_LOCK = 0x44524C43  # "DRLC"
+
+
+async def setup_checkpointer(
+    saver: AsyncPostgresSaver, pool: asyncpg.Pool, *, timeout_s: float = 300.0
+) -> None:
+    """`saver.setup()` under a Postgres advisory lock. Workers started together
+    (`--scale agent-worker=N` on a fresh database) otherwise run LangGraph's migrations
+    concurrently and all but one die with a UniqueViolation.
+
+    Polls `pg_try_advisory_lock` rather than blocking in `pg_advisory_lock`: a session
+    blocked inside that statement holds a snapshot, and the migrations' CREATE INDEX
+    CONCURRENTLY waits for every such snapshot, so the holder would wait forever.
+    """
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + timeout_s
+    async with pool.acquire() as conn:
+        while not await conn.fetchval("SELECT pg_try_advisory_lock($1)", CHECKPOINTER_SETUP_LOCK):
+            if loop.time() >= deadline:
+                raise TimeoutError(f"checkpointer setup lock not acquired in {timeout_s}s")
+            await asyncio.sleep(0.2)
+        try:
+            await saver.setup()
+        finally:
+            await conn.execute("SELECT pg_advisory_unlock($1)", CHECKPOINTER_SETUP_LOCK)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -72,7 +105,7 @@ def _events(settings: Settings, redis: Redis) -> AskEventLog:
 async def _run_worker(
     settings: Settings, pool: asyncpg.Pool, redis: Redis, *, consumer: str, clock: Clock
 ) -> None:
-    router = build_agent_router(settings, redis, clock=clock)
+    router = build_agent_router(settings, redis, clock=clock, consumer=consumer)
     tracer = build_tracer(settings)
     try:
         deps = AgentDeps(
@@ -101,7 +134,7 @@ async def _run_worker(
             config=AgentConfig.from_settings(settings),
         )
         async with AsyncPostgresSaver.from_conn_string(settings.database_url) as saver:
-            await saver.setup()
+            await setup_checkpointer(saver, pool)
             worker = AgentWorker(
                 pool=pool,
                 redis=redis,
