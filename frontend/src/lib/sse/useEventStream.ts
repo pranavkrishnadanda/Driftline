@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { AskEvent, ErrorEvent, FinalEvent } from "./events";
+
+/** Any event a Driftline SSE stream delivers: a JSON object with a `type`. */
+export interface StreamEvent {
+  type: string;
+}
 import { createSseParser, type SseMessage } from "./parse";
 
 /**
@@ -22,12 +27,12 @@ export type EventStreamStatus =
   | "expired"
   | "failed";
 
-export interface EventStreamState {
+export interface EventStreamState<E extends StreamEvent = AskEvent> {
   status: EventStreamStatus;
   /** Every `token` event's text, in order. */
   text: string;
-  /** Every other event (step, claim, final, error), in order. */
-  events: AskEvent[];
+  /** Every other event (step, claim, final, error, alert), in order. */
+  events: E[];
   final: FinalEvent | null;
   /** The terminal error, from the server or made by the client (`http_404`, ...). */
   error: ErrorEvent | null;
@@ -46,7 +51,7 @@ export interface UseEventStreamOptions {
   lastEventId?: string | null;
 }
 
-const IDLE: EventStreamState = {
+const IDLE: EventStreamState<never> = {
   status: "idle",
   text: "",
   events: [],
@@ -56,6 +61,18 @@ const IDLE: EventStreamState = {
 };
 
 const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
+
+function isError(event: StreamEvent): event is ErrorEvent {
+  return event.type === "error";
+}
+
+function isFinal(event: StreamEvent): event is FinalEvent {
+  return event.type === "final";
+}
+
+function isToken(event: StreamEvent): event is StreamEvent & { type: "token"; text: string } {
+  return event.type === "token";
+}
 
 function clientError(code: string, message: string): ErrorEvent {
   return { type: "error", code, message, retryable: false };
@@ -84,9 +101,9 @@ function wait(ms: number, signal: AbortSignal): Promise<void> {
 
 type Terminal = { status: "done" | "expired" | "failed"; error: ErrorEvent | null };
 
-interface StreamSink {
+interface StreamSink<E extends StreamEvent> {
   /** A token or other event, in arrival order. Duplicates have already been dropped. */
-  event: (event: AskEvent, id: string | null) => void;
+  event: (event: E, id: string | null) => void;
   status: (status: "connecting" | "open" | "reconnecting") => void;
   terminal: (terminal: Terminal) => void;
 }
@@ -96,10 +113,10 @@ interface StreamSink {
  * terminal event or `signal` aborts. `fetch` (not `EventSource`) so the resume header can
  * be sent.
  */
-async function runEventStream(
+async function runEventStream<E extends StreamEvent>(
   url: string,
   options: Required<Omit<UseEventStreamOptions, "lastEventId">> & { lastEventId: string | null },
-  sink: StreamSink,
+  sink: StreamSink<E>,
   signal: AbortSignal,
 ): Promise<void> {
   let lastEventId = options.lastEventId;
@@ -122,9 +139,9 @@ async function runEventStream(
         if (seq !== null) lastSeq = seq;
         lastEventId = message.id;
       }
-      let event: AskEvent;
+      let event: E;
       try {
-        event = JSON.parse(message.data) as AskEvent;
+        event = JSON.parse(message.data) as E;
       } catch {
         terminal = {
           status: "failed",
@@ -136,7 +153,7 @@ async function runEventStream(
       sink.event(event, lastEventId);
       if (event.type === "final") {
         terminal = { status: "done", error: null };
-      } else if (event.type === "error" && !event.retryable) {
+      } else if (isError(event) && !event.retryable) {
         terminal = {
           status: event.code === "events_expired" ? "expired" : "failed",
           error: event,
@@ -219,17 +236,20 @@ const schedule: (cb: () => void) => () => void =
       };
 
 /**
- * Subscribe to an ask's SSE event stream. Pass `null` to stay idle.
+ * Subscribe to a Driftline SSE event stream: an ask's (the default event type) or any
+ * other, such as the open-ended drift-alert stream (`useEventStream<AlertStreamEvent>`).
+ * Pass `null` to stay idle. A `final` event ends a stream, as does a non-retryable
+ * `error`; a stream without them runs until unmount or a new `url`.
  *
  * Events are buffered and committed to React state at most once per animation frame, so a
  * burst of thousands of `token` events costs a handful of renders and none is dropped.
  * Changing `url` or unmounting aborts the request.
  */
-export function useEventStream(
+export function useEventStream<E extends StreamEvent = AskEvent>(
   url: string | null,
   options: UseEventStreamOptions = {},
-): EventStreamState {
-  const [state, setState] = useState<EventStreamState>(IDLE);
+): EventStreamState<E> {
+  const [state, setState] = useState<EventStreamState<E>>(IDLE);
   const { initialRetryMs = 1000, maxRetryMs = 30_000, maxAttempts = 8, lastEventId = null } = options;
   // Options are read when a stream starts; only a new `url` restarts it.
   const optionsRef = useRef({ initialRetryMs, maxRetryMs, maxAttempts, lastEventId });
@@ -241,9 +261,9 @@ export function useEventStream(
     if (url === null) return;
     const controller = new AbortController();
     // The first commit of a new stream replaces whatever the previous url left behind.
-    const resetState = (): EventStreamState => ({ ...IDLE, status: "connecting" });
+    const resetState = (): EventStreamState<E> => ({ ...IDLE, status: "connecting" });
     let pendingText: string[] = [];
-    let pendingEvents: AskEvent[] = [];
+    let pendingEvents: E[] = [];
     let pendingId: string | null = null;
     let pendingStatus: EventStreamStatus | null = "connecting";
     let pendingTerminal: Terminal | null = null;
@@ -266,7 +286,7 @@ export function useEventStream(
       setState((previous) => {
         const base = reset ? resetState() : previous;
         let final = base.final;
-        for (const event of events) if (event.type === "final") final = event;
+        for (const event of events) if (isFinal(event)) final = event;
         return {
           status: terminal?.status ?? status ?? base.status,
           text: text ? base.text + text : base.text,
@@ -281,9 +301,9 @@ export function useEventStream(
       if (!cancelFrame) cancelFrame = schedule(flush);
     };
 
-    const sink: StreamSink = {
+    const sink: StreamSink<E> = {
       event: (event, id) => {
-        if (event.type === "token") pendingText.push(event.text);
+        if (isToken(event)) pendingText.push(event.text);
         else pendingEvents.push(event);
         pendingId = id;
         requestFlush();
