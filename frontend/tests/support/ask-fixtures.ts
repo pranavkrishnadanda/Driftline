@@ -27,6 +27,33 @@ export const ANSWERED_PROGRESS: AskEvent[] = ANSWERED_EVENTS.filter(
 
 export const LAST_STEP = ANSWERED_PROGRESS.filter((e): e is StepEvent => e.type === "step").at(-1)!;
 
+/**
+ * The answered stream paused for human review (P4 T5): the contract's events up to
+ * `respond`, then the review node's `step {node: "review", status: "waiting"}` instead of
+ * `final`. The graph runs `respond` then `review`, and the worker emits `waiting` with the
+ * interrupt's reason in `detail`.
+ */
+const RESPOND_STEP = ANSWERED_EVENTS.findLast((e) => e.event === "step")!;
+
+export const REVIEW_WAITING_STEP = {
+  type: "step",
+  node: "review",
+  status: "waiting",
+  detail: { reason: "low_confidence" },
+  t_ms: (RESPOND_STEP.data as StepEvent).t_ms,
+} satisfies StepEvent;
+
+export const REVIEW_WAITING_EVENTS: FixtureEvent[] = [
+  ...ANSWERED_EVENTS.filter((e) => e.event !== "final"),
+  { id: RESPOND_STEP.id! + 1, event: "step", data: REVIEW_WAITING_STEP },
+];
+
+/** The paused stream, then the answer once a reviewer approves it (same stream, resumed). */
+export const REVIEW_APPROVED_EVENTS: FixtureEvent[] = [
+  ...REVIEW_WAITING_EVENTS,
+  finalFrame(ANSWERED, RESPOND_STEP.id! + 2),
+];
+
 /** Nearest sources for the insufficient-evidence outcome. */
 export const NEAR_SOURCES: NearestSource[] = [
   {

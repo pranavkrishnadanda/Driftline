@@ -14,7 +14,7 @@ export interface StepEvent {
     [k: string]: unknown;
   };
   node: string;
-  status: "started" | "completed" | "skipped" | "retry" | "hit" | "miss" | "failed";
+  status: "started" | "completed" | "skipped" | "retry" | "hit" | "miss" | "failed" | "waiting";
   t_ms?: number;
   type: "step";
 }

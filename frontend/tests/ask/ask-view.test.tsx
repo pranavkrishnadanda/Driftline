@@ -11,6 +11,8 @@ import {
   ANSWERED,
   ANSWERED_EVENTS,
   ANSWERED_TEXT,
+  REVIEW_APPROVED_EVENTS,
+  REVIEW_WAITING_EVENTS,
   finalFrame,
   insufficientAnswer,
 } from "../support/ask-fixtures";
@@ -155,6 +157,71 @@ describe("AskView: answering", () => {
     expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent(
       ANSWERED.answer,
     );
+  });
+});
+
+describe("AskView: human review", () => {
+  it("shows 'Waiting for human review' when the stream pauses at the review step", async () => {
+    await setup(REVIEW_WAITING_EVENTS, { events: REVIEW_WAITING_EVENTS, connections: [{ hold: true }] });
+    const user = renderView(api!.url);
+
+    await ask(user);
+
+    const pending = await screen.findByRole("region", { name: "Waiting for human review" });
+    expect(pending).toHaveTextContent(ANSWERED_TEXT);
+    expect(pending).toHaveTextContent("confidence is below the review threshold");
+    expect(screen.getByRole("status")).toHaveTextContent("Waiting for human review.");
+    // Not an error, and not an endless spinner: the prompt is free again.
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Answer in progress" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Stop response" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send message" })).toBeInTheDocument();
+    // The stream stays open for the reviewer's decision.
+    await new Promise((r) => setTimeout(r, 100));
+    expect(sse!.connections).toHaveLength(1);
+    expect(sse!.connections[0].closedByClient).toBe(false);
+    expect(screen.getByRole("region", { name: "Waiting for human review" })).toBeInTheDocument();
+  });
+
+  it("renders the answer once the reviewer resolves it and the stream resumes", async () => {
+    const waitingId = REVIEW_WAITING_EVENTS.at(-1)!.id!;
+    await setup(REVIEW_APPROVED_EVENTS, {
+      events: REVIEW_APPROVED_EVENTS,
+      connections: [{ dropAfter: REVIEW_WAITING_EVENTS.length, drop: "end" }],
+    });
+    const user = renderView(api!.url);
+
+    await ask(user);
+
+    expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent(
+      ANSWERED.answer,
+    );
+    expect(sse!.connections[1].lastEventId).toBe(String(waitingId));
+    expect(
+      screen.queryByRole("region", { name: "Waiting for human review" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("treats an expired stream whose job is needs_review as waiting, not failed", async () => {
+    const routes = await setup(expired.events as FixtureEvent[]);
+    routes[`GET /v1/jobs/${JOB_ID}`] = {
+      status: 200,
+      json: {
+        job_id: JOB_ID,
+        status: "needs_review",
+        error: null,
+        answer: null,
+        cost_usd: 0,
+      } satisfies JobStatus,
+    };
+    const user = renderView(api!.url);
+
+    await ask(user);
+
+    expect(
+      await screen.findByRole("region", { name: "Waiting for human review" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
 

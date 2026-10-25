@@ -34,6 +34,46 @@ export function StreamingAnswer({ text, step }: { text: string; step: StepEvent 
   );
 }
 
+/** Why the review node paused the ask (`step.detail.reason`), in words. */
+const REVIEW_REASONS: Record<string, string> = {
+  low_confidence: "The answer's confidence is below the review threshold.",
+  watched_answer: "A watched answer was regenerated after its sources changed.",
+};
+
+/** The `step {node: "review", status: "waiting"}` event: the ask paused for a reviewer. */
+export function isReviewWaiting(step: StepEvent | null | undefined): boolean {
+  return step?.node === "review" && step.status === "waiting";
+}
+
+/**
+ * The ask is paused for a human reviewer (job status `needs_review`). Not an error and
+ * not busy: the answer arrives on the same stream once a reviewer resolves the item.
+ */
+export function ReviewPending({ text, step }: { text: string; step: StepEvent | null }) {
+  const reason = step?.detail?.reason;
+  const why = typeof reason === "string" ? (REVIEW_REASONS[reason] ?? null) : null;
+  return (
+    <section
+      aria-label="Waiting for human review"
+      className={cn(bubble, "border-sky-500/40")}
+    >
+      <h2 className="mb-1 font-heading text-base font-semibold">Waiting for human review</h2>
+      <p className="text-sm text-muted-foreground">
+        {why ? `${why} ` : ""}A reviewer has to approve, edit or reject it before it is shown.
+        The answer appears here once they do.
+      </p>
+      {text ? (
+        <>
+          <h3 className="mt-4 mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Draft under review
+          </h3>
+          <p className="whitespace-pre-wrap leading-relaxed text-muted-foreground">{text}</p>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
 function CitationChip({ citation, number }: { citation: Citation; number: number }) {
   const details = describeCitation(citation);
   const descriptionId = useId();

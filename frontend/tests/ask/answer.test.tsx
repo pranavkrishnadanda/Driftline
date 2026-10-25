@@ -2,11 +2,22 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { FinalAnswer, StreamingAnswer } from "@/components/ask/answer";
+import {
+  FinalAnswer,
+  ReviewPending,
+  StreamingAnswer,
+  isReviewWaiting,
+} from "@/components/ask/answer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { AnswerSchema, Citation } from "@/lib/api/client";
 
-import { ANSWERED, ANSWERED_TEXT, LAST_STEP, insufficientAnswer } from "../support/ask-fixtures";
+import {
+  ANSWERED,
+  ANSWERED_TEXT,
+  LAST_STEP,
+  REVIEW_WAITING_STEP,
+  insufficientAnswer,
+} from "../support/ask-fixtures";
 
 function renderFinal(answer: AnswerSchema) {
   return render(
@@ -26,6 +37,37 @@ describe("StreamingAnswer", () => {
   it("is never an empty bubble before the first token", () => {
     render(<StreamingAnswer text="" step={null} />);
     expect(screen.getByText(/Waiting for the agent/)).toBeInTheDocument();
+  });
+});
+
+describe("ReviewPending", () => {
+  it("says the answer waits for a human reviewer, with the reason and the draft", () => {
+    render(<ReviewPending text={ANSWERED_TEXT} step={REVIEW_WAITING_STEP} />);
+    const pending = screen.getByRole("region", { name: "Waiting for human review" });
+    expect(
+      within(pending).getByRole("heading", { name: "Waiting for human review" }),
+    ).toBeInTheDocument();
+    expect(pending).toHaveTextContent("confidence is below the review threshold");
+    expect(pending).toHaveTextContent(ANSWERED_TEXT);
+    // Not an error and not a busy spinner.
+    expect(pending).not.toHaveAttribute("aria-busy", "true");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("explains a regenerated watched answer and works before any token", () => {
+    render(
+      <ReviewPending text="" step={{ ...REVIEW_WAITING_STEP, detail: { reason: "watched_answer" } }} />,
+    );
+    const pending = screen.getByRole("region", { name: "Waiting for human review" });
+    expect(pending).toHaveTextContent("regenerated after its sources changed");
+    expect(pending).not.toHaveTextContent("Draft under review");
+  });
+
+  it("recognises only the review node's waiting step", () => {
+    expect(isReviewWaiting(REVIEW_WAITING_STEP)).toBe(true);
+    expect(isReviewWaiting(LAST_STEP)).toBe(false);
+    expect(isReviewWaiting({ ...REVIEW_WAITING_STEP, status: "completed" })).toBe(false);
+    expect(isReviewWaiting(null)).toBe(false);
   });
 });
 

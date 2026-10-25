@@ -130,6 +130,17 @@ describe("classifyAskFailure", () => {
     });
   });
 
+  it("explains a rejected or mismatched API key", () => {
+    expect(classifyAskFailure(new ApiError(401, { code: "unauthorized" }))).toEqual({
+      kind: "error",
+      message: "The API key is missing or invalid.",
+    });
+    expect(classifyAskFailure(new ApiError(403, { code: "tenant_mismatch" }))).toEqual({
+      kind: "error",
+      message: "The API key does not belong to this tenant.",
+    });
+  });
+
   it("explains an unknown tenant and other API errors", () => {
     expect(classifyAskFailure(new ApiError(404, { code: "unknown_tenant" }))).toEqual({
       kind: "error",

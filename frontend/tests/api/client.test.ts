@@ -10,7 +10,9 @@ import {
   type DocumentTimeline,
   type DriftEventList,
   type JobStatus,
+  type ResolveRequest,
   type ReviewItem,
+  type ReviewItemList,
   type Stats,
   type WatchState,
 } from "@/lib/api/client";
@@ -137,12 +139,33 @@ const driftEvents = {
   ],
 } satisfies DriftEventList;
 
+// A paused low-confidence ask, as the gateway lists it: the item's ref is the job id, and
+// its payload is the review node's interrupt request.
 const item = {
   id: ITEM_ID,
+  tenant_id: "5e0b6c2d-8a41-4f3e-9b7d-3c2a1f0e9d88",
   kind: "low_confidence_answer",
-  ref_id: ANSWER_ID,
-  payload: { confidence: 0.41 },
+  ref_id: JOB_ID,
+  payload: {
+    reason: "low_confidence",
+    job_id: JOB_ID,
+    question: "What is the dose?",
+    answer_id: null,
+    answer: { ...answer, confidence: 0.41 },
+  },
   status: "open",
+  resolution: null,
+  resolved_by: null,
+  resolved_at: null,
+  created_at: "2026-10-24T09:00:00Z",
+} satisfies ReviewItem;
+
+const resolvedItem = {
+  ...item,
+  status: "resolved",
+  resolution: { action: "approve", edit: null },
+  resolved_by: "reviewer@acme",
+  resolved_at: "2026-10-24T09:05:00Z",
 } satisfies ReviewItem;
 
 const stats = {
@@ -195,18 +218,13 @@ describe("api client: success", () => {
     expect(result.answer?.claims[0].citations[0].quote).toBe("10 mg once daily");
   });
 
-  it("watch(), timeline(), review(), resolve() and stats() hit their routes", async () => {
+  it("watch(), timeline() and stats() hit their routes", async () => {
     server = await startApiServer({
       [`POST /v1/answers/${ANSWER_ID}/watch`]: {
         status: 200,
         json: { answer_id: ANSWER_ID, watched: true },
       },
       [`GET /v1/documents/${DOC_ID}/timeline`]: { status: 200, json: timeline },
-      "GET /v1/review": { status: 200, json: [item] },
-      [`POST /v1/review/${ITEM_ID}/resolve`]: {
-        status: 200,
-        json: { ...item, status: "resolved" },
-      },
       "GET /v1/stats": { status: 200, json: stats },
     });
     const api = createApiClient({ baseUrl: server.url });
@@ -219,23 +237,13 @@ describe("api client: success", () => {
     expectTypeOf(docTimeline).toEqualTypeOf<DocumentTimeline>();
     expect(docTimeline).toEqual(timeline);
     expect(docTimeline.relations.outgoing[0].document_id).toBe(OTHER_DOC_ID);
-    expect((await api.review({ tenant: "acme", kind: "relation" }))[0].id).toBe(ITEM_ID);
-    const resolved = await api.resolve(ITEM_ID, { action: "approve", by: "reviewer@acme" });
-    expectTypeOf(resolved).toEqualTypeOf<ReviewItem>();
-    expect(resolved.status).toBe("resolved");
     expect((await api.stats()).ask_latency_ms.p95).toBe(5200);
 
     expect(server.requests.map((r) => `${r.method} ${r.url}`)).toEqual([
       `POST /v1/answers/${ANSWER_ID}/watch?tenant=acme`,
       `GET /v1/documents/${DOC_ID}/timeline?tenant=acme`,
-      "GET /v1/review?tenant=acme&kind=relation",
-      `POST /v1/review/${ITEM_ID}/resolve`,
       "GET /v1/stats",
     ]);
-    expect(JSON.parse(server.requests[3].body)).toEqual({
-      action: "approve",
-      by: "reviewer@acme",
-    });
   });
 
   it("unwatch() sends DELETE with the tenant and returns the watch state", async () => {
@@ -383,6 +391,184 @@ describe("api client: error mapping", () => {
 
     expect(error).not.toBeInstanceOf(ApiError);
     expect((error as Error).name).toBe("AbortError");
+  });
+});
+
+describe("api client: review queue", () => {
+  it("review() sends its filters and returns the typed item list", async () => {
+    server = await startApiServer({ "GET /v1/review": { status: 200, json: { items: [item] } } });
+    const api = createApiClient({ baseUrl: server.url });
+
+    const result = await api.review({ tenant: "acme", kind: "low_confidence_answer", limit: 10 });
+    expectTypeOf(result).toEqualTypeOf<ReviewItemList>();
+    expectTypeOf(result.items[0]).toEqualTypeOf<ReviewItem>();
+    expect(result).toEqual({ items: [item] });
+
+    await api.review({ status: "resolved" });
+    await api.review();
+    expect(server.requests.map((r) => r.url)).toEqual([
+      "/v1/review?tenant=acme&kind=low_confidence_answer&limit=10",
+      "/v1/review?status=resolved",
+      "/v1/review",
+    ]);
+  });
+
+  it("resolve() posts the decision and returns the resolved item", async () => {
+    server = await startApiServer({
+      [`POST /v1/review/${ITEM_ID}/resolve`]: { status: 200, json: resolvedItem },
+    });
+    const api = createApiClient({ baseUrl: server.url });
+    const decision = { action: "approve", by: "reviewer@acme" } satisfies ResolveRequest;
+
+    const resolved = await api.resolve(ITEM_ID, decision, "acme");
+    expectTypeOf(resolved).toEqualTypeOf<ReviewItem>();
+    expect(resolved).toEqual(resolvedItem);
+
+    const [req] = server.requests;
+    expect(`${req.method} ${req.url}`).toBe(`POST /v1/review/${ITEM_ID}/resolve?tenant=acme`);
+    expect(req.headers["content-type"]).toBe("application/json");
+    expect(JSON.parse(req.body)).toEqual(decision);
+  });
+
+  it("resolve() sends an edit with its payload and no tenant when none is given", async () => {
+    server = await startApiServer({
+      [`POST /v1/review/${ITEM_ID}/resolve`]: { status: 200, json: resolvedItem },
+    });
+    const decision = {
+      action: "edit",
+      edit: { answer: "Take 10 mg once daily with food." },
+      by: "reviewer@acme",
+    } satisfies ResolveRequest;
+
+    await createApiClient({ baseUrl: server.url }).resolve(ITEM_ID, decision);
+
+    expect(server.requests[0].url).toBe(`/v1/review/${ITEM_ID}/resolve`);
+    expect(JSON.parse(server.requests[0].body)).toEqual(decision);
+  });
+
+  it("maps resolving an already-resolved item to a 409 ApiError", async () => {
+    server = await startApiServer({
+      [`POST /v1/review/${ITEM_ID}/resolve`]: {
+        status: 409,
+        json: { detail: { code: "already_resolved" } },
+      },
+    });
+    const error = await rejection(
+      createApiClient({ baseUrl: server.url }).resolve(ITEM_ID, {
+        action: "reject",
+        by: "reviewer@acme",
+      }),
+    );
+
+    expect(error.status).toBe(409);
+    expect(error.code).toBe("already_resolved");
+    expect(error.detail).toEqual({ code: "already_resolved" });
+  });
+});
+
+describe("api client: API key auth", () => {
+  const KEY = "dl_live_7Qm2xR9vK4pT8wZ3";
+
+  it("sends the key as a bearer header on every call and never in a URL", async () => {
+    server = await startApiServer({
+      "POST /v1/ask": { status: 202, json: accepted },
+      [`GET /v1/jobs/${JOB_ID}`]: { status: 200, json: job },
+      "GET /v1/review": { status: 200, json: { items: [item] } },
+      [`POST /v1/review/${ITEM_ID}/resolve`]: { status: 200, json: resolvedItem },
+      "GET /v1/drift/events": { status: 200, json: driftEvents },
+    });
+    const api = createApiClient({ baseUrl: server.url, apiKey: KEY });
+
+    // With a key the tenant may be left out: the key names it.
+    await api.ask({ question: "What is the dose?" });
+    await api.job(JOB_ID);
+    await api.review();
+    await api.resolve(ITEM_ID, { action: "approve", by: "reviewer@acme" });
+    await api.driftEvents({ limit: 5 });
+
+    expect(server.requests).toHaveLength(5);
+    for (const req of server.requests) {
+      expect(req.headers.authorization).toBe(`Bearer ${KEY}`);
+      expect(req.url).not.toContain(KEY);
+      expect(req.body).not.toContain(KEY);
+    }
+    expect(server.requests.map((r) => r.url)).toEqual([
+      "/v1/ask",
+      `/v1/jobs/${JOB_ID}`,
+      "/v1/review",
+      `/v1/review/${ITEM_ID}/resolve`,
+      "/v1/drift/events?limit=5",
+    ]);
+    expect(JSON.parse(server.requests[0].body)).toEqual({ question: "What is the dose?" });
+  });
+
+  it("sends no Authorization header without a key", async () => {
+    server = await startApiServer({ "GET /v1/review": { status: 200, json: { items: [] } } });
+    await createApiClient({ baseUrl: server.url }).review({ tenant: "acme" });
+    await createApiClient({ baseUrl: server.url, apiKey: "  " }).review({ tenant: "acme" });
+
+    expect(server.requests.map((r) => r.headers.authorization)).toEqual([undefined, undefined]);
+  });
+
+  it("maps 401 (missing or invalid key) to ApiError code unauthorized", async () => {
+    server = await startApiServer({
+      "GET /v1/review": {
+        status: 401,
+        json: { detail: { code: "unauthorized" } },
+        headers: { "WWW-Authenticate": "Bearer" },
+      },
+    });
+    const error = await rejection(
+      createApiClient({ baseUrl: server.url, apiKey: "dl_revoked" }).review(),
+    );
+
+    expect(error.status).toBe(401);
+    expect(error.code).toBe("unauthorized");
+    expect(error.retryAfter).toBeNull();
+  });
+
+  it("maps 403 (key and tenant mismatch) to ApiError code tenant_mismatch", async () => {
+    server = await startApiServer({
+      "POST /v1/ask": { status: 403, json: { detail: { code: "tenant_mismatch" } } },
+    });
+    const error = await rejection(
+      createApiClient({ baseUrl: server.url, apiKey: KEY }).ask({
+        question: "q",
+        tenant: "someone-else",
+      }),
+    );
+
+    expect(error.status).toBe(403);
+    expect(error.code).toBe("tenant_mismatch");
+  });
+
+  it("gives 401 and 403 their auth codes when the body names none", async () => {
+    server = await startApiServer({
+      "GET /v1/review": { status: 401, raw: "Unauthorized" },
+      [`POST /v1/review/${ITEM_ID}/resolve`]: { status: 403, json: { detail: "Forbidden" } },
+    });
+    const api = createApiClient({ baseUrl: server.url, apiKey: KEY });
+
+    const unauthorized = await rejection(api.review());
+    expect(unauthorized.status).toBe(401);
+    expect(unauthorized.code).toBe("unauthorized");
+    expect(unauthorized.detail).toBe("Unauthorized");
+
+    const forbidden = await rejection(
+      api.resolve(ITEM_ID, { action: "approve", by: "reviewer@acme" }, "acme"),
+    );
+    expect(forbidden.status).toBe(403);
+    expect(forbidden.code).toBe("tenant_mismatch");
+  });
+
+  it("keeps 404 unknown_tenant distinct from the auth failures", async () => {
+    server = await startApiServer({
+      "GET /v1/review": { status: 404, json: { detail: { code: "unknown_tenant" } } },
+    });
+    const error = await rejection(createApiClient({ baseUrl: server.url }).review({ tenant: "nope" }));
+
+    expect(error.status).toBe(404);
+    expect(error.code).toBe("unknown_tenant");
   });
 });
 

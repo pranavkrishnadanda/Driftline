@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { FinalAnswer, StreamingAnswer } from "@/components/ask/answer";
+import {
+  FinalAnswer,
+  ReviewPending,
+  StreamingAnswer,
+  isReviewWaiting,
+} from "@/components/ask/answer";
 import { AsOfPicker, TenantSelect } from "@/components/ask/ask-controls";
 import AI_Prompt from "@/components/kokonutui/ai-prompt";
 import { Button } from "@/components/ui/button";
@@ -31,7 +36,11 @@ interface Recovery {
   jobId: string;
   answer: AnswerSchema | null;
   failure: AskFailure | null;
+  /** The job is `needs_review`: paused for a human reviewer, not failed. */
+  reviewPending: boolean;
 }
+
+const NEEDS_REVIEW = "needs_review";
 
 export interface AskViewProps {
   tenants: string[];
@@ -91,17 +100,24 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
     if (!expired || jobId === null) return;
     const controller = new AbortController();
     client.job(jobId, { signal: controller.signal }).then(
-      (job) =>
+      (job) => {
+        const reviewPending = !job.answer && job.status === NEEDS_REVIEW;
         setRecovery({
           jobId,
           answer: job.answer ?? null,
-          failure: job.answer
-            ? null
-            : { kind: "error", message: `The answer stream expired and the job is ${job.status}.` },
-        }),
+          reviewPending,
+          failure:
+            job.answer || reviewPending
+              ? null
+              : {
+                  kind: "error",
+                  message: `The answer stream expired and the job is ${job.status}.`,
+                },
+        });
+      },
       (error: unknown) => {
         const failure = classifyAskFailure(error);
-        if (failure) setRecovery({ jobId, answer: null, failure });
+        if (failure) setRecovery({ jobId, answer: null, failure, reviewPending: false });
       },
     );
     return () => controller.abort();
@@ -135,8 +151,6 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
   const answer: AnswerSchema | null = streaming
     ? (stream.final?.answer ?? recovered?.answer ?? null)
     : null;
-  const responding =
-    phase.kind === "submitting" || (streaming !== null && STREAMING.has(stream.status));
   let failure: AskFailure | null = phase.kind === "failed" ? phase.failure : null;
   if (streaming && stream.status === "failed") {
     failure = {
@@ -150,8 +164,21 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
     (stream.events.filter((e): e is StepEvent => e.type === "step").at(-1) as StepEvent | undefined) ??
     null;
 
+  // Paused for a human reviewer: the stream stays open (the answer follows on it once the
+  // item is resolved), but nothing is being worked on, so it is neither busy nor failed.
+  const awaitingReview =
+    streaming !== null &&
+    !answer &&
+    !failure &&
+    ((STREAMING.has(stream.status) && isReviewWaiting(lastStep)) ||
+      recovered?.reviewPending === true);
+  const responding =
+    phase.kind === "submitting" ||
+    (streaming !== null && STREAMING.has(stream.status) && !awaitingReview);
+
   let announcement = "";
   if (responding) announcement = "Answering…";
+  else if (awaitingReview) announcement = "Waiting for human review.";
   else if (answer) announcement = "Answer ready.";
 
   return (
@@ -177,6 +204,8 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
 
         {answer ? (
           <FinalAnswer answer={answer} />
+        ) : awaitingReview ? (
+          <ReviewPending text={stream.text} step={lastStep} />
         ) : responding ? (
           <StreamingAnswer text={stream.text} step={lastStep} />
         ) : null}
