@@ -8,79 +8,42 @@
 import type { paths } from "./schema";
 
 // ---------------------------------------------------------------------------------
+// Generated routes: typed from `paths` (schema.d.ts, from contracts/openapi.json).
+
+type JsonResponse<
+  P extends keyof paths,
+  M extends keyof paths[P],
+  S extends number,
+> = paths[P][M] extends { responses: Record<S, { content: { "application/json": infer B } }> }
+  ? B
+  : never;
+
+type JsonBody<P extends keyof paths, M extends keyof paths[P]> = paths[P][M] extends {
+  requestBody: { content: { "application/json": infer B } };
+}
+  ? B
+  : never;
+
+export type Health = JsonResponse<"/healthz", "get", 200>;
+export type AskRequest = JsonBody<"/v1/ask", "post">;
+export type AskAccepted = JsonResponse<"/v1/ask", "post", 202>;
+export type JobStatus = JsonResponse<"/v1/jobs/{job_id}", "get", 200>;
+export type AnswerSchema = NonNullable<JobStatus["answer"]>;
+export type AnswerStatus = AnswerSchema["status"];
+export type Claim = AnswerSchema["claims"][number];
+export type Citation = Claim["citations"][number];
+export type NearestSource = AnswerSchema["nearest_sources"][number];
+export type SourceKind = NonNullable<AskRequest["source_kinds"]>[number];
+
+// ---------------------------------------------------------------------------------
 // pending backend: every type and route in this block is typed from the plans, not
 // from the OpenAPI document, because the gateway does not serve it yet.
-//   /v1/ask, /v1/jobs/{id}                P3 T7 (shapes from agents/schemas.py)
 //   /v1/answers/{id}/watch, timeline      P4 T4
 //   /v1/review, /v1/review/{id}/resolve   P4 T5
 //   /v1/stats                             P5b T4
 // When a route lands in contracts/openapi.json, regenerate schema.d.ts, delete its
 // PendingRoutes entry and derive its types from `paths` instead. Typecheck fails
 // while a route is listed in both places (see `_NoPendingRouteIsGenerated`).
-
-export type SourceKind = "openfda" | "git_docs" | "upload";
-export type AnswerStatus = "answered" | "insufficient_evidence" | "refused";
-
-export interface Citation {
-  chunk_id: string;
-  version_id: string;
-  quote: string;
-}
-
-export interface Claim {
-  idx: number;
-  text: string;
-  citations: Citation[];
-  verified: boolean;
-  reason: string | null;
-}
-
-export interface NearestSource {
-  document_id: string;
-  external_id: string;
-  title: string;
-  version_id: string;
-  version_no: number;
-  section_path: string;
-  valid_from: string;
-  valid_to: string | null;
-}
-
-export interface AnswerSchema {
-  status: AnswerStatus;
-  answer: string;
-  claims: Claim[];
-  citations: Citation[];
-  dropped_claims: Claim[];
-  nearest_sources: NearestSource[];
-  as_of: string;
-  confidence: number;
-  degraded: boolean;
-  cached: boolean;
-  answer_id: string | null;
-  cost_usd: number;
-}
-
-export interface AskRequest {
-  question: string;
-  tenant: string;
-  as_of?: string | null;
-  source_kinds?: SourceKind[] | null;
-}
-
-export interface AskAccepted {
-  job_id: string;
-  events_url: string;
-  status_url: string;
-}
-
-export interface JobStatus {
-  job_id: string;
-  status: string;
-  error: string | null;
-  answer: AnswerSchema | null;
-  cost_usd: number;
-}
 
 export interface WatchResult {
   answer_id: string;
@@ -139,8 +102,6 @@ export interface Stats {
 }
 
 interface PendingRoutes {
-  "/v1/ask": true;
-  "/v1/jobs/{job_id}": true;
   "/v1/answers/{answer_id}/watch": true;
   "/v1/documents/{document_id}/timeline": true;
   "/v1/review": true;
@@ -158,9 +119,6 @@ void _pendingRoutesAreNotGenerated;
 
 /** A route template the client may call: generated from OpenAPI, or pending backend. */
 type Route = keyof paths | keyof PendingRoutes;
-
-export type Health =
-  paths["/healthz"]["get"]["responses"][200]["content"]["application/json"];
 
 /** Every failed call rejects with this, except an abort (which keeps its AbortError). */
 export class ApiError extends Error {
