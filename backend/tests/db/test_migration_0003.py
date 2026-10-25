@@ -48,7 +48,7 @@ async def test_migration_0003_downgrades_and_upgrades_cleanly(fresh_dsn):
     run_migrations(fresh_dsn, "head")
     conn = await asyncpg.connect(fresh_dsn)
     try:
-        assert await conn.fetchval("SELECT version_num FROM alembic_version") == "0004"
+        assert await conn.fetchval("SELECT version_num FROM alembic_version") == "0005"
         assert await conn.fetchval("SELECT to_regclass('llm_calls')") == "llm_calls"
     finally:
         await conn.close()

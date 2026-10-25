@@ -82,11 +82,22 @@ async def test_adjacent_versions_are_allowed(conn):
     assert count == 2
 
 
-async def test_duplicate_content_hash_is_rejected(conn):
+async def test_repeated_content_hash_is_allowed_for_a_revert(conn):
+    # 0005 dropped UNIQUE (document_id, content_hash): A -> B -> A is three versions.
+    # The store, not the schema, makes re-ingesting the current content a no-op.
     doc = await seed_document(conn)
     await conn.execute(INSERT_VERSION, doc, 1, "same", ts(2020), ts(2021))
+    await conn.execute(INSERT_VERSION, doc, 2, "other", ts(2021), ts(2022))
+    await conn.execute(INSERT_VERSION, doc, 3, "same", ts(2022), None)
+    count = await conn.fetchval("SELECT count(*) FROM doc_versions WHERE document_id = $1", doc)
+    assert count == 3
+
+
+async def test_duplicate_version_no_is_rejected(conn):
+    doc = await seed_document(conn)
+    await conn.execute(INSERT_VERSION, doc, 1, "h1", ts(2020), ts(2021))
     with pytest.raises(asyncpg.exceptions.UniqueViolationError):
-        await conn.execute(INSERT_VERSION, doc, 2, "same", ts(2022), None)
+        await conn.execute(INSERT_VERSION, doc, 1, "h2", ts(2022), None)
 
 
 async def test_chunk_tsv_is_generated_and_embedding_is_768(conn):
