@@ -16,6 +16,27 @@ It works across domains. v1 ships with two real corpora, plus your own documents
 | Software | `kubernetes/website` release branches | One version per `release-1.N` branch, from the v1.N.0 release date |
 | Bring your own | Markdown / PDF / DOCX folder | Re-uploading the same path creates a new version |
 
+## Results
+
+Driftline against plain RAG (the same retriever and reranker with the as-of filter off, one draft, no verifier), answered by real Claude. The numbers are copied from the report JSON in [`evals/reports/e0c7cc1…/claude/`](evals/reports/e0c7cc1faecf51cee1428bd8d7ad76055f3b39b7/claude); a test (`backend/tests/eval/test_site.py`) fails if this table drifts from them.
+
+- **Sample:** 40 of 150 golden cases per corpus (pharma and k8s), a deterministic stratified sample (13 traps each), not the full sets.
+- **Model:** answer and judge tiers `claude-sonnet-5-5`, planner `claude-haiku-5-5`.
+- **Date and cost:** run on 2026-10-25 at commit `e0c7cc1`; the reported runs cost **$3.061530** in total.
+
+<!-- results-table:start -->
+| Corpus | System | Cases | Citation precision | Outdated-citation rate | Trap precision | Trap outdated rate | Faithfulness (verifier) | Insufficient-evidence acc. | p95 latency (ms) | Cost / answer (USD) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| pharma | `driftline` | 40 | 1.0000 | 0.0000 | 1.0000 | 0.0000 | 1.0000 | 0.9500 | 40597 | 0.0219 |
+| pharma | `plain_rag` | 40 | 0.7917 | 0.2083 | 0.8889 | 0.1111 | 0.8000 | 0.7750 | 14286 | 0.0133 |
+| k8s | `driftline` | 40 | 1.0000 | 0.0000 | 1.0000 | 0.0000 | 1.0000 | 1.0000 | 45052 | 0.0292 |
+| k8s | `plain_rag` | 40 | 0.9688 | 0.0156 | 0.9500 | 0.0500 | 0.9667 | 0.9750 | 15135 | 0.0122 |
+<!-- results-table:end -->
+
+**Where Driftline loses.** It is slower and costs more: p95 latency is about 3× plain RAG's (40597 vs 14286 ms on pharma, 45052 vs 15135 ms on k8s), and cost per answer is 1.6× (pharma) and 2.4× (k8s). On pharma it declined 2 of 40 answerable cases as insufficient evidence (`pharma-028`, `pharma-099`). The `no_retrieval` baseline and the faithfulness LLM judge were not run; faithfulness here is the verifier's deterministic check.
+
+The full write-up, with the offline CI-gate baselines, metric definitions, machine and cost breakdown, is in [`evals/RESULTS.md`](evals/RESULTS.md). The report site, [https://pranavkrishnadanda.github.io/Driftline/](https://pranavkrishnadanda.github.io/Driftline/) (live after first deploy), renders the same reports plus benchmarks and the nightly drift log; it is built by `python -m driftline.eval site` and deployed by [`pages.yml`](.github/workflows/pages.yml).
+
 ## Features
 
 What is built and tested today:
@@ -389,7 +410,7 @@ flowchart LR
   REP -->|"only when changed"| COMMIT["commit reports/drift-log.md<br/>+ drift-latest.json"]
 ```
 
-The backend CI job runs the full suite against real service containers (testcontainers). The drift watch runs offline (`DRIFTLINE_LLM_OFFLINE=true`), so it needs no paid key. There is no eval workflow yet.
+The backend CI job runs the full suite against real service containers (testcontainers). The drift watch runs offline (`DRIFTLINE_LLM_OFFLINE=true`), so it needs no paid key. `eval.yml` gates pull requests on the offline eval, and `pages.yml` rebuilds and deploys the report site when reports change.
 
 ## Tech stack
 
@@ -531,7 +552,7 @@ The evaluation harness (`python -m driftline.eval`) compares three systems on th
 
 The golden sets are in [`evals/golden`](evals/golden/README.md): **300 validated questions** (150 pharma, 150 Kubernetes), including "trap" questions whose answer changed between versions. Every case was drafted from the real ingested corpora and passed automatic validation against the database. None was written or edited by hand.
 
-Results are still being produced. They will appear in `evals/RESULTS.md` once published.
+Pull requests are gated by [`eval.yml`](.github/workflows/eval.yml): an offline, deterministic run on a 40 + 40 subset that fails if citation precision drops by more than 2 points or the outdated-citation rate rises by more than 1 point. The numbers are in [Results](#results).
 
 ## Nightly drift watch
 
@@ -539,7 +560,18 @@ Every night, [`drift-watch.yml`](.github/workflows/drift-watch.yml) ingests a sm
 
 ## Screenshots
 
-There are no screenshots in the repo yet. They will come with the GitHub Pages report.
+The web app, shown with its seeded demo workspace (not eval data).
+
+| | |
+|---|---|
+| ![Landing page](docs/screenshots/landing.webp) | ![Ask: an answer with its verified citation](docs/screenshots/ask-answered.webp) |
+| Landing | Ask: a cited answer, each claim verified against the source version |
+| ![Document timeline](docs/screenshots/document-timeline.webp) | ![Drift inbox](docs/screenshots/drift-inbox.webp) |
+| Document timeline: versions, what changed, related documents | Drift inbox: answers whose cited text changed or was removed |
+| ![Review queue](docs/screenshots/review-queue.webp) | ![Stats dashboard](docs/screenshots/stats.webp) |
+| Review queue | Stats |
+| ![Ask, dark theme](docs/screenshots/ask-answered-dark.webp) | <img src="docs/screenshots/ask-answered-mobile.webp" alt="Ask on a phone-sized screen" width="240"> |
+| Dark theme | Phone |
 
 ## Roadmap
 
@@ -552,9 +584,13 @@ There are no screenshots in the repo yet. They will come with the GitHub Pages r
 | P4 Drift + Review | Drift re-verification, alerts, human review queue with `interrupt()`, nightly drift watch | ✅ Done |
 | P5 Frontend | Next.js live agent timeline, version graph, drift inbox, review, stats | ✅ Done |
 | P6 MCP + Skills | MCP server, Claude Code Skill, domain skill packs, API-key auth | ✅ Done |
-| P7 Evals + Bench | Golden sets (done), baselines, load and chaos tests, public reports | 🚧 In progress |
+| P7 Evals + Bench | Golden sets, baselines and eval gate (done), report site (done), load and chaos tests | 🚧 In progress |
 
 The design spec and the per-phase plans are in [`docs/superpowers`](docs/superpowers) (start with the [design spec](docs/superpowers/specs/2026-10-25-driftline-design.md)).
+
+## How this was built
+
+Designed, specified and directed by the author; implemented with AI coding agents under a strict TDD, no-mocks, review-gated process. The design spec and every phase plan are in [`docs/superpowers`](docs/superpowers).
 
 ## Repository layout
 
@@ -571,7 +607,7 @@ backend/
     cache/        semantic answer cache
     llm/          router, circuit breaker, Redis rate limiter, provider adapters
     streams/      Redis Streams bus (consumer groups, reclaim, DLQ)
-    eval/         golden-set curation, eval runner, metrics
+    eval/         golden-set curation, eval runner, metrics, report site
     skills/       skill-pack loader
     obs/          tracing and cost accounting
   migrations/     Alembic schema migrations
@@ -582,11 +618,12 @@ deploy/
   compose/        docker-compose.yml and .env.example
   drift-watch/    pinned sources for the nightly drift watch
 skills/           domain skill packs (pharma, k8s, generic)
-evals/golden/     validated golden question sets
+evals/            golden question sets, eval reports and RESULTS.md
+bench/            load and chaos tests
 reports/          nightly drift log (committed by CI)
-docs/             MCP guide, design spec and phase plans
+docs/             MCP guide, design spec, phase plans and screenshots
 .claude/skills/   the Driftline Claude Code Skill
-.github/workflows/ ci.yml, drift-watch.yml
+.github/workflows/ ci.yml, drift-watch.yml, eval.yml, pages.yml
 ```
 
 ## Disclaimer

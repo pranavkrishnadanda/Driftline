@@ -1,0 +1,72 @@
+{% extends "base.html.j2" %}
+{% import "_macros.html.j2" as m %}
+{% block main %}
+<h1>Drift log</h1>
+<p class="lede">Every night, <code>drift-watch.yml</code> ingests a small pinned set of real sources into a fresh database,
+runs drift detection and commits the report. This page renders the latest one,
+<a href="{{ REPO_URL }}/blob/main/reports/drift-latest.json">reports/drift-latest.json</a>
+(also as <a href="{{ REPO_URL }}/blob/main/reports/drift-log.md">Markdown</a>).</p>
+
+{{ m.unreadable(data.unreadable['drift']) }}
+
+{% set d = data.drift %}
+{% if d %}
+{% set t = d.totals %}
+<dl class="facts">
+  <div><dt>Data as of</dt><dd>{{ d.get('as_of', '–') }} (the newest version's start date)</dd></div>
+  <div><dt>Tenant</dt><dd>{{ d.get('tenant', '–') }}</dd></div>
+  <div><dt>Documents · versions · changes</dt><dd>{{ t.get('documents', '–') }} · {{ t.get('versions', '–') }} · {{ t.get('changes', '–') }}</dd></div>
+  {% set v = t.get('verdicts', {}) %}
+  <div><dt>Verdicts on watched answers</dt><dd>changed {{ v.get('changed', 0) }} · broken {{ v.get('broken', 0) }} · still valid {{ v.get('still_valid', 0) }}</dd></div>
+  <div><dt>LLM</dt><dd>{{ 'offline (deterministic extractive judge, no paid key)' if d.get('llm', {}).get('offline') else 'see report' }}</dd></div>
+</dl>
+
+<section aria-labelledby="docs">
+  <h2 id="docs">Documents</h2>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Watched documents">
+  <table>
+    <caption>Watched documents and their current version</caption>
+    <thead><tr><th scope="col">Document</th><th scope="col">Source</th><th scope="col" class="num">Versions</th><th scope="col">Current</th><th scope="col">In force since</th></tr></thead>
+    <tbody>
+    {% for doc in d.documents %}
+      <tr>
+        <th scope="row">{{ doc.title }}<br><code class="wrap-any small">{{ doc.external_id }}</code></th>
+        <td>{{ doc.source_kind }}</td><td class="num">{{ doc.versions }}</td>
+        <td>v{{ doc.current.version_no }} (<code>{{ doc.current.version_key }}</code>)</td>
+        <td>{{ doc.current.valid_from }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section aria-labelledby="changes">
+  <h2 id="changes">Changes, newest first</h2>
+  {% if d.changes %}
+  <ol class="changes">
+  {% for c in d.changes %}
+    <li class="change">
+      <h3><time>{{ c.date }}</time> · {{ c.document.title }} · v{{ c['from'].version_no }} → v{{ c.to.version_no }}</h3>
+      <p class="meta"><code class="wrap-any">{{ c.document.external_id }}</code> ({{ c.document.source_kind }}) · version key <code>{{ c['from'].version_key }}</code> → <code>{{ c.to.version_key }}</code></p>
+      {% set s = c.sections %}
+      <p>Sections: {{ s.added|length }} added, {{ s.changed|length }} changed, {{ s.removed|length }} removed
+      · verdicts: changed {{ c.verdicts.changed }} · broken {{ c.verdicts.broken }} · still valid {{ c.verdicts.still_valid }}</p>
+      {% for diff in c.diffs %}
+      <details>
+        <summary>{{ diff.section }}{% if diff.truncated %} <span class="small">(diff truncated)</span>{% endif %}</summary>
+        <pre class="diff" tabindex="0">{% for line in diff.diff.splitlines() %}<span class="{{ 'add' if line.startswith('+') else ('del' if line.startswith('-') else ('hunk' if line.startswith('@@') else '')) }}">{{ line }}</span>
+{% endfor %}</pre>
+      </details>
+      {% endfor %}
+    </li>
+  {% endfor %}
+  </ol>
+  {% else %}
+  <p>No version changes recorded.</p>
+  {% endif %}
+</section>
+{% else %}
+  {{ m.empty('No drift report yet', 'reports/drift-latest.json is not committed yet. The nightly drift watch writes it.') }}
+{% endif %}
+{% endblock %}

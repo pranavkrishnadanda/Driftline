@@ -10,6 +10,8 @@ compare  --base <sha|path> --head <path> [--reports-dir DIR]
 load-snapshot --path FILE
          Load an eval-gate DB snapshot (driftline.eval.snapshot) into the configured,
          freshly migrated database. Exit 2 when it is altered or the database is not empty.
+site     --out DIR [--repo DIR] [--source-sha SHA]
+         Build the static report site (driftline.eval.site) from the committed reports.
 """
 
 import argparse
@@ -29,6 +31,7 @@ from driftline.config import Settings
 from driftline.eval.curate import add_curate_parser, curate
 from driftline.eval.metrics import gate
 from driftline.eval.runner import SYSTEMS, EvalDeps, report_path, run
+from driftline.eval.site import build_site
 from driftline.eval.snapshot import SnapshotError, load_snapshot
 from driftline.eval.types import EvalReport, GoldenCase
 from driftline.obs.cost import CostLedger
@@ -57,6 +60,10 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--reports-dir", type=Path, default=DEFAULT_REPORTS)
     s = sub.add_parser("load-snapshot", help="load an eval-gate DB snapshot")
     s.add_argument("--path", required=True, type=Path, help="the .snapshot.gz file")
+    w = sub.add_parser("site", help="build the static report site")
+    w.add_argument("--out", required=True, type=Path, help="output directory (replaced)")
+    w.add_argument("--repo", type=Path, default=REPO, help="repository root to read from")
+    w.add_argument("--source-sha", help="commit the site is built from (shown in the footer)")
     add_curate_parser(sub)
     return parser
 
@@ -193,6 +200,11 @@ async def amain(argv: list[str], settings: Settings | None = None) -> int:
         return await _load_snapshot(args, settings or Settings())
     if args.command == "curate":
         return await curate(args)
+    if args.command == "site":
+        data = build_site(args.repo, args.out, source_sha=args.source_sha)
+        skipped = sum(len(files) for files in data.unreadable.values())
+        print(f"wrote {args.out} ({skipped} unreadable input file(s) skipped)")
+        return 0
     return await _run(args, settings or Settings())
 
 

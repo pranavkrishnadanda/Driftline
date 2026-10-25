@@ -1,0 +1,49 @@
+{% macro empty(title, body) %}
+<div class="empty" role="status">
+  <svg aria-hidden="true" viewBox="0 0 24 24" width="28" height="28"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5v5.5M12 16.2v.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+  <div><p class="empty-title">{{ title }}</p><p>{{ body }}</p></div>
+</div>
+{% endmacro %}
+
+{% macro unreadable(files) %}
+{% if files %}
+<div class="note warn">
+  <p><strong>Skipped {{ files|length }} unreadable file{{ '' if files|length == 1 else 's' }}:</strong></p>
+  <ul>{% for f in files %}<li><code>{{ f }}</code></li>{% endfor %}</ul>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro legend(systems) %}
+<ul class="legend" aria-label="Legend">
+{% for s in systems %}<li><span class="swatch s-{{ s }}" aria-hidden="true"></span>{{ SYSTEM_LABELS.get(s, s) }}</li>{% endfor %}
+</ul>
+{% endmacro %}
+
+{% macro metrics_table(group, caption) %}
+<div class="table-scroll" tabindex="0" role="region" aria-label="{{ caption }}">
+<table>
+  <caption>{{ caption }}</caption>
+  <thead><tr>
+    <th scope="col">Corpus</th><th scope="col">System</th>
+    <th scope="col" class="num">Cases</th><th scope="col" class="num">Scored</th>
+    <th scope="col" class="num">Stale</th><th scope="col" class="num">Errors</th>
+    <th scope="col" class="num">Citations</th>
+    {% for key, label, higher in METRICS %}<th scope="col" class="num">{{ label }}</th>{% endfor %}
+  </tr></thead>
+  <tbody>
+  {% for r in group.rows() %}
+    <tr{% if r.system == 'driftline' %} class="ours"{% endif %}>
+      <th scope="row">{{ r.corpus }}</th><td><code>{{ r.system }}</code></td>
+      {% for k in ['cases', 'scored', 'stale_case_count', 'error_count', 'citations'] %}
+      <td class="num">{{ r.metrics[k]|fmt(k) if k in r.metrics else '–' }}</td>
+      {% endfor %}
+      {% for key, label, higher in METRICS %}
+      <td class="num">{{ r.metrics[key]|fmt(key) if key in r.metrics else '–' }}</td>
+      {% endfor %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endmacro %}

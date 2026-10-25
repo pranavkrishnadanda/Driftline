@@ -1,0 +1,66 @@
+name: pages
+# Build the static report site from the committed reports (python -m driftline.eval site)
+# and deploy it to GitHub Pages. Every number on the site is read from evals/reports,
+# bench/results and reports/; nothing is computed from a live system here.
+#
+# drift-watch.yml commits reports/ with GITHUB_TOKEN, and such pushes do not trigger other
+# workflows, so a successful drift-watch run triggers a rebuild through workflow_run.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "evals/**"
+      - "bench/**"
+      - "reports/**"
+      - "docs/screenshots/**"
+      - "backend/src/driftline/eval/site.py"
+      - "backend/src/driftline/eval/site_templates/**"
+      - ".github/workflows/pages.yml"
+  workflow_run:
+    workflows: [drift-watch]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      UV_LINK_MODE: copy
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # On workflow_run, build the newest main (it includes the drift-watch commit).
+          ref: main
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+        working-directory: backend
+      - name: Build the report site
+        working-directory: backend
+        run: uv run python -m driftline.eval site --out ../reports/site --source-sha "$(git rev-parse HEAD)"
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: reports/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

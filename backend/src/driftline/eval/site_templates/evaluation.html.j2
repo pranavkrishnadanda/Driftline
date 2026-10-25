@@ -1,0 +1,117 @@
+{% extends "base.html.j2" %}
+{% import "_macros.html.j2" as m %}
+{% block main %}
+<h1>Evaluation</h1>
+<p class="lede">Each run below is one directory of <code>evals/reports</code>. Tables show every system and corpus in it,
+formatted exactly as the runner wrote them (4 decimals; latency in whole milliseconds).</p>
+
+{{ m.unreadable(data.unreadable['evaluation']) }}
+
+{% if data.groups %}
+<nav aria-label="Runs on this page" class="toc">
+  <ul>
+  {% for g in data.groups %}<li><a href="#{{ g.anchor }}">{{ g.label }}</a></li>{% endfor %}
+    <li><a href="#methodology">Methodology</a></li>
+  </ul>
+</nav>
+{% for g in data.groups %}
+<section aria-labelledby="{{ g.anchor }}">
+  <h2 id="{{ g.anchor }}">{{ g.label }}</h2>
+  <p class="meta">Reports: <code>{{ g.path }}</code> · code <code>{{ g.git_sha[:12] }}</code>
+  {% if g.kind == 'claude' %} · total cost ${{ '%.6f'|format(g.total_cost_usd) }}{% endif %}</p>
+  <p class="meta">LLM: <code class="wrap-any">{{ g.llm }}</code></p>
+  {% if g.kind == 'offline' %}
+  <p class="note">The offline gate uses the in-repo extractive responder, not a language model, on the gate snapshot
+  database with no reranker. It measures retrieval, the as-of filter and citation handling. Pull requests are compared
+  against these numbers by <code>eval.yml</code>.</p>
+  {% endif %}
+
+  {{ m.metrics_table(g, g.label ~ ': every metric') }}
+
+  {% if eval_charts[g.path] %}
+  <div class="charts">
+    {{ m.legend(g.systems) }}
+    {% for svg in eval_charts[g.path] %}<figure class="chart-fig">{{ svg|safe }}</figure>{% endfor %}
+  </div>
+  {% endif %}
+
+  <h3 id="{{ g.anchor }}-traps">Trap questions</h3>
+  <p>A trap is a question whose answer changed in the next version, so an unfiltered retriever is likely to find the
+  newer, wrong text. Trap precision and trap outdated rate are the runner's metrics; the case counts are joined from
+  the golden sets' <code>trap</code> flags.</p>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="{{ g.label }} trap breakdown">
+  <table>
+    <caption>{{ g.label }}: trap vs other cases</caption>
+    <thead><tr>
+      <th scope="col">Corpus</th><th scope="col">System</th>
+      <th scope="col" class="num">Trap cases</th><th scope="col" class="num">Trap precision</th>
+      <th scope="col" class="num">Trap outdated rate</th>
+      <th scope="col" class="num">Trap cases with an outdated citation</th>
+      <th scope="col" class="num">Other cases</th>
+      <th scope="col" class="num">Other cases with an outdated citation</th>
+      <th scope="col" class="num">Declined (trap / other)</th>
+    </tr></thead>
+    <tbody>
+    {% for t in trap_rows[g.path] %}
+      <tr{% if t.system == 'driftline' %} class="ours"{% endif %}>
+        <th scope="row">{{ t.corpus }}</th><td><code>{{ t.system }}</code></td>
+        <td class="num">{{ t.trap_cases }}</td><td class="num">{{ t.trap_precision }}</td>
+        <td class="num">{{ t.trap_outdated }}</td><td class="num">{{ t.trap_with_outdated }}</td>
+        <td class="num">{{ t.other_cases }}</td><td class="num">{{ t.other_with_outdated }}</td>
+        <td class="num">{{ t.trap_declined }} / {{ t.other_declined }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endfor %}
+{% else %}
+  {{ m.empty('Evaluation results not yet published', 'No eval report is committed under evals/reports yet.') }}
+{% endif %}
+
+<section aria-labelledby="methodology">
+  <h2 id="methodology">Methodology</h2>
+  <h3>Golden sets</h3>
+  <p>The golden questions in <a href="{{ REPO_URL }}/tree/main/evals/golden">evals/golden</a> were drafted by
+  <code>claude-haiku-5-5</code> from the real ingested corpora (openFDA/DailyMed drug labels and
+  <code>kubernetes/website</code> release branches). Code, not the model, ties each case to a real version id and a
+  quote taken from that version's chunks; every kept case passed mechanical validation against the database (the
+  version exists, the date lies in its window, the quote is in it, and for a trap the quote is gone from the next
+  version). No case was written or edited by hand. Construction details and counts are in
+  <a href="{{ REPO_URL }}/blob/main/evals/golden/README.md">evals/golden/README.md</a>.</p>
+  {% if h %}
+  <h3>Sample versus full set</h3>
+  <p>The real-Claude runs used a deterministic stratified sample (one case per kind/trap stratum, the rest shared in
+  proportion, cases taken in sha256(id) order), not the full sets:</p>
+  <ul>
+  {% for c in h.group.corpora %}{% set s = h.strata[c] %}
+    <li><strong>{{ c }}</strong>: {{ h.sample_sizes[c] }}{% if c in h.full_set_sizes %} of {{ h.full_set_sizes[c] }}{% endif %} cases:
+    {{ s.traps }} traps, {{ s.stable_point_in_time }} stable <code>point_in_time</code>, {{ s.current }} <code>current</code>{% if s.other %}, {{ s.other }} other{% endif %}{% if h.subset_file[c] %};
+    the same subset the CI gate uses (<code>evals/snapshot/{{ c }}.jsonl</code>){% endif %}.</li>
+  {% endfor %}
+  </ul>
+  {% endif %}
+  <h3>Metric definitions</h3>
+  <dl class="defs">
+    <dt>Citation precision</dt><dd>Citations whose version was in force at the question's <code>as_of</code> date <em>and</em> whose quote is supported by the cited chunk, divided by all citations, pooled over cases. Partial overlap with an expected version does not count.</dd>
+    <dt>Outdated-citation rate</dt><dd>Citations of a real version that was not in force at <code>as_of</code>, divided by all citations.</dd>
+    <dt>Trap precision / trap outdated rate</dt><dd>The same two metrics over trap cases only.</dd>
+    <dt>Faithfulness (verifier)</dt><dd>Presented claims that pass the verifier's deterministic quote check, divided by all claims.</dd>
+    <dt>Insufficient-evidence accuracy</dt><dd>Cases answered when an answer is expected, or declined when the case expects insufficient evidence, divided by all cases.</dd>
+    <dt>p95 latency, cost per answer</dt><dd>Per-case wall time and the summed <code>llm_calls.cost_usd</code> of the case.</dd>
+    <dt>Stale and error cases</dt><dd>A case whose expected version no longer exists is <code>stale_case</code>: excluded and counted, never scored as a model failure. An error is a system failure.</dd>
+  </dl>
+  <h3>Systems</h3>
+  <ul>
+    <li><strong><code>driftline</code></strong>: plan, sub-question fan-out, as-of-filtered hybrid retrieval and rerank, draft, citation verification with up to 2 re-retrievals. Semantic cache off.</li>
+    <li><strong><code>plain_rag</code></strong>: the same retriever and reranker with the as-of filter disabled, then one draft with the same model tier and schema. No planner, verifier or re-retrieval; its prompt makes no in-force claim.</li>
+    <li><strong><code>no_retrieval</code></strong>: the model alone{% if h and 'no_retrieval' in h.group.missing_systems %} (no report committed yet){% endif %}.</li>
+  </ul>
+  <h3>Offline gate versus real Claude</h3>
+  <p>The real-Claude runs measure the full product with a language model. The offline gate runs on every pull request
+  for free and deterministically, with an extractive responder that cites the first sentence of the top chunks, so
+  plain RAG's unfiltered retrieval shows up directly as outdated citations. Its numbers are a regression baseline,
+  not a model-quality claim: do not compare the two runs' numbers with each other.</p>
+</section>
+{% endblock %}
