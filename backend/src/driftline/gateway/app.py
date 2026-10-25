@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 import asyncpg
 import redis.asyncio as aioredis
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from driftline.config import Settings
@@ -22,6 +23,13 @@ def create_app(settings: Settings) -> FastAPI:
             await app.state.pg.close()
 
     app = FastAPI(title="Driftline", lifespan=lifespan)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type", "Last-Event-ID", "Authorization"],
+        expose_headers=["Retry-After"],
+    )
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:

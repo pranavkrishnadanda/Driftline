@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     # Host port 5433 matches deploy/compose (5432 is often a native Postgres).
     database_url: str = "postgresql://driftline:driftline@localhost:5433/driftline"
     redis_url: str = "redis://localhost:6379/0"
+    # Browser origins allowed to call the gateway (the Next.js frontend, P5).
+    cors_origins: list[str] = ["http://localhost:3000"]
 
     anthropic_api_key: str | None = None
     gemini_api_key: str | None = None
