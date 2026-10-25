@@ -1,0 +1,861 @@
+{
+  "system": "plain_rag",
+  "corpus": "k8s",
+  "git_sha": "e0c7cc1faecf51cee1428bd8d7ad76055f3b39b7",
+  "llm": "extract=anthropic/claude-haiku-5-5>gemini/gemini-3.8-flash; answer=anthropic/claude-sonnet-5-5>anthropic/claude-haiku-5-5>gemini/gemini-3.8-flash; judge=anthropic/claude-sonnet-5-5>anthropic/claude-haiku-5-5>gemini/gemini-3.8-flash",
+  "metrics": {
+    "citation_precision": 0.96875,
+    "outdated_citation_rate": 0.015625,
+    "trap_citation_precision": 0.95,
+    "trap_outdated_citation_rate": 0.05,
+    "faithfulness": 0.9666666666666667,
+    "insufficient_evidence_accuracy": 0.975,
+    "latency_p95_ms": 15134.829998016357,
+    "cost_per_answer_usd": 0.01215675,
+    "scored": 40.0,
+    "citations": 64.0,
+    "claims": 60.0,
+    "claims_judged": 0.0,
+    "cases": 40.0,
+    "stale_case_count": 0.0,
+    "error_count": 0.0
+  },
+  "cases": [
+    {
+      "case_id": "k8s-003",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2022-08-21, the CSIMigration feature directs operations against existing in-tree plugins to the corresponding CSI plugins when the feature is enabled. The CSI plugins are expected to be installed and configured.",
+      "cited_version_ids": [
+        "42a097b6-1948-4b30-8ba7-174daf9b5b33"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11430.76205253601,
+      "cost_usd": 0.014504,
+      "error": null
+    },
+    {
+      "case_id": "k8s-004",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2021-12-18, the Ingress documentation says an Ingress needs the apiVersion, kind, and metadata fields.",
+      "cited_version_ids": [
+        "858fb0d7-ba69-42dd-8dd3-704d663bfabf"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11442.243099212646,
+      "cost_usd": 0.01347,
+      "error": null
+    },
+    {
+      "case_id": "k8s-005",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2025-12-24, the KubeletCrashLoopBackOffMax feature gate is described as alpha.",
+      "cited_version_ids": [
+        "c81bb498-4669-47e5-bdc2-5589cccf4cbc"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11195.252895355225,
+      "cost_usd": 0.012534,
+      "error": null
+    },
+    {
+      "case_id": "k8s-013",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "An Ingress with no rules sends all of its traffic to a single default backend, which is conventionally a configuration option of the Ingress controller rather than being specified in the Ingress resource.",
+      "cited_version_ids": [
+        "858fb0d7-ba69-42dd-8dd3-704d663bfabf"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11044.278860092163,
+      "cost_usd": 0.012082,
+      "error": null
+    },
+    {
+      "case_id": "k8s-014",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "No. As of 2025-12-24, the documentation says that removing a key from a Deployment's selector does not require any changes to the Pod template labels.",
+      "cited_version_ids": [
+        "401c37ba-5710-4289-898e-95c995e982a9"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 16121.878147125244,
+      "cost_usd": 0.01502,
+      "error": null
+    },
+    {
+      "case_id": "k8s-016",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2021-12-18, HostProcess pods are an alpha feature as of Kubernetes v1.22, and the Baseline policy disallows privileged access to the host.",
+      "cited_version_ids": [
+        "06b1d0c1-7576-4f74-99b6-7ff912aa2344"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9438.80009651184,
+      "cost_usd": 0.012826,
+      "error": null
+    },
+    {
+      "case_id": "k8s-018",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2022-08-21, the name of a Deployment object must be a valid DNS subdomain name.",
+      "cited_version_ids": [
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 13469.692707061768,
+      "cost_usd": 0.015266,
+      "error": null
+    },
+    {
+      "case_id": "k8s-023",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2021-12-18, the applicable version (version 1) says that for allow-by-default enforcement mechanisms such as gatekeeper, the Privileged policy may be implemented as an absence of applied constraints rather than as an instantiated profile.",
+      "cited_version_ids": [
+        "06b1d0c1-7576-4f74-99b6-7ff912aa2344"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10156.000137329102,
+      "cost_usd": 0.010186,
+      "error": null
+    },
+    {
+      "case_id": "k8s-031",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Yes. In the Pod Lifecycle documentation in effect on 2022-08-21, the control plane removes the shutting-down Pod from Endpoints (and EndpointSlice) objects at the same time the kubelet starts graceful shutdown. Load balancers drop it as soon as the termination grace period begins.",
+      "cited_version_ids": [
+        "4e4d488b-1e6a-4b1d-8325-6e16e9251acc"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 14679.709196090698,
+      "cost_usd": 0.017288,
+      "error": null
+    },
+    {
+      "case_id": "k8s-034",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2023-04-12, when no size is specified, memory-backed emptyDir volumes are sized to 50% of the memory on a Linux host (this applies when the SizeMemoryBackedVolumes feature gate is enabled). Later documentation versions changed this to node allocatable memory.",
+      "cited_version_ids": [
+        "59057e6f-d8ac-4155-a84f-8ff5297d831d",
+        "b5062a22-90c0-4c35-a239-e7c91938334e"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 14435.014963150024,
+      "cost_usd": 0.013782,
+      "error": null
+    },
+    {
+      "case_id": "k8s-036",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2024-08-14, the applicable documentation (version 5) says you can specify a size for memory-backed volumes provided the SizeMemoryBackedVolumes feature gate is enabled. That gate has been beta and on by default since Kubernetes 1.22, so in practice you usually don't need to enable it yourself.",
+      "cited_version_ids": [
+        "f835ca11-b1e1-442b-8740-87a2cf9d51a8"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 15789.423942565918,
+      "cost_usd": 0.013884,
+      "error": null
+    },
+    {
+      "case_id": "k8s-037",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Yes. As of 2024-08-14, the in-tree azureFile volume type mounts a Microsoft Azure File volume (SMB 2.1 and 3.0) into a pod, though the documentation marks it as deprecated.",
+      "cited_version_ids": [
+        "f835ca11-b1e1-442b-8740-87a2cf9d51a8"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 13941.400051116943,
+      "cost_usd": 0.008756,
+      "error": null
+    },
+    {
+      "case_id": "k8s-039",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2021-12-18, the Pod Security Standards FAQ lists OPA Gatekeeper, Kubewarden, and Kyverno as other alternatives for enforcing security profiles that are being developed in the Kubernetes ecosystem.",
+      "cited_version_ids": [
+        "06b1d0c1-7576-4f74-99b6-7ff912aa2344"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11855.87191581726,
+      "cost_usd": 0.013544,
+      "error": null
+    },
+    {
+      "case_id": "k8s-049",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "No. The Deployments documentation says not to manage ReplicaSets that are owned by a Deployment, and to open an issue in the main Kubernetes repository if your use case isn't covered.",
+      "cited_version_ids": [
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11583.026885986328,
+      "cost_usd": 0.010452,
+      "error": null
+    },
+    {
+      "case_id": "k8s-050",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "By default, a Deployment retains 10 old ReplicaSets for rollback.",
+      "cited_version_ids": [
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 12553.532123565674,
+      "cost_usd": 0.012116,
+      "error": null
+    },
+    {
+      "case_id": "k8s-055",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "With the Recreate strategy, all existing Pods are killed before new ones are created. On an upgrade, Pods of the old revision are terminated immediately, and the Deployment waits for their removal before creating any Pod of the new revision.",
+      "cited_version_ids": [
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 12868.280172348022,
+      "cost_usd": 0.013096,
+      "error": null
+    },
+    {
+      "case_id": "k8s-059",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "By default, a Kubernetes Deployment keeps 10 old ReplicaSets for rollback (controlled by .spec.revisionHistoryLimit).",
+      "cited_version_ids": [
+        "ba495613-cbda-42bc-9c82-29319512938b"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10934.903860092163,
+      "cost_usd": 0.01268,
+      "error": null
+    },
+    {
+      "case_id": "k8s-064",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The Deployment controller balances the additional replicas across the existing active ReplicaSets (those with Pods) to mitigate risk, which is called proportional scaling.",
+      "cited_version_ids": [
+        "eacf4b8e-ba67-4a93-bb02-0dd28dcdd7a1"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10655.848979949951,
+      "cost_usd": 0.013402,
+      "error": null
+    },
+    {
+      "case_id": "k8s-066",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The default value of maxUnavailable for a rolling update Deployment is 25%.",
+      "cited_version_ids": [
+        "c0dd4f3b-50ec-4daa-b3cf-be03c8ddbf41"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11473.548889160156,
+      "cost_usd": 0.013472,
+      "error": null
+    },
+    {
+      "case_id": "k8s-070",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The Deployment controller adds the pod-template-hash label to every ReplicaSet that a Deployment creates or adopts.",
+      "cited_version_ids": [
+        "ba495613-cbda-42bc-9c82-29319512938b"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10101.621150970459,
+      "cost_usd": 0.010554,
+      "error": null
+    },
+    {
+      "case_id": "k8s-071",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Ingress controllers and load balancers may take a minute or two to allocate an IP address for an Ingress. Until then, the address is often shown as <pending>.",
+      "cited_version_ids": [
+        "17b476b2-ffaf-4652-9b71-861988b7b572"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10528.983116149902,
+      "cost_usd": 0.011912,
+      "error": null
+    },
+    {
+      "case_id": "k8s-073",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "No. Techniques for spreading Ingress traffic across failure domains differ between cloud providers, so you should check the documentation of the relevant Ingress controller for details.",
+      "cited_version_ids": [
+        "858fb0d7-ba69-42dd-8dd3-704d663bfabf"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9118.12973022461,
+      "cost_usd": 0.009852,
+      "error": null
+    },
+    {
+      "case_id": "k8s-076",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "You can test a cluster by starting an API server with specific API versions disabled, which simulates upcoming removals. To do this, add the --runtime-config=<group>/<version>=false flag to the API server startup arguments.",
+      "cited_version_ids": [
+        "1712434a-e2a8-47b4-8916-f52f413c6084"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10233.56318473816,
+      "cost_usd": 0.01072,
+      "error": null
+    },
+    {
+      "case_id": "k8s-077",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "No. As of v1.22, the rbac.authorization.k8s.io/v1beta1 API version of ClusterRole and Role is no longer served. Manifests and clients should migrate to rbac.authorization.k8s.io/v1.",
+      "cited_version_ids": [
+        "78406332-fdcb-43f1-966b-50c51349edb9"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10789.679050445557,
+      "cost_usd": 0.013426,
+      "error": null
+    },
+    {
+      "case_id": "k8s-080",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Yes. RollingUpdate Deployments support running multiple versions of an application at the same time.",
+      "cited_version_ids": [
+        "ba495613-cbda-42bc-9c82-29319512938b"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9978.937149047852,
+      "cost_usd": 0.010886,
+      "error": null
+    },
+    {
+      "case_id": "k8s-081",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The ingressClassName field on an Ingress references an IngressClass resource, which holds additional Ingress configuration including the name of the Ingress controller.",
+      "cited_version_ids": [
+        "858fb0d7-ba69-42dd-8dd3-704d663bfabf"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 8296.650171279907,
+      "cost_usd": 0.009402,
+      "error": null
+    },
+    {
+      "case_id": "k8s-082",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "No. As of Kubernetes v1.22, the certificates.k8s.io/v1beta1 API version of CertificateSigningRequest is no longer served. Manifests and clients should migrate to certificates.k8s.io/v1, which has been available since v1.19.",
+      "cited_version_ids": [
+        "78406332-fdcb-43f1-966b-50c51349edb9"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11228.895902633667,
+      "cost_usd": 0.015766,
+      "error": null
+    },
+    {
+      "case_id": "k8s-083",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The longest matching path takes precedence. If two paths are still equally matched, a path with an exact path type takes precedence over one with a prefix path type.",
+      "cited_version_ids": [
+        "17b476b2-ffaf-4652-9b71-861988b7b572"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11668.81799697876,
+      "cost_usd": 0.009354,
+      "error": null
+    },
+    {
+      "case_id": "k8s-085",
+      "status": "scored",
+      "answer_status": "insufficient_evidence",
+      "answer": "The retrieved Ingress guide chunks do not define a Node. They only mention NodePort as a Service type used to expose non-HTTP/HTTPS services, which is not a definition of a Node.",
+      "cited_version_ids": [],
+      "scores": {
+        "insufficient_evidence_accuracy": 0.0,
+        "citations": 0.0,
+        "claims": 0.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 7366.093158721924,
+      "cost_usd": 0.010108,
+      "error": null
+    },
+    {
+      "case_id": "k8s-094",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "By default, a Deployment keeps 10 old ReplicaSets for rollback.",
+      "cited_version_ids": [
+        "401c37ba-5710-4289-898e-95c995e982a9"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10318.63808631897,
+      "cost_usd": 0.011596,
+      "error": null
+    },
+    {
+      "case_id": "k8s-096",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As of 2022-08-21, the Baseline policy is minimally restrictive and prevents known privilege escalations. It allows the default (minimally specified) Pod configuration.",
+      "cited_version_ids": [
+        "324acbdc-56af-4540-a59a-56f6f8966486"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 12236.034870147705,
+      "cost_usd": 0.013806,
+      "error": null
+    },
+    {
+      "case_id": "k8s-101",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The default value of .spec.minReadySeconds in a Deployment spec is 0, so a Pod is considered available as soon as it is ready.",
+      "cited_version_ids": [
+        "401c37ba-5710-4289-898e-95c995e982a9"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 10565.258979797363,
+      "cost_usd": 0.008826,
+      "error": null
+    },
+    {
+      "case_id": "k8s-107",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The default value of .spec.minReadySeconds is 0, so a Pod is considered available as soon as it is ready.",
+      "cited_version_ids": [
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 12847.215175628662,
+      "cost_usd": 0.01072,
+      "error": null
+    },
+    {
+      "case_id": "k8s-109",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "ReplicaSet manifests and API clients should migrate to the apps/v1 API version, which has been available since v1.9.",
+      "cited_version_ids": [
+        "b7265af7-4bf9-4587-b3ee-6575557bc6a4"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11255.778789520264,
+      "cost_usd": 0.0114,
+      "error": null
+    },
+    {
+      "case_id": "k8s-113",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The Ingress guide defines a Node as a worker machine in Kubernetes that is part of a cluster.",
+      "cited_version_ids": [
+        "858fb0d7-ba69-42dd-8dd3-704d663bfabf"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11198.33493232727,
+      "cost_usd": 0.012454,
+      "error": null
+    },
+    {
+      "case_id": "k8s-129",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "A Running status means the container is executing without issues. Any configured postStart hook has already executed and finished, and kubectl also shows when the container entered the Running state.",
+      "cited_version_ids": [
+        "0e9fd8f9-f4a5-4613-b8be-1f1972441f58"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 14545.338153839111,
+      "cost_usd": 0.010486,
+      "error": null
+    },
+    {
+      "case_id": "k8s-133",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "According to the migration guide, when APIs evolve the old API is deprecated and eventually removed.",
+      "cited_version_ids": [
+        "430270a1-1945-4735-b7c0-b0a837c9734f"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 14513.885974884033,
+      "cost_usd": 0.008618,
+      "error": null
+    },
+    {
+      "case_id": "k8s-137",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "While the Ingress controller or load balancer is still allocating an IP address, which can take a minute or two, the address is often listed as `<pending>`.",
+      "cited_version_ids": [
+        "46973111-c9e3-439e-ba5c-a509fec50506"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 9798.543214797974,
+      "cost_usd": 0.012476,
+      "error": null
+    },
+    {
+      "case_id": "k8s-139",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "A container in the Waiting state is still running the operations it needs to complete start up, such as pulling the container image from a registry or applying Secret data.",
+      "cited_version_ids": [
+        "ec7ac10f-aaa5-4f36-9636-78e93c30b1d6"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 15134.829998016357,
+      "cost_usd": 0.0138,
+      "error": null
+    },
+    {
+      "case_id": "k8s-144",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "No. According to the current version of the Deprecated API Migration Guide, the admissionregistration.k8s.io/v1beta1 API version of MutatingWebhookConfiguration is no longer served as of Kubernetes v1.22. Users should migrate to admissionregistration.k8s.io/v1, available since v1.16.",
+      "cited_version_ids": [
+        "1712434a-e2a8-47b4-8916-f52f413c6084"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 11276.763916015625,
+      "cost_usd": 0.011748,
+      "error": null
+    }
+  ]
+}

@@ -49,7 +49,7 @@ async def test_claude_judge_scores_faithfulness_judge(
     require_cassette, fresh_conn, fresh_pool, embedder_url
 ):
     tenant, source = await seed_source(fresh_conn, kind="openfda", tenant="pharma")
-    _, (old_v, new_v), _ = await seed_history(
+    _, (old_v, _new_v), _ = await seed_history(
         fresh_conn,
         source,
         external_id="lipitor",
