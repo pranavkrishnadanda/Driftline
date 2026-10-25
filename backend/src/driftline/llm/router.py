@@ -84,6 +84,9 @@ class LLMRouter:
                     try:
                         await bucket.acquire(1.0, timeout=self._bucket_timeout_s)
                     except RateLimitTimeout as exc:
+                        # The provider was never called: hand back any half-open probe
+                        # so the breaker is not left waiting for an outcome forever.
+                        breaker.release_probe()
                         errors.append((route, exc))
                         break
                 try:

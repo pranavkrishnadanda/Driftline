@@ -150,3 +150,34 @@ def test_build_router_requires_gemini_key(redis_client):
         build_router(
             Settings(_env_file=None, gemini_api_key=None), redis_client, clock=ManualClock()
         )
+
+
+async def test_rate_limit_timeout_during_half_open_probe_does_not_wedge_breaker(redis_client):
+    clock = ManualClock(1000.0)
+    bucket = RedisTokenBucket(redis_client, "rl:pro", capacity=1, refill_per_sec=0.1, clock=clock)
+    p = DeterministicAdapter("p", script=[fatal()])
+    s = DeterministicAdapter("s")
+    r = router(
+        p,
+        s,
+        clock,
+        buckets={"pro": bucket},
+        bucket_timeout_s=1,
+        breaker_factory=lambda: CircuitBreaker(
+            clock=clock, failure_threshold=1, cooldown_seconds=5
+        ),
+    )
+
+    first = await r.complete("answer", req())  # spends the only token, fails, opens the breaker
+    assert first.provider == "s"
+
+    clock.advance(5)  # breaker is half-open; bucket holds only 0.5 tokens
+    second = await r.complete("answer", req())  # probe is granted, then hits RateLimitTimeout
+    assert second.provider == "s"
+    assert p.calls == ["pro"]
+
+    clock.advance(20)  # bucket refilled
+    third = await r.complete("answer", req())
+    assert p.calls == ["pro", "pro"]
+    assert third.provider == "p"
+    assert third.degraded is False
