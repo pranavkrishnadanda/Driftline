@@ -104,6 +104,55 @@ def _machine_lines(machine: dict[str, Any]) -> list[str]:
     ]
 
 
+STAGE_COLUMNS = ("wall", "queue", "worker", "plan", "retrieve", "draft", "verify")
+
+
+def _cpu(entry: dict[str, Any]) -> float:
+    try:
+        return float(str(entry.get("CPUPerc", "0")).rstrip("%"))
+    except ValueError:
+        return 0.0
+
+
+def _where_the_time_goes(runs: Sequence[dict[str, Any]]) -> list[str]:
+    """p50 ms per stage (bench/stages.py, from each ask's step events) and the busiest
+    containers in the mid-run `docker stats` snapshot."""
+    staged = [
+        r for r in sorted(runs, key=lambda r: r["workers"]) if r.get("stages", {}).get("asks")
+    ]
+    if not staged:
+        return []
+    lines = [
+        "",
+        "## Where the time goes",
+        "",
+        (
+            "p50 ms per stage over each run's succeeded asks, from the asks' own step events "
+            "(`bench/stages.py`). `queue` is time waiting for a free worker (wall - worker); "
+            "`retrieve` is query embedding + hybrid search + cross-encoder rerank on TEI (CPU); "
+            "`plan`, `draft` and `verify` are stub-LLM calls."
+        ),
+        "",
+        "| workers | asks | "
+        + " | ".join(STAGE_COLUMNS)
+        + " | rerank ran | busiest containers (CPU) |",
+        "|---|---|" + "---|" * len(STAGE_COLUMNS) + "---|---|",
+    ]
+    for run in staged:
+        st = run["stages"]
+        cells = [_ms((st.get(k) or {}).get("p50")) for k in STAGE_COLUMNS]
+        busiest = sorted(run.get("container_stats_mid_run") or [], key=_cpu, reverse=True)[:3]
+        cpu = ", ".join(
+            f"{e['Name'].removeprefix('driftline-bench-')} {e['CPUPerc']}" for e in busiest
+        )
+        lines.append(
+            f"| {run['workers']} | {st['asks']} | "
+            + " | ".join(cells)
+            + f" | {_pct(st.get('rerank_ran_share'))} | {cpu or 'n/a'} |"
+        )
+    return lines
+
+
 def render_readme(
     *,
     sha: str,
@@ -145,6 +194,7 @@ def render_readme(
             )
     else:
         lines.append("Ask load: not run.")
+    lines += _where_the_time_goes(runs)
     lines += ["", "## Ingest throughput (`bench/ingest.sh`)", ""]
     if ingest and ingest.get("runs"):
         lines += [

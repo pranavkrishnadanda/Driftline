@@ -123,3 +123,30 @@ def test_readme_renders_a_row_per_worker_count_labelled_stub_llm():
 def test_readme_without_ingest_or_chaos_says_not_run():
     md = render_readme(sha="abc", runs=[], machine={}, ingest=None, chaos=None)
     assert md.count("not run") >= 2
+
+
+def test_readme_shows_where_the_time_goes_from_stage_timings_and_container_cpu():
+    run = _run(1, 30000.0)
+    stage_p50 = {
+        "wall": 27000.0,
+        "queue": 18000.0,
+        "worker": 9000.0,
+        "plan": 700.0,
+        "retrieve": 4400.0,
+        "draft": 900.0,
+        "verify": 2700.0,
+    }
+    run["stages"] = {
+        "asks": 28,
+        "rerank_ran_share": 1.0,
+        **{k: {"p50": v, "p95": v * 2, "mean": v, "n": 28} for k, v in stage_p50.items()},
+    }
+    run["container_stats_mid_run"] = [
+        {"Name": "driftline-bench-reranker-1", "CPUPerc": "215.75%", "MemUsage": "2.25GiB"},
+        {"Name": "driftline-bench-agent-worker-1", "CPUPerc": "0.95%", "MemUsage": "226MiB"},
+    ]
+    md = render_readme(sha="abc", runs=[run], machine={}, ingest=None, chaos=None)
+    assert "## Where the time goes" in md
+    row = next(line for line in md.splitlines() if line.startswith("| 1 | 28 "))
+    assert all(v in row for v in ("18000", "4400", "2700", "9000", "100.0%"))
+    assert "reranker-1 215.75%" in md

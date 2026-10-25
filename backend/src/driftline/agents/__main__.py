@@ -53,6 +53,34 @@ def build_agent_router(
     return build_router(settings, redis, clock=clock)
 
 
+# Arbitrary constant key for pg_advisory_lock: "checkpointer setup" across all workers.
+CHECKPOINTER_SETUP_LOCK = 0x44524C43  # "DRLC"
+
+
+async def setup_checkpointer(
+    saver: AsyncPostgresSaver, pool: asyncpg.Pool, *, timeout_s: float = 300.0
+) -> None:
+    """`saver.setup()` under a Postgres advisory lock. Workers started together
+    (`--scale agent-worker=N` on a fresh database) otherwise run LangGraph's migrations
+    concurrently and all but one die with a UniqueViolation.
+
+    Polls `pg_try_advisory_lock` rather than blocking in `pg_advisory_lock`: a session
+    blocked inside that statement holds a snapshot, and the migrations' CREATE INDEX
+    CONCURRENTLY waits for every such snapshot, so the holder would wait forever.
+    """
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + timeout_s
+    async with pool.acquire() as conn:
+        while not await conn.fetchval("SELECT pg_try_advisory_lock($1)", CHECKPOINTER_SETUP_LOCK):
+            if loop.time() >= deadline:
+                raise TimeoutError(f"checkpointer setup lock not acquired in {timeout_s}s")
+            await asyncio.sleep(0.2)
+        try:
+            await saver.setup()
+        finally:
+            await conn.execute("SELECT pg_advisory_unlock($1)", CHECKPOINTER_SETUP_LOCK)
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m driftline.agents")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -106,7 +134,7 @@ async def _run_worker(
             config=AgentConfig.from_settings(settings),
         )
         async with AsyncPostgresSaver.from_conn_string(settings.database_url) as saver:
-            await saver.setup()
+            await setup_checkpointer(saver, pool)
             worker = AgentWorker(
                 pool=pool,
                 redis=redis,
