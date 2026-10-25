@@ -21,9 +21,21 @@ _EXTRA_INJECTION = re.compile(
 _VERSION = re.compile(r"\b(?:v|kubernetes\s+|k8s\s+)(\d+)\.(\d+)(?:\.\d+)?\b", re.IGNORECASE)
 _ISO_DATE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b")
 _MONTHS = {m.lower(): i for i, m in enumerate(calendar.month_name) if m}
-_MONTH_YEAR = re.compile(r"\b(" + "|".join(_MONTHS) + r")\s+((?:19|20)\d{2})\b", re.IGNORECASE)
-_BEFORE_YEAR = re.compile(r"\bbefore\s+((?:19|20)\d{2})\b", re.IGNORECASE)
-_YEAR = re.compile(r"\b(?:as of|in|during|by|until|on|for)\s+((?:19|20)\d{2})\b", re.IGNORECASE)
+_MONTHS |= {m.lower(): i for i, m in enumerate(calendar.month_abbr) if m} | {"sept": 9}
+_MONTH_YEAR = re.compile(
+    r"\b(" + "|".join(sorted(_MONTHS, key=len, reverse=True)) + r")\.?\s+((?:19|20)\d{2})\b",
+    re.IGNORECASE,
+)
+# "in 2000 patients" or "by 2010 mg" is a count or a dose, not a year.
+_NOT_A_YEAR = (
+    r"(?!\s*(?:%|(?:patients?|people|persons?|subjects?|participants?|cases?|tablets?"
+    r"|capsules?|doses?|units?|mg|mcg|µg|ug|g|kg|ml|l|iu)\b))"
+)
+_BEFORE_YEAR = re.compile(r"\bbefore\s+((?:19|20)\d{2})\b" + _NOT_A_YEAR, re.IGNORECASE)
+_YEAR = re.compile(
+    r"\b(?:as of|in|since|after|during|by|until)\s+((?:19|20)\d{2})\b" + _NOT_A_YEAR,
+    re.IGNORECASE,
+)
 _QUOTE_PREFIX = re.compile(r"^\s*>\s?", re.MULTILINE)
 _PUNCT = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"', "–": "-", "—": "-"})
 # A quote shorter than this (normalised) supports nothing, however exact: "ALT" or

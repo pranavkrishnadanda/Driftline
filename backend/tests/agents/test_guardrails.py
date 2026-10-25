@@ -80,6 +80,24 @@ def test_ordinary_questions_pass_screening():
         ("What was the rule in 1850?", None, None),
         ("Take 2.5mg twice daily?", None, None),
         ("Dose 10mg as of 0000-01-01?", None, None),
+        # bare numbers that are counts or doses, not years
+        ("What is the dose for 2000 patients?", None, None),
+        ("Is it safe on 1000 mg daily?", None, None),
+        ("What happened in 2000 patients?", None, None),
+        (
+            "What was seen in 2000 subjects as of 2022?",
+            datetime(2022, 12, 31, 23, 59, 59, 999999, UTC),
+            None,
+        ),
+        ("Response rate in 2010 %?", None, None),
+        ("Response rate in 2010%?", None, None),
+        ("As of 2022, what applied?", datetime(2022, 12, 31, 23, 59, 59, 999999, UTC), None),
+        # abbreviated months
+        ("What changed since Mar 2023?", datetime(2023, 3, 31, 23, 59, 59, 999999, UTC), None),
+        ("What did it say in Sept 2023?", datetime(2023, 9, 30, 23, 59, 59, 999999, UTC), None),
+        ("What did it say in Sep. 2023?", datetime(2023, 9, 30, 23, 59, 59, 999999, UTC), None),
+        ("Label of Feb 2024?", datetime(2024, 2, 29, 23, 59, 59, 999999, UTC), None),
+        ("Label of dec. 2021?", datetime(2021, 12, 31, 23, 59, 59, 999999, UTC), None),
     ],
 )
 def test_as_of_hints(question, expected, version_key):
