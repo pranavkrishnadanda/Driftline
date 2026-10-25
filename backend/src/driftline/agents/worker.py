@@ -3,6 +3,7 @@ persists the answer. Idempotent on job_id; a crashed run resumes from its checkp
 
 import asyncio
 import json
+from pathlib import Path
 from typing import Any
 from uuid import UUID
 
@@ -18,6 +19,7 @@ from driftline.clock import Clock, SystemClock
 from driftline.llm.router import AllRoutesFailed
 from driftline.obs.cost import job_cost
 from driftline.review.queue import ReviewQueue
+from driftline.skills.pack import SkillPack, load_all, tenant_pack, use_pack
 from driftline.streams.bus import StreamBus, keepalive_interval_ms
 
 RECLAIM_IDLE_MS = 60_000  # spec section 3: reclaim stalled messages after 60 s
@@ -183,6 +185,7 @@ class AgentWorker:
         reap_interval_s: float = REAP_INTERVAL_S,
         reclaim_idle_ms: int = RECLAIM_IDLE_MS,
         max_deliveries: int = MAX_DELIVERIES,
+        skills_root: Path | None = None,
     ) -> None:
         self._pool = pool
         self._redis = redis
@@ -197,9 +200,19 @@ class AgentWorker:
         self._max_deliveries = max_deliveries  # must match the bus's, see _is_last_delivery
         self._next_reap: float | None = None
         self._reviews = ReviewQueue(pool)
+        # Domain skill packs: None keeps every prompt and retrieval parameter as is.
+        self._skills_root = skills_root
 
     async def setup(self) -> None:
+        if self._skills_root is not None:
+            load_all(self._skills_root)  # a malformed pack fails here, not mid-question
         await self._bus.ensure_group(AGENT_STREAM, AGENT_GROUP)
+
+    async def _pack_for(self, conn: asyncpg.Connection, job: AskJob) -> SkillPack | None:
+        if self._skills_root is None:
+            return None
+        spec = await conn.fetchval("SELECT skill_pack FROM tenants WHERE id = $1", job.tenant_id)
+        return tenant_pack(self._skills_root, spec)
 
     async def _emit(self, job: AskJob, event: BaseModel) -> None:
         await self._events.append(job.job_id, event)
@@ -269,12 +282,14 @@ class AgentWorker:
                 "UPDATE jobs SET status = 'running' WHERE id = $1 AND status = 'queued'",
                 job.job_id,
             )
+            pack = await self._pack_for(conn, job)
 
         async def emit(event: BaseModel) -> None:
             await self._emit(job, event)
 
         try:
-            answer = await run_ask(self._graph, job, emit=emit, clock=self._clock)
+            with use_pack(pack):
+                answer = await run_ask(self._graph, job, emit=emit, clock=self._clock)
             async with self._pool.acquire() as conn:
                 answer = await persist_answer(conn, job, answer)
         except ReviewPending as pending:

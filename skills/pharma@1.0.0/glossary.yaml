@@ -1,0 +1,64 @@
+# Short, plain definitions of FDA labeling terms. Section numbers follow the PLR format
+# of the Full Prescribing Information (21 CFR 201.57(c)).
+boxed warning: >-
+  A warning set inside a box at the start of the Full Prescribing Information (and
+  summarised in Highlights) for serious or life-threatening risks. It is the most
+  prominent warning FDA requires in labeling.
+black box warning: Informal name for a boxed warning.
+indication: >-
+  A disease or condition the drug is approved to treat, prevent or diagnose, listed in
+  section 1 (Indications and Usage) with any limitations of use.
+dosage and administration: >-
+  Section 2. Recommended dose, schedule, route, titration, and dose adjustments, for
+  example for renal or hepatic impairment or interacting drugs.
+dosage forms and strengths: Section 3. The available forms (tablet, injection, ...) and strengths.
+contraindication: >-
+  A situation in which the drug should not be used because the risk clearly outweighs any
+  possible benefit (section 4). A label with none known says "None".
+warnings and precautions: >-
+  Section 5. Clinically significant adverse reactions and other risks, with how to
+  prevent, monitor for or manage them.
+adverse reactions: >-
+  Section 6. Undesirable effects reasonably associated with use of the drug, usually split
+  into clinical trials experience and postmarketing experience.
+drug interactions: >-
+  Section 7. Clinically significant interactions with other drugs, foods or lab tests, and
+  how to manage them.
+use in specific populations: >-
+  Section 8. Pregnancy, lactation, females and males of reproductive potential, pediatric
+  use, geriatric use, and renal or hepatic impairment.
+overdosage: Section 10. Signs, symptoms and management of overdose.
+clinical pharmacology: Section 12. Mechanism of action, pharmacodynamics and pharmacokinetics.
+highlights of prescribing information: >-
+  The short summary at the start of a PLR-format label. It points to the full sections and
+  does not replace them.
+recent major changes: >-
+  A Highlights entry listing recent substantive changes to the Boxed Warning, Indications
+  and Usage, Dosage and Administration, Contraindications or Warnings and Precautions
+  sections, each with the month and year of the change.
+full prescribing information: >-
+  The complete, numbered body of the label (FPI), as opposed to the Highlights summary.
+PLR format: >-
+  The label layout set by FDA's Physician Labeling Rule (2006): Highlights, a table of
+  contents, and numbered Full Prescribing Information sections.
+REMS: >-
+  Risk Evaluation and Mitigation Strategy. A drug safety program FDA can require, beyond
+  the label, for certain drugs with serious safety concerns.
+ETASU: >-
+  Elements to assure safe use. REMS requirements such as prescriber or pharmacy
+  certification, or dispensing only with documentation of safe-use conditions.
+medication guide: >-
+  FDA-approved patient information that must be handed out with certain drugs that have
+  serious risks.
+safety labeling change: >-
+  A label change for new safety information, which FDA can require of the application
+  holder under section 505(o)(4) of the FD&C Act.
+PLLR: >-
+  Pregnancy and Lactation Labeling Rule (2015). It replaced the pregnancy letter
+  categories (A, B, C, D, X) with narrative risk summaries in section 8.
+off-label use: >-
+  Use for an indication, population, dose or route not in the approved labeling. The label
+  itself does not support such use.
+SPL: >-
+  Structured Product Labeling, the XML format in which labels are submitted to FDA. A
+  label keeps one set ID across revisions; each revision gets a higher version number.

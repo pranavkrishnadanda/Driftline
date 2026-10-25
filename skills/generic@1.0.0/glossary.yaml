@@ -1,0 +1,21 @@
+# Terms for reasoning about versioned documents in any domain.
+in force: >-
+  The version of a document that applied at a given date: it took effect on or before
+  that date and had not yet been replaced.
+effective date: The date from which a version applies. It can differ from its publication date.
+as of: The date a question is about. Only versions in force on that date answer it.
+version: >-
+  One revision of a document. Each version applies from its effective date until the next
+  version takes effect.
+supersede: >-
+  To replace another document or version, so the replaced one is no longer in force.
+amendment: A change to part of a document; the rest stays as before.
+deprecated: >-
+  Still valid or available, but announced for removal or replacement. Not the same as
+  removed or withdrawn.
+withdrawn: Taken out of effect without a replacement.
+draft: >-
+  A proposed version that has not taken effect. It does not describe what was in force.
+changelog: >-
+  A record of what changed between versions. It describes changes; the document itself
+  states the rule.

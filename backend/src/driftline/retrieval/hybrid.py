@@ -15,6 +15,7 @@ import asyncpg
 from driftline.ingest.embed import to_pgvector
 from driftline.llm.router import LLMRouter
 from driftline.retrieval.types import Evidence, RetrievalQuery
+from driftline.skills.pack import RetrievalParams, active_pack
 
 IN_FORCE = """
 WITH in_force AS (
@@ -113,9 +114,21 @@ class HybridRetriever:
         return vector
 
     async def retrieve(
-        self, query: RetrievalQuery, *, top_k: int = 30, vector: list[float] | None = None
+        self,
+        query: RetrievalQuery,
+        *,
+        top_k: int = 30,
+        vector: list[float] | None = None,
+        params: RetrievalParams | None = None,
     ) -> list[Evidence]:
-        """Up to `top_k` in-force chunks, best first (RRF over vector and text ranks)."""
+        """Up to `top_k` in-force chunks, best first (RRF over vector and text ranks).
+
+        `params` (default: the job's active skill pack, else the constructor's values)
+        sets the candidates per search and the RRF constant."""
+        if params is None and (pack := active_pack()) is not None:
+            params = pack.retrieval
+        candidates = params.candidates if params else self._candidates
+        rrf_k = params.rrf_k if params else self._rrf_k
         vector = vector if vector is not None else await self.embed_query(query.text)
         base = (
             query.tenant_id,
@@ -136,12 +149,12 @@ class HybridRetriever:
                 self._embed_model,
                 tags,
                 to_pgvector(vector),
-                self._candidates,
+                candidates,
             )
-            by_text = await conn.fetch(TEXT_SQL, *base, query.text, tags, self._candidates)
-            fused = rrf_fuse(
-                [[r["id"] for r in by_vector], [r["id"] for r in by_text]], k=self._rrf_k
-            )[:top_k]
+            by_text = await conn.fetch(TEXT_SQL, *base, query.text, tags, candidates)
+            fused = rrf_fuse([[r["id"] for r in by_vector], [r["id"] for r in by_text]], k=rrf_k)[
+                :top_k
+            ]
             if not fused:
                 return []
             rows = await conn.fetch(

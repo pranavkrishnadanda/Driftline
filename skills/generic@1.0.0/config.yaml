@@ -1,0 +1,17 @@
+# The default pack: any versioned document corpus (policies, specs, contracts, docs).
+# Retrieval and chunking match the built-in defaults.
+name: generic
+version: 1.0.0
+description: >-
+  Domain-neutral notes for versioned documents: effective dates, supersession and
+  amendments. Used when a tenant has no pack or names an unknown one.
+retrieval:
+  candidates: 30
+  rerank_top_n: 8
+  rrf_k: 60
+chunking:
+  chunk_tokens: 256
+  overlap_tokens: 32
+prompts:
+  plan: prompts/plan.md
+  draft: prompts/draft.md

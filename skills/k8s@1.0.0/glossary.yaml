@@ -1,0 +1,54 @@
+# Short definitions of Kubernetes release and API lifecycle terms, following the
+# Kubernetes deprecation policy and feature gate documentation.
+alpha: >-
+  Earliest feature stage. Disabled by default, may be buggy, and may change incompatibly
+  or be dropped in any release without notice. Alpha API versions look like v1alpha1.
+beta: >-
+  Well-tested feature stage. Beta feature gates are usually on by default; since v1.24,
+  new beta APIs are not served by default. Details may still change. Beta API versions
+  look like v1beta1.
+GA: >-
+  General availability, also called stable. The feature is on by default and its API
+  version (v1, v2, ...) is supported for many later releases.
+stable: Same as GA.
+feature gate: >-
+  A named on/off switch for a feature, set on a component with --feature-gates
+  (Name=true|false). A gate is usually off in alpha, on in beta, then locked on at GA and
+  later removed.
+API version: >-
+  The version of an API group that a manifest's apiVersion names, such as apps/v1 or
+  batch/v1. Its suffix (alpha, beta or none) shows its stability.
+API group: >-
+  A set of related resources served together, such as apps, batch or
+  networking.k8s.io. The core group has no name (apiVersion: v1).
+deprecation: >-
+  Notice that a feature, flag or API version will be removed later. A deprecated API
+  version is still served, and the API server returns a warning when it is used.
+removal: >-
+  The release from which a feature or API version is gone. A removed API version is no
+  longer served, so manifests and clients must move to a replacement version first.
+deprecation policy: >-
+  Kubernetes rules for removals: GA API versions may be deprecated but are not removed
+  within a major version; beta API versions stay served for at least 9 months or 3
+  minor releases (whichever is longer) after deprecation; alpha may be removed in any
+  release.
+served: An API version the API server currently answers requests for.
+storage version: >-
+  The API version in which objects of a resource are persisted in etcd.
+minor release: >-
+  A Kubernetes release such as 1.29. There are about three per year, and each gets
+  about 14 months of patch support.
+version skew policy: >-
+  Which component versions may run together. For example, since v1.28 the kubelet may be
+  up to three minor versions older than kube-apiserver.
+KEP: >-
+  Kubernetes Enhancement Proposal: the design and tracking document for a feature as it
+  moves through alpha, beta and GA.
+CHANGELOG: >-
+  Release notes for each minor release, with sections such as Urgent Upgrade Notes,
+  Deprecation, API Change, Feature, and Bug or Regression.
+urgent upgrade notes: >-
+  The CHANGELOG section listing changes that need action before or during an upgrade.
+CRD: >-
+  CustomResourceDefinition: a way to add resource types. Each version of a CRD is marked
+  served and/or as the storage version.

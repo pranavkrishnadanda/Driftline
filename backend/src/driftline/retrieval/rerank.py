@@ -12,6 +12,7 @@ from dataclasses import dataclass
 import httpx
 
 from driftline.retrieval.types import Evidence
+from driftline.skills.pack import active_pack
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,10 @@ class TEIReranker:
     async def rerank(
         self, query: str, items: Sequence[Evidence], *, top_n: int = 8
     ) -> RerankOutcome:
-        """The `top_n` items by cross-encoder score (ties keep the incoming order)."""
+        """The `top_n` items by cross-encoder score (ties keep the incoming order). The job's
+        active skill pack caps `top_n` at its `rerank_top_n`."""
+        if (pack := active_pack()) is not None:
+            top_n = min(top_n, pack.retrieval.rerank_top_n)
         items = list(items)
         if not items:
             return RerankOutcome([], reranked=False)

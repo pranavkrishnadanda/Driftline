@@ -1,0 +1,3 @@
+Two kinds of version appear in Kubernetes questions and must not be confused: a Kubernetes release ("1.29", "v1.29") and an API version ("v1beta1", "apps/v1"). A release is a point in time; an API version is a stability level of one API group.
+When a question names a release ("in 1.25", "since v1.28"), treat it as a point in time and keep it in the sub-question. A question that spans releases ("between 1.24 and 1.27", "when was X removed") needs one sub-question per release it names.
+Keep the exact resource and group in every sub-question (for example "PodSecurityPolicy policy/v1beta1"), and name the lifecycle stage being asked about: alpha, beta, GA, deprecated or removed.
