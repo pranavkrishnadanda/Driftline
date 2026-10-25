@@ -140,7 +140,8 @@ async def test_alert_published_after_connecting_arrives_live(
             "INSERT INTO outbox (topic, payload) VALUES ('drift.alert', $1::jsonb)",
             json.dumps({**alert.model_dump(mode="json"), "tenant_id": str(tenant_id)}),
         )
-        await OutboxRelay(fresh_pool, StreamBus(redis_client)).relay_once()
+        relay = OutboxRelay(fresh_pool, StreamBus(redis_client), alerts=AlertLog(redis_client))
+        await relay.relay_once()
         got = await reader.until(lambda fs: any(f.get("event") == "alert" for f in fs))
     [frame] = [f for f in got if "event" in f]
     assert frame["id"] == 1
