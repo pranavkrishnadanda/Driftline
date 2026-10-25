@@ -47,7 +47,7 @@ def build_review_router() -> APIRouter:
     not_found = {**AUTH_RESPONSES, 404: {"description": "unknown tenant or review item"}}
 
     def queue(request: Request) -> ReviewQueue:
-        return ReviewQueue(request.app.state.pg, request.app.state.bus)
+        return ReviewQueue(request.app.state.pg)
 
     @router.get("/review", response_model=ReviewItemList, responses=not_found)
     async def list_review(

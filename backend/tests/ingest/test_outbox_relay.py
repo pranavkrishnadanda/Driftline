@@ -1,11 +1,23 @@
 import asyncio
 import json
+from datetime import UTC, datetime
+from uuid import uuid4
 
 import asyncpg
 
+from driftline.cache.semantic import SemanticCache
 from driftline.clock import ManualClock
 from driftline.drift.alerts import AlertLog
-from driftline.ingest.outbox import TOPIC_STREAMS, OutboxRelay, streams_for
+from driftline.ingest.outbox import (
+    ASK_REGENERATE_TOPIC,
+    ASK_RESUME_TOPIC,
+    CACHE_INVALIDATE_TOPIC,
+    TOPIC_STREAMS,
+    OutboxRelay,
+    streams_for,
+)
+from driftline.llm.adapters.deterministic import DeterministicAdapter
+from driftline.llm.router import LLMRouter, Route
 from driftline.streams.bus import StreamBus
 
 
@@ -131,3 +143,63 @@ async def test_run_sleeps_when_idle_and_stops(fresh_pool, redis_client):
     stop.set()
     await asyncio.wait_for(task, 5)
     assert len(await redis_client.xrange("embed")) == 1
+
+
+async def test_review_follow_up_topics_go_to_the_agent_stream(fresh_pool, redis_client):
+    assert TOPIC_STREAMS[ASK_RESUME_TOPIC] == TOPIC_STREAMS[ASK_REGENERATE_TOPIC] == ("agent",)
+    [resume, regen] = [
+        (await add_rows(fresh_pool, 1, topic=t))[0]
+        for t in (ASK_RESUME_TOPIC, ASK_REGENERATE_TOPIC)
+    ]
+    relay = OutboxRelay(fresh_pool, StreamBus(redis_client), alerts=AlertLog(redis_client))
+    assert await relay.relay_once() == 2
+    payloads = await stream_payloads(redis_client, "agent")
+    assert [(p["event_id"], p["topic"]) for p in payloads] == [
+        (resume, ASK_RESUME_TOPIC),
+        (regen, ASK_REGENERATE_TOPIC),
+    ]
+    assert await redis_client.exists(ASK_RESUME_TOPIC, ASK_REGENERATE_TOPIC) == 0
+
+
+def det_cache(redis_client) -> SemanticCache:
+    router = LLMRouter(
+        providers={"det": DeterministicAdapter("det")},
+        chains={"embed": [Route("det", "hash")]},
+        clock=ManualClock(),
+    )
+    return SemanticCache(redis_client, router)
+
+
+async def test_cache_invalidate_rows_drop_cached_answers_citing_those_versions(
+    fresh_pool, redis_client
+):
+    assert streams_for(CACHE_INVALIDATE_TOPIC) == ()
+    cache = det_cache(redis_client)
+    stale, kept = uuid4(), uuid4()
+    june = datetime(2024, 6, 1, tzinfo=UTC)
+    stale_entry = await cache.store(
+        tenant_id=uuid4(), question="q1", as_of=june, answer={}, version_ids=[stale]
+    )
+    kept_entry = await cache.store(
+        tenant_id=uuid4(), question="q2", as_of=june, answer={}, version_ids=[kept]
+    )
+    async with fresh_pool.acquire() as conn:
+        await conn.execute(
+            "INSERT INTO outbox (topic, payload) VALUES ($1, $2::jsonb)",
+            CACHE_INVALIDATE_TOPIC,
+            json.dumps({"version_ids": [str(stale)]}),
+        )
+    relay = OutboxRelay(fresh_pool, StreamBus(redis_client), alerts=AlertLog(redis_client))
+    assert await relay.relay_once() == 1
+    assert await redis_client.exists(f"semcache:entry:{stale_entry}") == 0
+    assert await redis_client.exists(f"semcache:entry:{kept_entry}") == 1
+    assert await redis_client.exists(CACHE_INVALIDATE_TOPIC) == 0
+
+
+async def test_invalid_cache_invalidate_payload_is_dead_lettered(fresh_pool, redis_client):
+    [row_id] = await add_rows(fresh_pool, 1, topic=CACHE_INVALIDATE_TOPIC)  # no version_ids
+    relay = OutboxRelay(fresh_pool, StreamBus(redis_client), alerts=AlertLog(redis_client))
+    assert await relay.relay_once() == 1
+    [dead] = await stream_payloads(redis_client, f"dlq:{CACHE_INVALIDATE_TOPIC}")
+    assert dead["event_id"] == row_id and "error" in dead
+    assert await relay.relay_once() == 0  # marked published: it never blocks later rows

@@ -7,9 +7,10 @@ from typing import Any
 from uuid import UUID
 
 import asyncpg
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from driftline.agents.events import AlertEvent
+from driftline.cache.semantic import invalidate_versions
 from driftline.clock import Clock, SystemClock
 from driftline.drift.alerts import AlertLog
 from driftline.streams.bus import StreamBus
@@ -17,13 +18,23 @@ from driftline.streams.bus import StreamBus
 logger = logging.getLogger(__name__)
 
 ALERT_TOPIC = "drift.alert"
+# Review follow-ups, written in the resolve's own transaction: a reviewer's decision for
+# a paused ask, and the regeneration of an approved broken answer. Both are `AskJob`s.
+ASK_RESUME_TOPIC = "ask.resume"
+ASK_REGENERATE_TOPIC = "ask.regenerate"
+# Drop semantic-cache entries citing these versions (an approved relation replaced them).
+CACHE_INVALIDATE_TOPIC = "cache.invalidate"
 
 # Which streams each outbox topic fans out to; a topic not listed here goes to a stream
 # named after it. "drift.alert" maps to no static stream: each alert goes to its tenant's
-# alert log (events:alerts:{tenant}), see `OutboxRelay._publish_alert`.
+# alert log (events:alerts:{tenant}), see `OutboxRelay._publish_alert`. Likewise
+# "cache.invalidate" is applied to the cache by the relay, see `_invalidate_cache`.
 TOPIC_STREAMS: dict[str, tuple[str, ...]] = {
     "version.created": ("embed", "drift"),
     ALERT_TOPIC: (),
+    ASK_RESUME_TOPIC: ("agent",),
+    ASK_REGENERATE_TOPIC: ("agent",),
+    CACHE_INVALIDATE_TOPIC: (),
 }
 
 
@@ -35,6 +46,12 @@ class _AlertRow(AlertEvent):
     """A `drift.alert` outbox payload: the alert plus the tenant whose stream it goes to."""
 
     tenant_id: UUID
+
+
+class CacheInvalidation(BaseModel):
+    """A `cache.invalidate` outbox payload."""
+
+    version_ids: list[UUID]
 
 
 class OutboxRelay:
@@ -67,6 +84,8 @@ class OutboxRelay:
             payload = {**json.loads(row["payload"]), "event_id": row["id"], "topic": row["topic"]}
             if row["topic"] == ALERT_TOPIC:
                 await self._publish_alert(payload)
+            elif row["topic"] == CACHE_INVALIDATE_TOPIC:
+                await self._invalidate_cache(payload)
             for stream in streams_for(row["topic"]):
                 await self._bus.publish(stream, payload)
         return [row["id"] for row in rows]
@@ -92,6 +111,22 @@ class OutboxRelay:
             return
         event = AlertEvent.model_validate(row.model_dump(exclude={"tenant_id"}))
         await self._alerts.append(row.tenant_id, event, dedupe_id=str(payload["event_id"]))
+
+    async def _invalidate_cache(self, payload: dict[str, Any]) -> None:
+        """Drop the cached answers citing the payload's versions. Idempotent, so a
+        redelivered row is harmless. An invalid payload is dead-lettered to
+        `dlq:cache.invalidate`, as for `drift.alert`; Redis errors propagate (retry)."""
+        try:
+            row = CacheInvalidation.model_validate(payload)
+        except ValidationError as exc:
+            logger.error(
+                "outbox row %s: invalid cache.invalidate payload, dead-lettered: %s",
+                payload["event_id"],
+                exc,
+            )
+            await self._bus.publish(f"dlq:{CACHE_INVALIDATE_TOPIC}", {**payload, "error": str(exc)})
+            return
+        await invalidate_versions(self._bus.redis, row.version_ids)
 
     async def mark_published(self, conn: asyncpg.Connection, ids: list[int]) -> None:
         if ids:
