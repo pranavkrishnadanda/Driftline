@@ -3,7 +3,7 @@ import redis.asyncio as aioredis
 from testcontainers.community.postgres import PostgresContainer
 from testcontainers.community.redis import RedisContainer
 
-pytest_plugins = ["conftest_cassettes"]
+pytest_plugins = ["conftest_cassettes", "conftest_db", "conftest_embedder"]
 
 
 @pytest.fixture(scope="session")
