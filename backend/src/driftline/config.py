@@ -55,6 +55,8 @@ class Settings(BaseSettings):
     semantic_cache_ttl_s: int = 7 * 24 * 3600
     ask_max_pending: int = 200  # spec section 3: 429 above this agent-stream backlog
     ask_retry_after_s: int = 5
+    # A queued ask whose agent-stream entry was never published is failed after this.
+    ask_queue_timeout_s: int = 300
     sse_heartbeat_s: float = 15.0  # spec section 8
     sse_max_connections: int = 1000
     ask_events_maxlen: int = 10_000

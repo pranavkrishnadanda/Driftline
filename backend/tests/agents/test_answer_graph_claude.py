@@ -146,5 +146,5 @@ async def test_claude_answers_from_in_force_evidence_and_ignores_injected_text(
     nodes = {e.node for e in events if isinstance(e, StepEvent)}
     assert {"classify", "plan", "subagent", "merge", "draft", "verify", "respond"} <= nodes
     assert [e.verified for e in events if isinstance(e, ClaimEvent)] == [True] * len(answer.claims)
-    cost = await job_cost(fresh_conn, JOB_ID)
+    cost = await job_cost(fresh_conn, JOB_ID, tenant_id=tenant)
     assert cost.calls >= 3 and cost.cost_usd > 0

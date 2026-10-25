@@ -116,12 +116,15 @@ class JobCost:
     cost_usd: Decimal
 
 
-async def job_cost(conn: asyncpg.Connection, job_id: UUID) -> JobCost:
+async def job_cost(conn: asyncpg.Connection, job_id: UUID, *, tenant_id: UUID) -> JobCost:
+    """Totals of the job's LLM calls, counting only calls recorded for `tenant_id`."""
     row = await conn.fetchrow(
         "SELECT count(*) AS calls, coalesce(sum(input_tokens), 0) AS input_tokens, "
         "coalesce(sum(output_tokens), 0) AS output_tokens, "
-        "coalesce(sum(cost_usd), 0) AS cost_usd FROM llm_calls WHERE job_id = $1",
+        "coalesce(sum(cost_usd), 0) AS cost_usd FROM llm_calls "
+        "WHERE job_id = $1 AND tenant_id = $2",
         job_id,
+        tenant_id,
     )
     return JobCost(
         row["calls"], int(row["input_tokens"]), int(row["output_tokens"]), Decimal(row["cost_usd"])

@@ -63,7 +63,7 @@ async def test_ledger_persists_calls_and_sums_per_job(fresh_pool):
     )
     assert cost == Decimal(0) and ledger.unpriced == {"gemini-3.8-flash"}
     async with fresh_pool.acquire() as conn:
-        total = await job_cost(conn, job)
+        total = await job_cost(conn, job, tenant_id=tenant)
         nodes = await conn.fetch(
             "SELECT node, degraded FROM llm_calls WHERE job_id = $1 ORDER BY id", job
         )
@@ -78,4 +78,22 @@ async def test_ledger_persists_calls_and_sums_per_job(fresh_pool):
 
 
 async def test_job_without_calls_costs_nothing(fresh_conn):
-    assert (await job_cost(fresh_conn, uuid4())).cost_usd == Decimal(0)
+    assert (await job_cost(fresh_conn, uuid4(), tenant_id=uuid4())).cost_usd == Decimal(0)
+
+
+async def test_job_cost_counts_only_the_given_tenants_calls(fresh_pool):
+    async with fresh_pool.acquire() as conn:
+        tenant, _ = await seed_source(conn)
+        intruder, _ = await seed_source(conn)
+        job = await conn.fetchval(
+            "INSERT INTO jobs (tenant_id, kind) VALUES ($1, 'ask') RETURNING id", tenant
+        )
+    ledger = CostLedger(fresh_pool)
+    await ledger.record(result(), node="draft", tier="answer", job_id=job, tenant_id=tenant)
+    await ledger.record(result(), node="draft", tier="answer", job_id=job, tenant_id=intruder)
+    async with fresh_pool.acquire() as conn:
+        mine = await job_cost(conn, job, tenant_id=tenant)
+        theirs = await job_cost(conn, job, tenant_id=intruder)
+        nobody = await job_cost(conn, job, tenant_id=uuid4())
+    assert (mine.calls, theirs.calls, nobody.calls) == (1, 1, 0)
+    assert mine.cost_usd == call_cost("anthropic", "claude-sonnet-5-5", 1000, 500)

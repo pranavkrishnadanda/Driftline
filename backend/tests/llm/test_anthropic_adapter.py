@@ -6,7 +6,10 @@ from anthropic.types import TextBlock, ThinkingBlock
 from anthropic.types import Usage as SdkUsage
 from conftest_cassettes import scrub_response_headers
 
+from driftline.clock import ManualClock
+from driftline.config import Settings
 from driftline.llm.adapters.anthropic import AnthropicAdapter, _result_text
+from driftline.llm.router import build_router
 from driftline.llm.types import CompletionRequest, Message, ProviderError, Role
 
 API_KEY = os.environ.get("DRIFTLINE_ANTHROPIC_API_KEY", "replay-only")
@@ -88,3 +91,16 @@ async def test_embed_is_unsupported():
         await AnthropicAdapter("unused").embed("any-model", ["text"], 768)
     assert exc_info.value.retryable is False
     assert "does not provide embeddings" in str(exc_info.value)
+
+
+def test_anthropic_adapter_uses_the_configured_request_timeout():
+    # Follow-up from the T1 review: never the SDK's 600 s default.
+    assert Settings(_env_file=None).llm_timeout_s == 120.0
+    assert AnthropicAdapter("unused")._client.timeout == 120.0
+    assert AnthropicAdapter("unused", timeout_s=7.5)._client.timeout == 7.5
+
+
+def test_build_router_passes_llm_timeout_s_to_the_anthropic_adapter(redis_client):
+    settings = Settings(_env_file=None, anthropic_api_key="unused", llm_timeout_s=30)
+    router = build_router(settings, redis_client, clock=ManualClock())
+    assert router.providers["anthropic"]._client.timeout == 30.0
