@@ -256,7 +256,10 @@ export function createApiClient(options: ApiClientOptions = {}) {
   }
 
   return {
-    health: (opts: RequestOptions = {}) => request<Health>("GET", "/healthz", opts),
+    /** The gateway origin this client calls; relative URLs it returns resolve against it. */
+    baseUrl,
+
+    health:(opts: RequestOptions = {}) => request<Health>("GET", "/healthz", opts),
 
     ask: (body: AskRequest, opts: RequestOptions = {}) =>
       request<AskAccepted>("POST", "/v1/ask", { body, ...opts }),

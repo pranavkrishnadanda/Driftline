@@ -184,6 +184,10 @@ describe("api client: success", () => {
     await createApiClient({ baseUrl: server.url }).job("a/b");
     expect(server.requests[0].url).toBe("/v1/jobs/a%2Fb");
   });
+
+  it("exposes its base URL without a trailing slash, for resolving events_url", () => {
+    expect(createApiClient({ baseUrl: "http://127.0.0.1:9/" }).baseUrl).toBe("http://127.0.0.1:9");
+  });
 });
 
 describe("api client: error mapping", () => {
