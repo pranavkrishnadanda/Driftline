@@ -46,9 +46,10 @@
 4. **Review while porting; don't copy blindly.** Check each module against the spec section named in your task. Check for: SQL injection (parameterised queries only), tenant isolation (every query filters `tenant_id`), unbounded loops, missing timeouts on network calls, swallowed exceptions, and any mock usage. Fix small issues test-first and list each one in your report.
 5. **Errors:** the deliberate TDD red is expected. Any other failure, hang (>120 s for one test), or crash: you get **one** focused fix attempt of at most 15 minutes. If it is still failing, **stop and report**: the test name, the exact error (≤15 lines), and your hypothesis. The orchestrator will dispatch a fixer. Don't keep going.
 6. Run each test command with a hard time limit: `perl -e 'alarm 300; exec @ARGV' uv run pytest ...`.
-7. Gate before committing: your task's tests plus `uv run ruff check . && uv run ruff format --check .`, and `grep -rnE "unittest.mock|MagicMock|monkeypatch" tests src` must print nothing.
-8. Commit with a plain message (`feat(p3): ...`, `test(p3): ...`) and **no trailer**. Do not push.
-9. Report: branch, commit hash, test summary line, the review fixes you made, and anything you left unresolved.
+7. **Run only your task's test files plus the test directories of modules you modified** (not the full suite). Several subagents running the full suite at once overloads the Colima VM (6 GB): TEI containers get OOM-killed, causing spurious reranker `ConnectError`s. The orchestrator runs the full suite once per wave.
+8. Gate before committing: your task's tests plus `uv run ruff check . && uv run ruff format --check .`, and `grep -rnE "unittest.mock|MagicMock|monkeypatch" tests src` must print nothing.
+9. Commit with a plain message (`feat(p3): ...`, `test(p3): ...`) and **no trailer**. Do not push.
+10. Report: branch, commit hash, test summary line, the review fixes you made, and anything you left unresolved.
 
 ## Review Focus (pinned by tests in the owning task)
 
