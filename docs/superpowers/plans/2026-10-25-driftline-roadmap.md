@@ -28,3 +28,21 @@ The spec spans several subsystems, so implementation is split into seven sub-pla
 | **P7 Evals + Bench** | Golden sets (150 per corpus), baselines, eval CI gate, k6 load + chaos tests, GitHub Pages reports, README + demo | P3, P4 | n/a |
 
 Critical path: P1 → P2 → P3 → P4 → P7. Frontend (P5a and P5b) and P6 run alongside it.
+
+## Wave count (as of 2026-10-25)
+
+| Plan | File | Waves | Tasks |
+|---|---|---|---|
+| P1 Foundation | `2026-10-25-p1-foundation.md` | 3 ✅ | 9 |
+| P1b Providers | `2026-10-25-p1b-providers.md` | 3 ✅ | 5 |
+| P2 Ingestion | `2026-10-25-p2-ingestion.md` | 5 ✅ | 12 |
+| P3 Retrieval + Agent | `2026-10-25-p3-retrieval-agent.md` | 5 | 11 |
+| P4 Drift + Review | `2026-10-25-p4-drift-review.md` | 4 | 9 |
+| P5a Frontend shell | `2026-10-25-p5-frontend.md` (A0–A2) | 3 | 4 |
+| P5b Frontend features | `2026-10-25-p5-frontend.md` (B1–B2) | 2 | 5 |
+| P6 MCP + Skills | `2026-10-25-p6-mcp-skills.md` | 4 | 5 |
+| P7 Evals + Bench | `2026-10-25-p7-evals-bench.md` | 4 | 7 |
+| **Total** | | **33** (11 done) | **67** |
+
+Execution order: P3 → P4 → P7, with P5a starting alongside P3 Wave 1, P5b after P4, and P6 Waves 0–1 after P3 (Wave 1b after P4).
+Every subagent follows the P3 implementer protocol: report unexpected errors after one fix attempt of at most 15 minutes, and add no AI attribution to commits.
