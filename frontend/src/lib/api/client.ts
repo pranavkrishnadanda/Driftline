@@ -35,11 +35,15 @@ export type Citation = Claim["citations"][number];
 export type NearestSource = AnswerSchema["nearest_sources"][number];
 export type SourceKind = NonNullable<AskRequest["source_kinds"]>[number];
 
-/** The query string of a generated route, e.g. `{ tenant: string; limit?: number }`. */
+/**
+ * The query string of a generated route, e.g. `{ tenant?: string | null; limit?: number }`.
+ * Since P6 T0 every tenant-scoped route's query is optional (a bearer key can name the
+ * tenant instead), so the generated `query` key itself is optional.
+ */
 type QueryParams<P extends keyof paths, M extends keyof paths[P]> = paths[P][M] extends {
-  parameters: { query: infer Q };
+  parameters: { query?: infer Q };
 }
-  ? Q
+  ? NonNullable<Q>
   : never;
 
 /** Answer watch state; POST and DELETE on the watch route both return it. */
@@ -51,36 +55,19 @@ export type DriftEventsQuery = QueryParams<"/v1/drift/events", "get">;
 export type DriftEventList = JsonResponse<"/v1/drift/events", "get", 200>;
 export type DriftEvent = DriftEventList["events"][number];
 export type DriftVerdict = DriftEvent["verdict"];
+export type ReviewQuery = QueryParams<"/v1/review", "get">;
+export type ReviewItemList = JsonResponse<"/v1/review", "get", 200>;
+export type ReviewItem = ReviewItemList["items"][number];
+export type ReviewKind = ReviewItem["kind"];
+export type ResolveRequest = JsonBody<"/v1/review/{item_id}/resolve", "post">;
 
 // ---------------------------------------------------------------------------------
 // pending backend: every type and route in this block is typed from the plans, not
 // from the OpenAPI document, because the gateway does not serve it yet.
-//   /v1/review, /v1/review/{id}/resolve   P4 T5
 //   /v1/stats                             P5b T4
 // When a route lands in contracts/openapi.json, regenerate schema.d.ts, delete its
 // PendingRoutes entry and derive its types from `paths` instead. Typecheck fails
 // while a route is listed in both places (see `_NoPendingRouteIsGenerated`).
-
-export type ReviewKind = "relation" | "broken_answer" | "low_confidence_answer";
-
-export interface ReviewItem {
-  id: string;
-  kind: ReviewKind;
-  ref_id: string;
-  payload: Record<string, unknown>;
-  status: string;
-}
-
-export interface ReviewQuery {
-  tenant: string;
-  kind?: ReviewKind;
-}
-
-export interface ResolveRequest {
-  action: "approve" | "edit" | "reject";
-  edit?: Record<string, unknown> | null;
-  by: string;
-}
 
 export interface Stats {
   corpus: { documents: number; versions: number; chunks: number };
@@ -92,8 +79,6 @@ export interface Stats {
 }
 
 interface PendingRoutes {
-  "/v1/review": true;
-  "/v1/review/{item_id}/resolve": true;
   "/v1/stats": true;
 }
 
@@ -155,6 +140,13 @@ export interface RequestOptions {
 export interface ApiClientOptions {
   /** Defaults to NEXT_PUBLIC_DRIFTLINE_API, then http://localhost:8010. */
   baseUrl?: string;
+  /**
+   * A per-tenant API key, sent as `Authorization: Bearer <key>` on every call and never
+   * put in a URL (query strings end up in access logs). Without one the gateway goes by
+   * the `tenant` name (dev mode). With one, `tenant` may be left out; when it is given
+   * it must be the key's tenant, or the call fails with 403 `tenant_mismatch`.
+   */
+  apiKey?: string;
 }
 
 const DEFAULT_BASE_URL = "http://localhost:8010";
@@ -171,12 +163,23 @@ function expand(route: Route, params: Record<string, string>): string {
   });
 }
 
+/**
+ * The code for a failed status whose body names none. 401 and 403 take the gateway's
+ * own auth codes (P6 T0): 401 is a missing or invalid API key, and 403 has one meaning
+ * in the contract, a key that is not the named tenant's.
+ */
+const STATUS_CODES: Record<number, string> = {
+  401: "unauthorized",
+  403: "tenant_mismatch",
+  422: "validation_error",
+};
+
 function errorCode(status: number, detail: unknown): string | null {
   if (detail && typeof detail === "object" && !Array.isArray(detail)) {
     const code = (detail as { code?: unknown }).code;
     if (typeof code === "string") return code;
   }
-  return status === 422 ? "validation_error" : null;
+  return STATUS_CODES[status] ?? null;
 }
 
 function errorDetail(text: string): unknown {
@@ -195,23 +198,25 @@ export function createApiClient(options: ApiClientOptions = {}) {
     process.env.NEXT_PUBLIC_DRIFTLINE_API ??
     DEFAULT_BASE_URL
   ).replace(/\/+$/, "");
+  const apiKey = options.apiKey?.trim() || null;
 
   async function request<T>(
     method: "GET" | "POST" | "DELETE",
     route: Route,
     init: {
       params?: Record<string, string>;
-      query?: Record<string, string | number | undefined>;
+      query?: Record<string, string | number | null | undefined>;
       body?: unknown;
       signal?: AbortSignal;
     } = {},
   ): Promise<T> {
     const url = new URL(baseUrl + expand(route, init.params ?? {}));
     for (const [key, value] of Object.entries(init.query ?? {})) {
-      if (value !== undefined) url.searchParams.set(key, String(value));
+      if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
     }
     const headers: Record<string, string> = { Accept: "application/json" };
     if (init.body !== undefined) headers["Content-Type"] = "application/json";
+    if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 
     let response: Response;
     let text: string;
@@ -247,7 +252,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
     /** The gateway origin this client calls; relative URLs it returns resolve against it. */
     baseUrl,
 
-    health:(opts: RequestOptions = {}) => request<Health>("GET", "/healthz", opts),
+    health: (opts: RequestOptions = {}) => request<Health>("GET", "/healthz", opts),
 
     ask: (body: AskRequest, opts: RequestOptions = {}) =>
       request<AskAccepted>("POST", "/v1/ask", { body, ...opts }),
@@ -256,14 +261,14 @@ export function createApiClient(options: ApiClientOptions = {}) {
       request<JobStatus>("GET", "/v1/jobs/{job_id}", { params: { job_id: jobId }, ...opts }),
 
     /** Re-check the answer whenever a document it cites changes. */
-    watch: (answerId: string, tenant: string, opts: RequestOptions = {}) =>
+    watch: (answerId: string, tenant?: string | null, opts: RequestOptions = {}) =>
       request<WatchState>("POST", "/v1/answers/{answer_id}/watch", {
         params: { answer_id: answerId },
         query: { tenant },
         ...opts,
       }),
 
-    unwatch: (answerId: string, tenant: string, opts: RequestOptions = {}) =>
+    unwatch: (answerId: string, tenant?: string | null, opts: RequestOptions = {}) =>
       request<WatchState>("DELETE", "/v1/answers/{answer_id}/watch", {
         params: { answer_id: answerId },
         query: { tenant },
@@ -277,22 +282,30 @@ export function createApiClient(options: ApiClientOptions = {}) {
         ...opts,
       }),
 
-    timeline: (documentId: string, tenant: string, opts: RequestOptions = {}) =>
+    timeline: (documentId: string, tenant?: string | null, opts: RequestOptions = {}) =>
       request<DocumentTimeline>("GET", "/v1/documents/{document_id}/timeline", {
         params: { document_id: documentId },
         query: { tenant },
         ...opts,
       }),
 
-    review: (query: ReviewQuery, opts: RequestOptions = {}) =>
-      request<ReviewItem[]>("GET", "/v1/review", {
-        query: { tenant: query.tenant, kind: query.kind },
+    /** The tenant's review items, oldest first. */
+    review: (query: ReviewQuery = {}, opts: RequestOptions = {}) =>
+      request<ReviewItemList>("GET", "/v1/review", {
+        query: { tenant: query.tenant, kind: query.kind, status: query.status, limit: query.limit },
         ...opts,
       }),
 
-    resolve: (itemId: string, body: ResolveRequest, opts: RequestOptions = {}) =>
+    /** Approve, edit or reject a review item. An already-resolved item is a 409 `ApiError`. */
+    resolve: (
+      itemId: string,
+      body: ResolveRequest,
+      tenant?: string | null,
+      opts: RequestOptions = {},
+    ) =>
       request<ReviewItem>("POST", "/v1/review/{item_id}/resolve", {
         params: { item_id: itemId },
+        query: { tenant },
         body,
         ...opts,
       }),

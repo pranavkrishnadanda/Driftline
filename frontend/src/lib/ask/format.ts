@@ -122,6 +122,12 @@ export function classifyAskFailure(error: unknown): AskFailure | null {
     if (error.code === "unknown_tenant") {
       return { kind: "error", message: "Unknown tenant. Pick another tenant and ask again." };
     }
+    if (error.status === 401) {
+      return { kind: "error", message: "The API key is missing or invalid." };
+    }
+    if (error.status === 403) {
+      return { kind: "error", message: "The API key does not belong to this tenant." };
+    }
     return {
       kind: "error",
       message: `The request was rejected (${error.status}${error.code ? ` ${error.code}` : ""}).`,

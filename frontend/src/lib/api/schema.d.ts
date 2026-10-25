@@ -168,6 +168,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Review
+         * @description This tenant's review items, oldest first.
+         */
+        get: operations["list_review_v1_review_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/review/{item_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resolve
+         * @description Approve, edit or reject an item. Resolving a paused answer resumes its ask; an
+         *     approved broken answer is regenerated; an edit becomes an eval case.
+         */
+        post: operations["resolve_v1_review__item_id__resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -305,7 +346,7 @@ export interface components {
             /** Source Kinds */
             source_kinds?: ("openfda" | "git_docs" | "upload")[] | null;
             /** Tenant */
-            tenant: string;
+            tenant?: string | null;
         };
         /**
          * Citation
@@ -544,6 +585,77 @@ export interface components {
             /** Version No */
             version_no: number;
         };
+        /**
+         * ResolveRequest
+         * @description `edit` goes with action `edit` only: `{"kind": ...}` for a relation, or
+         *     `{"answer": "..."}` for an answer item.
+         */
+        ResolveRequest: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "approve" | "edit" | "reject";
+            /**
+             * By
+             * @description who resolved it
+             */
+            by: string;
+            /** Edit */
+            edit?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** ReviewItem */
+        ReviewItem: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "relation" | "broken_answer" | "low_confidence_answer" | "answer";
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /**
+             * Ref Id
+             * Format: uuid
+             */
+            ref_id: string;
+            /** Resolution */
+            resolution?: {
+                [key: string]: unknown;
+            } | null;
+            /** Resolved At */
+            resolved_at?: string | null;
+            /** Resolved By */
+            resolved_by?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "resolved";
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /** ReviewItemList */
+        ReviewItemList: {
+            /** Items */
+            items: components["schemas"]["ReviewItem"][];
+        };
         /** StepEvent */
         StepEvent: {
             /**
@@ -559,7 +671,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "started" | "completed" | "skipped" | "retry" | "hit" | "miss" | "failed";
+            status: "started" | "completed" | "skipped" | "retry" | "hit" | "miss" | "failed" | "waiting";
             /**
              * T Ms
              * @default 0
@@ -722,10 +834,10 @@ export interface operations {
     };
     alerts_v1_alerts_stream_get: {
         parameters: {
-            query: {
-                /** @description tenant name */
-                tenant: string;
+            query?: {
                 last_event_id?: string | null;
+                /** @description tenant name; optional with a bearer key, which must then match it */
+                tenant?: string | null;
             };
             header?: {
                 "last-event-id"?: string | null;
@@ -743,6 +855,20 @@ export interface operations {
                 content: {
                     "text/event-stream": components["schemas"]["AlertEvents"];
                 };
+            };
+            /** @description missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the API key is not the named tenant's */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description unknown tenant */
             404: {
@@ -771,9 +897,9 @@ export interface operations {
     };
     watch_v1_answers__answer_id__watch_post: {
         parameters: {
-            query: {
-                /** @description tenant name */
-                tenant: string;
+            query?: {
+                /** @description tenant name; optional with a bearer key, which must then match it */
+                tenant?: string | null;
             };
             header?: never;
             path: {
@@ -791,6 +917,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["WatchState"];
                 };
+            };
+            /** @description missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the API key is not the named tenant's */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description unknown tenant, or not found in this tenant */
             404: {
@@ -812,9 +952,9 @@ export interface operations {
     };
     unwatch_v1_answers__answer_id__watch_delete: {
         parameters: {
-            query: {
-                /** @description tenant name */
-                tenant: string;
+            query?: {
+                /** @description tenant name; optional with a bearer key, which must then match it */
+                tenant?: string | null;
             };
             header?: never;
             path: {
@@ -832,6 +972,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["WatchState"];
                 };
+            };
+            /** @description missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the API key is not the named tenant's */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description unknown tenant, or not found in this tenant */
             404: {
@@ -873,6 +1027,20 @@ export interface operations {
                     "application/json": components["schemas"]["AskAccepted"];
                 };
             };
+            /** @description missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the API key is not the named tenant's */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description unknown tenant */
             404: {
                 headers: {
@@ -900,9 +1068,9 @@ export interface operations {
     };
     timeline_v1_documents__document_id__timeline_get: {
         parameters: {
-            query: {
-                /** @description tenant name */
-                tenant: string;
+            query?: {
+                /** @description tenant name; optional with a bearer key, which must then match it */
+                tenant?: string | null;
             };
             header?: never;
             path: {
@@ -920,6 +1088,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["DocumentTimeline"];
                 };
+            };
+            /** @description missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the API key is not the named tenant's */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description unknown tenant, or not found in this tenant */
             404: {
@@ -941,10 +1123,10 @@ export interface operations {
     };
     drift_events_v1_drift_events_get: {
         parameters: {
-            query: {
-                /** @description tenant name */
-                tenant: string;
+            query?: {
                 limit?: number;
+                /** @description tenant name; optional with a bearer key, which must then match it */
+                tenant?: string | null;
             };
             header?: never;
             path?: never;
@@ -960,6 +1142,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["DriftEventList"];
                 };
+            };
+            /** @description missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the API key is not the named tenant's */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description unknown tenant, or not found in this tenant */
             404: {
@@ -981,7 +1177,10 @@ export interface operations {
     };
     job_status_v1_jobs__job_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description tenant name; optional with a bearer key, which must then match it */
+                tenant?: string | null;
+            };
             header?: never;
             path: {
                 job_id: string;
@@ -998,6 +1197,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["JobStatus"];
                 };
+            };
+            /** @description missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the API key is not the named tenant's */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not Found */
             404: {
@@ -1021,6 +1234,8 @@ export interface operations {
         parameters: {
             query?: {
                 last_event_id?: string | null;
+                /** @description tenant name; optional with a bearer key, which must then match it */
+                tenant?: string | null;
             };
             header?: {
                 "last-event-id"?: string | null;
@@ -1059,6 +1274,126 @@ export interface operations {
             };
             /** @description too many open streams */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_review_v1_review_get: {
+        parameters: {
+            query?: {
+                kind?: ("relation" | "broken_answer" | "low_confidence_answer" | "answer") | null;
+                status?: "open" | "resolved";
+                limit?: number;
+                /** @description tenant name; optional with a bearer key, which must then match it */
+                tenant?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewItemList"];
+                };
+            };
+            /** @description missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the API key is not the named tenant's */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown tenant or review item */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_v1_review__item_id__resolve_post: {
+        parameters: {
+            query?: {
+                /** @description tenant name; optional with a bearer key, which must then match it */
+                tenant?: string | null;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewItem"];
+                };
+            };
+            /** @description missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the API key is not the named tenant's */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown tenant or review item */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description already resolved */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the action or edit does not fit this item */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
