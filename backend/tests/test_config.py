@@ -47,3 +47,15 @@ def test_default_max_output_tokens_leaves_room_for_thinking():
     assert Settings(_env_file=None).default_max_output_tokens == 2048
     request = CompletionRequest(messages=[Message(role=Role.user, content="hi")])
     assert request.max_output_tokens == 2048
+
+
+def test_ingest_settings_defaults_and_local_postgres_port():
+    s = Settings(_env_file=None)
+    assert s.database_url == "postgresql://driftline:driftline@localhost:5433/driftline"
+    assert s.github_token is None and s.openfda_api_key is None
+    assert s.upload_root == "/data/uploads"
+    assert (s.chunk_tokens, s.chunk_overlap_tokens) == (256, 32)
+    assert s.embed_batch_size == 32
+    assert s.relation_apply_threshold == 0.8
+    assert s.outbox_batch_size == 100
+    assert s.http_timeout_s == 120.0

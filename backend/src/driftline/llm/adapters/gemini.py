@@ -24,7 +24,14 @@ class GeminiAdapter:
     name = "gemini"
 
     def __init__(self, api_key: str, *, clock: Clock | None = None) -> None:
-        self._client = genai.Client(api_key=api_key)
+        # google-genai switches to aiohttp whenever it is importable (llama-index pulls it
+        # in). Passing an httpx transport keeps the async path on httpx, as recorded.
+        self._client = genai.Client(
+            api_key=api_key,
+            http_options=gtypes.HttpOptions(
+                async_client_args={"transport": httpx.AsyncHTTPTransport()}
+            ),
+        )
         self._clock = clock or SystemClock()
 
     async def complete(self, model: str, request: CompletionRequest) -> CompletionResult:
