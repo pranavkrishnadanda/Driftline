@@ -56,6 +56,8 @@ const { positionals, values } = parseArgs({
     source: { type: "string", default: "" },
     "alert-seconds": { type: "string", default: "5" },
     "ask-timeout": { type: "string", default: "240" },
+    /** Comma-separated document ids to record too (the gateway cannot list documents). */
+    documents: { type: "string", default: "" },
   },
 });
 
@@ -199,6 +201,7 @@ async function finish(statePath: string, outPath: string): Promise<void> {
   const queue = [
     ...citedDocuments(state.asks),
     ...drift.events.flatMap((e) => (e.document_id ? [e.document_id] : [])),
+    ...(values.documents ?? "").split(",").filter(Boolean),
   ];
   // The documents above, plus the ones their relations point at (one hop).
   for (let hop = 0; hop < 2; hop++) {

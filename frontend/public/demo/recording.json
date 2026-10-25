@@ -1,0 +1,4649 @@
+{
+ "version": 1,
+ "recorded_at": "2026-10-25T14:30:12.150Z",
+ "source": "Live run of the full Driftline stack (Compose) on 25 Oct 2026 over two openFDA/DailyMed drug labels (Lipitor, Plavix) and two Kubernetes docs (release-1.34 to 1.36). The 4 answers were written by Claude (claude-sonnet-5-5; claude-haiku-5-5 for extraction) and their SSE streams recorded as they arrived. Older versions were ingested first; the answers were then watched and the newer versions ingested, so the drift events are real. The drift re-check ran in offline mode (no LLM: the offline extractive judge).",
+ "tenant": "demo",
+ "asks": [
+  {
+   "request": {
+    "question": "What should a patient do if they miss a dose of Lipitor?",
+    "tenant": "demo",
+    "as_of": "2023-06-01T00:00:00Z"
+   },
+   "accepted": {
+    "job_id": "fc738dcd-db6a-47bd-935d-c12b198ab0dd",
+    "events_url": "/v1/jobs/fc738dcd-db6a-47bd-935d-c12b198ab0dd/events",
+    "status_url": "/v1/jobs/fc738dcd-db6a-47bd-935d-c12b198ab0dd"
+   },
+   "events": [
+    {
+     "at_ms": 28,
+     "id": "1",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "classify",
+      "status": "started",
+      "detail": {},
+      "t_ms": 20.4
+     }
+    },
+    {
+     "at_ms": 30,
+     "id": "2",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "classify",
+      "status": "completed",
+      "detail": {
+       "as_of": "2023-06-01T00:00:00+00:00",
+       "source": "request",
+       "refused": null,
+       "empty_corpus": false
+      },
+      "t_ms": 25.4
+     }
+    },
+    {
+     "at_ms": 32,
+     "id": "3",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "cache",
+      "status": "miss",
+      "detail": {},
+      "t_ms": 28.7
+     }
+    },
+    {
+     "at_ms": 36,
+     "id": "4",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "plan",
+      "status": "started",
+      "detail": {},
+      "t_ms": 29.7
+     }
+    },
+    {
+     "at_ms": 3384,
+     "id": "5",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "plan",
+      "status": "completed",
+      "detail": {
+       "mode": "single",
+       "sub_questions": [
+        {
+         "question": "What should a patient do if they miss a dose of Lipitor?",
+         "as_of": "2023-06-01T00:00:00+00:00"
+        }
+       ],
+       "error": null
+      },
+      "t_ms": 3380.2
+     }
+    },
+    {
+     "at_ms": 3390,
+     "id": "6",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "subagent",
+      "status": "started",
+      "detail": {
+       "branch": 0,
+       "sub_question": "What should a patient do if they miss a dose of Lipitor?",
+       "as_of": "2023-06-01T00:00:00+00:00"
+      },
+      "t_ms": 3381.8
+     }
+    },
+    {
+     "at_ms": 9826,
+     "id": "7",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "subagent",
+      "status": "completed",
+      "detail": {
+       "branch": 0,
+       "retrieved": 30,
+       "kept": 8,
+       "reranked": true,
+       "rerank_error": null
+      },
+      "t_ms": 9821.7
+     }
+    },
+    {
+     "at_ms": 9827,
+     "id": "8",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "merge",
+      "status": "completed",
+      "detail": {
+       "evidence": 8
+      },
+      "t_ms": 9823.9
+     }
+    },
+    {
+     "at_ms": 9832,
+     "id": "9",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "started",
+      "detail": {
+       "attempt": 0
+      },
+      "t_ms": 9825.4
+     }
+    },
+    {
+     "at_ms": 11428,
+     "id": "10",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "If"
+     }
+    },
+    {
+     "at_ms": 11428,
+     "id": "11",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " you"
+     }
+    },
+    {
+     "at_ms": 11774,
+     "id": "12",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " miss a dose of"
+     }
+    },
+    {
+     "at_ms": 11775,
+     "id": "13",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " Lipitor, take it"
+     }
+    },
+    {
+     "at_ms": 11775,
+     "id": "14",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " as soon as you remember."
+     }
+    },
+    {
+     "at_ms": 11776,
+     "id": "15",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " Do not take it if more"
+     }
+    },
+    {
+     "at_ms": 11776,
+     "id": "16",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " than 12 hours have pass"
+     }
+    },
+    {
+     "at_ms": 11776,
+     "id": "17",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ed since the"
+     }
+    },
+    {
+     "at_ms": 11777,
+     "id": "18",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " missed dose; instead,"
+     }
+    },
+    {
+     "at_ms": 11777,
+     "id": "19",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " wait and take the next dose"
+     }
+    },
+    {
+     "at_ms": 11777,
+     "id": "20",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " at your regular time. Never"
+     }
+    },
+    {
+     "at_ms": 11777,
+     "id": "21",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " take "
+     }
+    },
+    {
+     "at_ms": 11806,
+     "id": "22",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "2 doses at"
+     }
+    },
+    {
+     "at_ms": 11838,
+     "id": "23",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " the same time."
+     }
+    },
+    {
+     "at_ms": 14089,
+     "id": "24",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "completed",
+      "detail": {
+       "attempt": 0,
+       "claims": 3
+      },
+      "t_ms": 14083.5
+     }
+    },
+    {
+     "at_ms": 14093,
+     "id": "25",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "started",
+      "detail": {
+       "attempt": 0
+      },
+      "t_ms": 14087
+     }
+    },
+    {
+     "at_ms": 15711,
+     "id": "26",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 0,
+      "verified": true,
+      "citation": {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "If you miss a dose of LIPITOR, take it as soon as you remember.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 17486,
+     "id": "27",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 1,
+      "verified": false,
+      "citation": {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "Do not take LIPITOR if it has been more than 12 hours since you missed your last dose.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      },
+      "reason": "not_entailed"
+     }
+    },
+    {
+     "at_ms": 18864,
+     "id": "28",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 2,
+      "verified": true,
+      "citation": {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "Do not take 2 doses of LIPITOR at the same time.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 18864,
+     "id": "29",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "completed",
+      "detail": {
+       "supported": 2,
+       "unsupported": 1
+      },
+      "t_ms": 18859.8
+     }
+    },
+    {
+     "at_ms": 18873,
+     "id": "30",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "re_retrieve",
+      "status": "started",
+      "detail": {
+       "attempt": 1,
+       "claims": 1
+      },
+      "t_ms": 18862.6
+     }
+    },
+    {
+     "at_ms": 21011,
+     "id": "31",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "re_retrieve",
+      "status": "completed",
+      "detail": {
+       "attempt": 1,
+       "found": 4
+      },
+      "t_ms": 21007.2
+     }
+    },
+    {
+     "at_ms": 21015,
+     "id": "32",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "retry",
+      "detail": {
+       "attempt": 1
+      },
+      "t_ms": 21009.2
+     }
+    },
+    {
+     "at_ms": 23526,
+     "id": "33",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "If"
+     }
+    },
+    {
+     "at_ms": 23713,
+     "id": "34",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " you"
+     }
+    },
+    {
+     "at_ms": 23714,
+     "id": "35",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " miss a dose of L"
+     }
+    },
+    {
+     "at_ms": 23714,
+     "id": "36",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ipitor, take it as so"
+     }
+    },
+    {
+     "at_ms": 23715,
+     "id": "37",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "on as you remember. Do"
+     }
+    },
+    {
+     "at_ms": 23715,
+     "id": "38",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " not take it if more"
+     }
+    },
+    {
+     "at_ms": 23720,
+     "id": "39",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " than 12 hours have pass"
+     }
+    },
+    {
+     "at_ms": 23753,
+     "id": "40",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ed since the missed dose."
+     }
+    },
+    {
+     "at_ms": 23785,
+     "id": "41",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " In"
+     }
+    },
+    {
+     "at_ms": 23820,
+     "id": "42",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " that case,"
+     }
+    },
+    {
+     "at_ms": 23854,
+     "id": "43",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " wait and"
+     }
+    },
+    {
+     "at_ms": 23892,
+     "id": "44",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " take the next dose at your reg"
+     }
+    },
+    {
+     "at_ms": 23918,
+     "id": "45",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ular time."
+     }
+    },
+    {
+     "at_ms": 24093,
+     "id": "46",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " Never take "
+     }
+    },
+    {
+     "at_ms": 24093,
+     "id": "47",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "2 doses at the same time"
+     }
+    },
+    {
+     "at_ms": 24094,
+     "id": "48",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "."
+     }
+    },
+    {
+     "at_ms": 26839,
+     "id": "49",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "completed",
+      "detail": {
+       "attempt": 1,
+       "claims": 4
+      },
+      "t_ms": 26834.6
+     }
+    },
+    {
+     "at_ms": 26848,
+     "id": "50",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "started",
+      "detail": {
+       "attempt": 1
+      },
+      "t_ms": 26839.4
+     }
+    },
+    {
+     "at_ms": 28154,
+     "id": "51",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 0,
+      "verified": true,
+      "citation": {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "If you miss a dose of LIPITOR, take it as soon as you remember.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 30158,
+     "id": "52",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 1,
+      "verified": true,
+      "citation": {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "Do not take LIPITOR if it has been more than 12 hours since you missed your last dose.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 31719,
+     "id": "53",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 2,
+      "verified": true,
+      "citation": {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "Wait and take the next dose at your regular time.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 33311,
+     "id": "54",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 3,
+      "verified": true,
+      "citation": {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "Do not take 2 doses of LIPITOR at the same time.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 33311,
+     "id": "55",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "completed",
+      "detail": {
+       "supported": 4,
+       "unsupported": 0
+      },
+      "t_ms": 33306.6
+     }
+    },
+    {
+     "at_ms": 33378,
+     "id": "56",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "respond",
+      "status": "completed",
+      "detail": {
+       "outcome": "answered",
+       "error": null
+      },
+      "t_ms": 33374.8
+     }
+    },
+    {
+     "at_ms": 33386,
+     "id": "57",
+     "event": "final",
+     "data": {
+      "type": "final",
+      "answer": {
+       "status": "answered",
+       "answer": "If you miss a dose of Lipitor, take it as soon as you remember. Do not take it if more than 12 hours have passed since the missed dose. In that case, wait and take the next dose at your regular time. Never take 2 doses at the same time.",
+       "claims": [
+        {
+         "idx": 0,
+         "text": "A patient who misses a dose of Lipitor should take it as soon as they remember.",
+         "citations": [
+          {
+           "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+           "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+           "quote": "If you miss a dose of LIPITOR, take it as soon as you remember.",
+           "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+           "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+           "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+           "version_no": 1,
+           "section_path": "Patient Information",
+           "valid_from": "2023-02-15T00:00:00Z",
+           "valid_to": "2024-04-15T00:00:00Z"
+          }
+         ],
+         "verified": true,
+         "reason": null
+        },
+        {
+         "idx": 1,
+         "text": "The patient should not take the missed Lipitor dose if it has been more than 12 hours since it was missed.",
+         "citations": [
+          {
+           "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+           "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+           "quote": "Do not take LIPITOR if it has been more than 12 hours since you missed your last dose.",
+           "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+           "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+           "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+           "version_no": 1,
+           "section_path": "Patient Information",
+           "valid_from": "2023-02-15T00:00:00Z",
+           "valid_to": "2024-04-15T00:00:00Z"
+          }
+         ],
+         "verified": true,
+         "reason": null
+        },
+        {
+         "idx": 2,
+         "text": "The patient should wait and take the next dose at the regular time.",
+         "citations": [
+          {
+           "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+           "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+           "quote": "Wait and take the next dose at your regular time.",
+           "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+           "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+           "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+           "version_no": 1,
+           "section_path": "Patient Information",
+           "valid_from": "2023-02-15T00:00:00Z",
+           "valid_to": "2024-04-15T00:00:00Z"
+          }
+         ],
+         "verified": true,
+         "reason": null
+        },
+        {
+         "idx": 3,
+         "text": "The patient should not take 2 doses of Lipitor at the same time.",
+         "citations": [
+          {
+           "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+           "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+           "quote": "Do not take 2 doses of LIPITOR at the same time.",
+           "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+           "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+           "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+           "version_no": 1,
+           "section_path": "Patient Information",
+           "valid_from": "2023-02-15T00:00:00Z",
+           "valid_to": "2024-04-15T00:00:00Z"
+          }
+         ],
+         "verified": true,
+         "reason": null
+        }
+       ],
+       "citations": [
+        {
+         "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+         "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+         "quote": "If you miss a dose of LIPITOR, take it as soon as you remember.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 1,
+         "section_path": "Patient Information",
+         "valid_from": "2023-02-15T00:00:00Z",
+         "valid_to": "2024-04-15T00:00:00Z"
+        },
+        {
+         "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+         "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+         "quote": "Do not take LIPITOR if it has been more than 12 hours since you missed your last dose.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 1,
+         "section_path": "Patient Information",
+         "valid_from": "2023-02-15T00:00:00Z",
+         "valid_to": "2024-04-15T00:00:00Z"
+        },
+        {
+         "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+         "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+         "quote": "Wait and take the next dose at your regular time.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 1,
+         "section_path": "Patient Information",
+         "valid_from": "2023-02-15T00:00:00Z",
+         "valid_to": "2024-04-15T00:00:00Z"
+        },
+        {
+         "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+         "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+         "quote": "Do not take 2 doses of LIPITOR at the same time.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 1,
+         "section_path": "Patient Information",
+         "valid_from": "2023-02-15T00:00:00Z",
+         "valid_to": "2024-04-15T00:00:00Z"
+        }
+       ],
+       "dropped_claims": [],
+       "nearest_sources": [],
+       "as_of": "2023-06-01T00:00:00Z",
+       "confidence": 1,
+       "degraded": false,
+       "cached": false,
+       "answer_id": "65b317c7-4141-42f1-9964-8e4d965f3c13",
+       "cost_usd": 0.046383
+      }
+     }
+    }
+   ],
+   "job": {
+    "job_id": "fc738dcd-db6a-47bd-935d-c12b198ab0dd",
+    "status": "succeeded",
+    "error": null,
+    "answer": {
+     "status": "answered",
+     "answer": "If you miss a dose of Lipitor, take it as soon as you remember. Do not take it if more than 12 hours have passed since the missed dose. In that case, wait and take the next dose at your regular time. Never take 2 doses at the same time.",
+     "claims": [
+      {
+       "idx": 0,
+       "text": "A patient who misses a dose of Lipitor should take it as soon as they remember.",
+       "citations": [
+        {
+         "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+         "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+         "quote": "If you miss a dose of LIPITOR, take it as soon as you remember.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 1,
+         "section_path": "Patient Information",
+         "valid_from": "2023-02-15T00:00:00Z",
+         "valid_to": "2024-04-15T00:00:00Z"
+        }
+       ],
+       "verified": true,
+       "reason": null
+      },
+      {
+       "idx": 1,
+       "text": "The patient should not take the missed Lipitor dose if it has been more than 12 hours since it was missed.",
+       "citations": [
+        {
+         "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+         "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+         "quote": "Do not take LIPITOR if it has been more than 12 hours since you missed your last dose.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 1,
+         "section_path": "Patient Information",
+         "valid_from": "2023-02-15T00:00:00Z",
+         "valid_to": "2024-04-15T00:00:00Z"
+        }
+       ],
+       "verified": true,
+       "reason": null
+      },
+      {
+       "idx": 2,
+       "text": "The patient should wait and take the next dose at the regular time.",
+       "citations": [
+        {
+         "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+         "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+         "quote": "Wait and take the next dose at your regular time.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 1,
+         "section_path": "Patient Information",
+         "valid_from": "2023-02-15T00:00:00Z",
+         "valid_to": "2024-04-15T00:00:00Z"
+        }
+       ],
+       "verified": true,
+       "reason": null
+      },
+      {
+       "idx": 3,
+       "text": "The patient should not take 2 doses of Lipitor at the same time.",
+       "citations": [
+        {
+         "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+         "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+         "quote": "Do not take 2 doses of LIPITOR at the same time.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 1,
+         "section_path": "Patient Information",
+         "valid_from": "2023-02-15T00:00:00Z",
+         "valid_to": "2024-04-15T00:00:00Z"
+        }
+       ],
+       "verified": true,
+       "reason": null
+      }
+     ],
+     "citations": [
+      {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "If you miss a dose of LIPITOR, take it as soon as you remember.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      },
+      {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "Do not take LIPITOR if it has been more than 12 hours since you missed your last dose.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      },
+      {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "Wait and take the next dose at your regular time.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      },
+      {
+       "chunk_id": "f2b3386b-19e5-42c3-bbcc-c0928935cb79",
+       "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+       "quote": "Do not take 2 doses of LIPITOR at the same time.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 1,
+       "section_path": "Patient Information",
+       "valid_from": "2023-02-15T00:00:00Z",
+       "valid_to": "2024-04-15T00:00:00Z"
+      }
+     ],
+     "dropped_claims": [],
+     "nearest_sources": [],
+     "as_of": "2023-06-01T00:00:00Z",
+     "confidence": 1,
+     "degraded": false,
+     "cached": false,
+     "answer_id": "65b317c7-4141-42f1-9964-8e4d965f3c13",
+     "cost_usd": 0.046383
+    },
+    "cost_usd": 0.046383
+   }
+  },
+  {
+   "request": {
+    "question": "What should a patient do if they miss a dose of Lipitor?",
+    "tenant": "demo",
+    "as_of": "2025-06-01T00:00:00Z"
+   },
+   "accepted": {
+    "job_id": "a9ec18a6-7201-47ba-8361-df15b66b970c",
+    "events_url": "/v1/jobs/a9ec18a6-7201-47ba-8361-df15b66b970c/events",
+    "status_url": "/v1/jobs/a9ec18a6-7201-47ba-8361-df15b66b970c"
+   },
+   "events": [
+    {
+     "at_ms": 2,
+     "id": "1",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "classify",
+      "status": "started",
+      "detail": {},
+      "t_ms": 2.2
+     }
+    },
+    {
+     "at_ms": 2,
+     "id": "2",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "classify",
+      "status": "completed",
+      "detail": {
+       "as_of": "2025-06-01T00:00:00+00:00",
+       "source": "request",
+       "refused": null,
+       "empty_corpus": false
+      },
+      "t_ms": 3
+     }
+    },
+    {
+     "at_ms": 4,
+     "id": "3",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "cache",
+      "status": "miss",
+      "detail": {},
+      "t_ms": 4.5
+     }
+    },
+    {
+     "at_ms": 7,
+     "id": "4",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "plan",
+      "status": "started",
+      "detail": {},
+      "t_ms": 5.4
+     }
+    },
+    {
+     "at_ms": 1278,
+     "id": "5",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "plan",
+      "status": "completed",
+      "detail": {
+       "mode": "single",
+       "sub_questions": [
+        {
+         "question": "What should a patient do if they miss a dose of Lipitor?",
+         "as_of": "2025-06-01T00:00:00+00:00"
+        }
+       ],
+       "error": null
+      },
+      "t_ms": 1276.6
+     }
+    },
+    {
+     "at_ms": 1288,
+     "id": "6",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "subagent",
+      "status": "started",
+      "detail": {
+       "branch": 0,
+       "sub_question": "What should a patient do if they miss a dose of Lipitor?",
+       "as_of": "2025-06-01T00:00:00+00:00"
+      },
+      "t_ms": 1279.6
+     }
+    },
+    {
+     "at_ms": 7833,
+     "id": "7",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "subagent",
+      "status": "completed",
+      "detail": {
+       "branch": 0,
+       "retrieved": 30,
+       "kept": 8,
+       "reranked": true,
+       "rerank_error": null
+      },
+      "t_ms": 7833.1
+     }
+    },
+    {
+     "at_ms": 7834,
+     "id": "8",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "merge",
+      "status": "completed",
+      "detail": {
+       "evidence": 8
+      },
+      "t_ms": 7834.6
+     }
+    },
+    {
+     "at_ms": 7837,
+     "id": "9",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "started",
+      "detail": {
+       "attempt": 0
+      },
+      "t_ms": 7835.6
+     }
+    },
+    {
+     "at_ms": 9288,
+     "id": "10",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "If a"
+     }
+    },
+    {
+     "at_ms": 9639,
+     "id": "11",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " dose of"
+     }
+    },
+    {
+     "at_ms": 9640,
+     "id": "12",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " Lipitor is missed"
+     }
+    },
+    {
+     "at_ms": 9640,
+     "id": "13",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": ", the patient should not take the"
+     }
+    },
+    {
+     "at_ms": 9641,
+     "id": "14",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " missed dose and should wait"
+     }
+    },
+    {
+     "at_ms": 9641,
+     "id": "15",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " and take the next d"
+     }
+    },
+    {
+     "at_ms": 9641,
+     "id": "16",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ose at the"
+     }
+    },
+    {
+     "at_ms": 9641,
+     "id": "17",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " regular time. The"
+     }
+    },
+    {
+     "at_ms": 9641,
+     "id": "18",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " patient should not take "
+     }
+    },
+    {
+     "at_ms": 9642,
+     "id": "19",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "2 doses at"
+     }
+    },
+    {
+     "at_ms": 9642,
+     "id": "20",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " the same time."
+     }
+    },
+    {
+     "at_ms": 12046,
+     "id": "21",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "completed",
+      "detail": {
+       "attempt": 0,
+       "claims": 2
+      },
+      "t_ms": 12046.2
+     }
+    },
+    {
+     "at_ms": 12049,
+     "id": "22",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "started",
+      "detail": {
+       "attempt": 0
+      },
+      "t_ms": 12048.2
+     }
+    },
+    {
+     "at_ms": 13447,
+     "id": "23",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 0,
+      "verified": true,
+      "citation": {
+       "chunk_id": "8f6779ba-74c5-421f-9d3c-d7c0371ee3d0",
+       "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+       "quote": "If a dose is missed, advise patients not to take the missed dose and resume with the next scheduled dose.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 3,
+       "section_path": "2 DOSAGE AND ADMINISTRATION > 2.1 Important Dosage Information",
+       "valid_from": "2024-04-15T00:00:01Z",
+       "valid_to": null
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 14941,
+     "id": "24",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 1,
+      "verified": true,
+      "citation": {
+       "chunk_id": "8938934f-d8e5-4a46-9c30-a3243fd3ce0d",
+       "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+       "quote": "If you miss a dose of LIPITOR, wait and take the next dose at your regular time.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 3,
+       "section_path": "Patient Information",
+       "valid_from": "2024-04-15T00:00:01Z",
+       "valid_to": null
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 14941,
+     "id": "25",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "completed",
+      "detail": {
+       "supported": 2,
+       "unsupported": 0
+      },
+      "t_ms": 14939.7
+     }
+    },
+    {
+     "at_ms": 14978,
+     "id": "26",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "respond",
+      "status": "completed",
+      "detail": {
+       "outcome": "answered",
+       "error": null
+      },
+      "t_ms": 14978
+     }
+    },
+    {
+     "at_ms": 14982,
+     "id": "27",
+     "event": "final",
+     "data": {
+      "type": "final",
+      "answer": {
+       "status": "answered",
+       "answer": "If a dose of Lipitor is missed, the patient should not take the missed dose and should wait and take the next dose at the regular time. The patient should not take 2 doses at the same time.",
+       "claims": [
+        {
+         "idx": 0,
+         "text": "If a dose is missed, patients should not take the missed dose and should resume with the next scheduled dose.",
+         "citations": [
+          {
+           "chunk_id": "8f6779ba-74c5-421f-9d3c-d7c0371ee3d0",
+           "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+           "quote": "If a dose is missed, advise patients not to take the missed dose and resume with the next scheduled dose.",
+           "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+           "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+           "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+           "version_no": 3,
+           "section_path": "2 DOSAGE AND ADMINISTRATION > 2.1 Important Dosage Information",
+           "valid_from": "2024-04-15T00:00:01Z",
+           "valid_to": null
+          }
+         ],
+         "verified": true,
+         "reason": null
+        },
+        {
+         "idx": 1,
+         "text": "Patients who miss a dose should wait and take the next dose at their regular time, and should not take 2 doses at the same time.",
+         "citations": [
+          {
+           "chunk_id": "8938934f-d8e5-4a46-9c30-a3243fd3ce0d",
+           "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+           "quote": "If you miss a dose of LIPITOR, wait and take the next dose at your regular time.",
+           "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+           "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+           "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+           "version_no": 3,
+           "section_path": "Patient Information",
+           "valid_from": "2024-04-15T00:00:01Z",
+           "valid_to": null
+          },
+          {
+           "chunk_id": "8938934f-d8e5-4a46-9c30-a3243fd3ce0d",
+           "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+           "quote": "Do not take 2 doses of LIPITOR at the same time.",
+           "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+           "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+           "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+           "version_no": 3,
+           "section_path": "Patient Information",
+           "valid_from": "2024-04-15T00:00:01Z",
+           "valid_to": null
+          }
+         ],
+         "verified": true,
+         "reason": null
+        }
+       ],
+       "citations": [
+        {
+         "chunk_id": "8f6779ba-74c5-421f-9d3c-d7c0371ee3d0",
+         "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+         "quote": "If a dose is missed, advise patients not to take the missed dose and resume with the next scheduled dose.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 3,
+         "section_path": "2 DOSAGE AND ADMINISTRATION > 2.1 Important Dosage Information",
+         "valid_from": "2024-04-15T00:00:01Z",
+         "valid_to": null
+        },
+        {
+         "chunk_id": "8938934f-d8e5-4a46-9c30-a3243fd3ce0d",
+         "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+         "quote": "If you miss a dose of LIPITOR, wait and take the next dose at your regular time.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 3,
+         "section_path": "Patient Information",
+         "valid_from": "2024-04-15T00:00:01Z",
+         "valid_to": null
+        },
+        {
+         "chunk_id": "8938934f-d8e5-4a46-9c30-a3243fd3ce0d",
+         "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+         "quote": "Do not take 2 doses of LIPITOR at the same time.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 3,
+         "section_path": "Patient Information",
+         "valid_from": "2024-04-15T00:00:01Z",
+         "valid_to": null
+        }
+       ],
+       "dropped_claims": [],
+       "nearest_sources": [],
+       "as_of": "2025-06-01T00:00:00Z",
+       "confidence": 1,
+       "degraded": false,
+       "cached": false,
+       "answer_id": "36e4508f-6882-4e62-9ea0-b80c4d8d28fc",
+       "cost_usd": 0.01793
+      }
+     }
+    }
+   ],
+   "job": {
+    "job_id": "a9ec18a6-7201-47ba-8361-df15b66b970c",
+    "status": "succeeded",
+    "error": null,
+    "answer": {
+     "status": "answered",
+     "answer": "If a dose of Lipitor is missed, the patient should not take the missed dose and should wait and take the next dose at the regular time. The patient should not take 2 doses at the same time.",
+     "claims": [
+      {
+       "idx": 0,
+       "text": "If a dose is missed, patients should not take the missed dose and should resume with the next scheduled dose.",
+       "citations": [
+        {
+         "chunk_id": "8f6779ba-74c5-421f-9d3c-d7c0371ee3d0",
+         "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+         "quote": "If a dose is missed, advise patients not to take the missed dose and resume with the next scheduled dose.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 3,
+         "section_path": "2 DOSAGE AND ADMINISTRATION > 2.1 Important Dosage Information",
+         "valid_from": "2024-04-15T00:00:01Z",
+         "valid_to": null
+        }
+       ],
+       "verified": true,
+       "reason": null
+      },
+      {
+       "idx": 1,
+       "text": "Patients who miss a dose should wait and take the next dose at their regular time, and should not take 2 doses at the same time.",
+       "citations": [
+        {
+         "chunk_id": "8938934f-d8e5-4a46-9c30-a3243fd3ce0d",
+         "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+         "quote": "If you miss a dose of LIPITOR, wait and take the next dose at your regular time.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 3,
+         "section_path": "Patient Information",
+         "valid_from": "2024-04-15T00:00:01Z",
+         "valid_to": null
+        },
+        {
+         "chunk_id": "8938934f-d8e5-4a46-9c30-a3243fd3ce0d",
+         "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+         "quote": "Do not take 2 doses of LIPITOR at the same time.",
+         "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+         "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+         "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+         "version_no": 3,
+         "section_path": "Patient Information",
+         "valid_from": "2024-04-15T00:00:01Z",
+         "valid_to": null
+        }
+       ],
+       "verified": true,
+       "reason": null
+      }
+     ],
+     "citations": [
+      {
+       "chunk_id": "8f6779ba-74c5-421f-9d3c-d7c0371ee3d0",
+       "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+       "quote": "If a dose is missed, advise patients not to take the missed dose and resume with the next scheduled dose.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 3,
+       "section_path": "2 DOSAGE AND ADMINISTRATION > 2.1 Important Dosage Information",
+       "valid_from": "2024-04-15T00:00:01Z",
+       "valid_to": null
+      },
+      {
+       "chunk_id": "8938934f-d8e5-4a46-9c30-a3243fd3ce0d",
+       "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+       "quote": "If you miss a dose of LIPITOR, wait and take the next dose at your regular time.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 3,
+       "section_path": "Patient Information",
+       "valid_from": "2024-04-15T00:00:01Z",
+       "valid_to": null
+      },
+      {
+       "chunk_id": "8938934f-d8e5-4a46-9c30-a3243fd3ce0d",
+       "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+       "quote": "Do not take 2 doses of LIPITOR at the same time.",
+       "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+       "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+       "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+       "version_no": 3,
+       "section_path": "Patient Information",
+       "valid_from": "2024-04-15T00:00:01Z",
+       "valid_to": null
+      }
+     ],
+     "dropped_claims": [],
+     "nearest_sources": [],
+     "as_of": "2025-06-01T00:00:00Z",
+     "confidence": 1,
+     "degraded": false,
+     "cached": false,
+     "answer_id": "36e4508f-6882-4e62-9ea0-b80c4d8d28fc",
+     "cost_usd": 0.01793
+    },
+    "cost_usd": 0.01793
+   }
+  },
+  {
+   "request": {
+    "question": "Can I change the label selector of an existing Kubernetes Deployment?",
+    "tenant": "demo",
+    "as_of": "2025-10-01T00:00:00Z"
+   },
+   "accepted": {
+    "job_id": "5403be44-4536-4dee-9172-9be49d0c27fe",
+    "events_url": "/v1/jobs/5403be44-4536-4dee-9172-9be49d0c27fe/events",
+    "status_url": "/v1/jobs/5403be44-4536-4dee-9172-9be49d0c27fe"
+   },
+   "events": [
+    {
+     "at_ms": 1,
+     "id": "1",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "classify",
+      "status": "started",
+      "detail": {},
+      "t_ms": 0.9
+     }
+    },
+    {
+     "at_ms": 2,
+     "id": "2",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "classify",
+      "status": "completed",
+      "detail": {
+       "as_of": "2025-10-01T00:00:00+00:00",
+       "source": "request",
+       "refused": null,
+       "empty_corpus": false
+      },
+      "t_ms": 1.6
+     }
+    },
+    {
+     "at_ms": 3,
+     "id": "3",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "cache",
+      "status": "miss",
+      "detail": {},
+      "t_ms": 2.9
+     }
+    },
+    {
+     "at_ms": 5,
+     "id": "4",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "plan",
+      "status": "started",
+      "detail": {},
+      "t_ms": 3.7
+     }
+    },
+    {
+     "at_ms": 1483,
+     "id": "5",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "plan",
+      "status": "completed",
+      "detail": {
+       "mode": "single",
+       "sub_questions": [
+        {
+         "question": "Can I change the label selector of an existing Kubernetes Deployment?",
+         "as_of": "2025-10-01T23:59:59.999999+00:00"
+        }
+       ],
+       "error": null
+      },
+      "t_ms": 1482.1
+     }
+    },
+    {
+     "at_ms": 1492,
+     "id": "6",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "subagent",
+      "status": "started",
+      "detail": {
+       "branch": 0,
+       "sub_question": "Can I change the label selector of an existing Kubernetes Deployment?",
+       "as_of": "2025-10-01T23:59:59.999999+00:00"
+      },
+      "t_ms": 1484.2
+     }
+    },
+    {
+     "at_ms": 8717,
+     "id": "7",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "subagent",
+      "status": "completed",
+      "detail": {
+       "branch": 0,
+       "retrieved": 30,
+       "kept": 8,
+       "reranked": true,
+       "rerank_error": null
+      },
+      "t_ms": 8714.9
+     }
+    },
+    {
+     "at_ms": 8719,
+     "id": "8",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "merge",
+      "status": "completed",
+      "detail": {
+       "evidence": 8
+      },
+      "t_ms": 8718.3
+     }
+    },
+    {
+     "at_ms": 8724,
+     "id": "9",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "started",
+      "detail": {
+       "attempt": 0
+      },
+      "t_ms": 8719.5
+     }
+    },
+    {
+     "at_ms": 9785,
+     "id": "10",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "No."
+     }
+    },
+    {
+     "at_ms": 9786,
+     "id": "11",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " In apps/v1, a"
+     }
+    },
+    {
+     "at_ms": 10189,
+     "id": "12",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " Deployment's label selector"
+     }
+    },
+    {
+     "at_ms": 10189,
+     "id": "13",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " is immutable after creation."
+     }
+    },
+    {
+     "at_ms": 10189,
+     "id": "14",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " Chang"
+     }
+    },
+    {
+     "at_ms": 10190,
+     "id": "15",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ing sel"
+     }
+    },
+    {
+     "at_ms": 10190,
+     "id": "16",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ectors is disc"
+     }
+    },
+    {
+     "at_ms": 10190,
+     "id": "17",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ouraged,"
+     }
+    },
+    {
+     "at_ms": 10190,
+     "id": "18",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " so pl"
+     }
+    },
+    {
+     "at_ms": 10191,
+     "id": "19",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "an them"
+     }
+    },
+    {
+     "at_ms": 10191,
+     "id": "20",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " up front."
+     }
+    },
+    {
+     "at_ms": 11633,
+     "id": "21",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "completed",
+      "detail": {
+       "attempt": 0,
+       "claims": 2
+      },
+      "t_ms": 11632
+     }
+    },
+    {
+     "at_ms": 11638,
+     "id": "22",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "started",
+      "detail": {
+       "attempt": 0
+      },
+      "t_ms": 11634.4
+     }
+    },
+    {
+     "at_ms": 13211,
+     "id": "23",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 0,
+      "verified": true,
+      "citation": {
+       "chunk_id": "7eaee1c1-e1be-4e38-950e-5390848d6c3e",
+       "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+       "quote": "In API version `apps/v1`, a Deployment's label selector is immutable after it gets created.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 1,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-08-27T17:19:17Z",
+       "valid_to": "2025-12-17T20:01:55Z"
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 14682,
+     "id": "24",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 1,
+      "verified": true,
+      "citation": {
+       "chunk_id": "7eaee1c1-e1be-4e38-950e-5390848d6c3e",
+       "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+       "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 1,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-08-27T17:19:17Z",
+       "valid_to": "2025-12-17T20:01:55Z"
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 14682,
+     "id": "25",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "completed",
+      "detail": {
+       "supported": 2,
+       "unsupported": 0
+      },
+      "t_ms": 14680.2
+     }
+    },
+    {
+     "at_ms": 14748,
+     "id": "26",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "respond",
+      "status": "completed",
+      "detail": {
+       "outcome": "answered",
+       "error": null
+      },
+      "t_ms": 14747.5
+     }
+    },
+    {
+     "at_ms": 14754,
+     "id": "27",
+     "event": "final",
+     "data": {
+      "type": "final",
+      "answer": {
+       "status": "answered",
+       "answer": "No. In apps/v1, a Deployment's label selector is immutable after creation. Changing selectors is discouraged, so plan them up front.",
+       "claims": [
+        {
+         "idx": 0,
+         "text": "In API version apps/v1, a Deployment's label selector is immutable after it is created.",
+         "citations": [
+          {
+           "chunk_id": "7eaee1c1-e1be-4e38-950e-5390848d6c3e",
+           "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+           "quote": "In API version `apps/v1`, a Deployment's label selector is immutable after it gets created.",
+           "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+           "title": "Deployments",
+           "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+           "version_no": 1,
+           "section_path": "Updating a Deployment > Label selector updates",
+           "valid_from": "2025-08-27T17:19:17Z",
+           "valid_to": "2025-12-17T20:01:55Z"
+          }
+         ],
+         "verified": true,
+         "reason": null
+        },
+        {
+         "idx": 1,
+         "text": "Label selector updates are generally discouraged, and selectors should be planned up front.",
+         "citations": [
+          {
+           "chunk_id": "7eaee1c1-e1be-4e38-950e-5390848d6c3e",
+           "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+           "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+           "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+           "title": "Deployments",
+           "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+           "version_no": 1,
+           "section_path": "Updating a Deployment > Label selector updates",
+           "valid_from": "2025-08-27T17:19:17Z",
+           "valid_to": "2025-12-17T20:01:55Z"
+          }
+         ],
+         "verified": true,
+         "reason": null
+        }
+       ],
+       "citations": [
+        {
+         "chunk_id": "7eaee1c1-e1be-4e38-950e-5390848d6c3e",
+         "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+         "quote": "In API version `apps/v1`, a Deployment's label selector is immutable after it gets created.",
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "title": "Deployments",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "version_no": 1,
+         "section_path": "Updating a Deployment > Label selector updates",
+         "valid_from": "2025-08-27T17:19:17Z",
+         "valid_to": "2025-12-17T20:01:55Z"
+        },
+        {
+         "chunk_id": "7eaee1c1-e1be-4e38-950e-5390848d6c3e",
+         "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+         "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "title": "Deployments",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "version_no": 1,
+         "section_path": "Updating a Deployment > Label selector updates",
+         "valid_from": "2025-08-27T17:19:17Z",
+         "valid_to": "2025-12-17T20:01:55Z"
+        }
+       ],
+       "dropped_claims": [],
+       "nearest_sources": [],
+       "as_of": "2025-10-01T00:00:00Z",
+       "confidence": 1,
+       "degraded": false,
+       "cached": false,
+       "answer_id": "8516d525-6a1c-4be9-82af-e7110a094fa9",
+       "cost_usd": 0.015139
+      }
+     }
+    }
+   ],
+   "job": {
+    "job_id": "5403be44-4536-4dee-9172-9be49d0c27fe",
+    "status": "succeeded",
+    "error": null,
+    "answer": {
+     "status": "answered",
+     "answer": "No. In apps/v1, a Deployment's label selector is immutable after creation. Changing selectors is discouraged, so plan them up front.",
+     "claims": [
+      {
+       "idx": 0,
+       "text": "In API version apps/v1, a Deployment's label selector is immutable after it is created.",
+       "citations": [
+        {
+         "chunk_id": "7eaee1c1-e1be-4e38-950e-5390848d6c3e",
+         "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+         "quote": "In API version `apps/v1`, a Deployment's label selector is immutable after it gets created.",
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "title": "Deployments",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "version_no": 1,
+         "section_path": "Updating a Deployment > Label selector updates",
+         "valid_from": "2025-08-27T17:19:17Z",
+         "valid_to": "2025-12-17T20:01:55Z"
+        }
+       ],
+       "verified": true,
+       "reason": null
+      },
+      {
+       "idx": 1,
+       "text": "Label selector updates are generally discouraged, and selectors should be planned up front.",
+       "citations": [
+        {
+         "chunk_id": "7eaee1c1-e1be-4e38-950e-5390848d6c3e",
+         "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+         "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "title": "Deployments",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "version_no": 1,
+         "section_path": "Updating a Deployment > Label selector updates",
+         "valid_from": "2025-08-27T17:19:17Z",
+         "valid_to": "2025-12-17T20:01:55Z"
+        }
+       ],
+       "verified": true,
+       "reason": null
+      }
+     ],
+     "citations": [
+      {
+       "chunk_id": "7eaee1c1-e1be-4e38-950e-5390848d6c3e",
+       "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+       "quote": "In API version `apps/v1`, a Deployment's label selector is immutable after it gets created.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 1,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-08-27T17:19:17Z",
+       "valid_to": "2025-12-17T20:01:55Z"
+      },
+      {
+       "chunk_id": "7eaee1c1-e1be-4e38-950e-5390848d6c3e",
+       "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+       "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 1,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-08-27T17:19:17Z",
+       "valid_to": "2025-12-17T20:01:55Z"
+      }
+     ],
+     "dropped_claims": [],
+     "nearest_sources": [],
+     "as_of": "2025-10-01T00:00:00Z",
+     "confidence": 1,
+     "degraded": false,
+     "cached": false,
+     "answer_id": "8516d525-6a1c-4be9-82af-e7110a094fa9",
+     "cost_usd": 0.015139
+    },
+    "cost_usd": 0.015139
+   }
+  },
+  {
+   "request": {
+    "question": "Can I change the label selector of an existing Kubernetes Deployment?",
+    "tenant": "demo",
+    "as_of": "2026-02-01T00:00:00Z"
+   },
+   "accepted": {
+    "job_id": "dbfa1396-0307-4d6a-9e16-744896adc3a8",
+    "events_url": "/v1/jobs/dbfa1396-0307-4d6a-9e16-744896adc3a8/events",
+    "status_url": "/v1/jobs/dbfa1396-0307-4d6a-9e16-744896adc3a8"
+   },
+   "events": [
+    {
+     "at_ms": 1,
+     "id": "1",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "classify",
+      "status": "started",
+      "detail": {},
+      "t_ms": 0.9
+     }
+    },
+    {
+     "at_ms": 2,
+     "id": "2",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "classify",
+      "status": "completed",
+      "detail": {
+       "as_of": "2026-02-01T00:00:00+00:00",
+       "source": "request",
+       "refused": null,
+       "empty_corpus": false
+      },
+      "t_ms": 1.5
+     }
+    },
+    {
+     "at_ms": 3,
+     "id": "3",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "cache",
+      "status": "miss",
+      "detail": {},
+      "t_ms": 3.4
+     }
+    },
+    {
+     "at_ms": 5,
+     "id": "4",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "plan",
+      "status": "started",
+      "detail": {},
+      "t_ms": 4.1
+     }
+    },
+    {
+     "at_ms": 1494,
+     "id": "5",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "plan",
+      "status": "completed",
+      "detail": {
+       "mode": "single",
+       "sub_questions": [
+        {
+         "question": "Can I change the label selector of an existing Kubernetes Deployment?",
+         "as_of": "2026-02-01T00:00:00+00:00"
+        }
+       ],
+       "error": null
+      },
+      "t_ms": 1492.4
+     }
+    },
+    {
+     "at_ms": 1503,
+     "id": "6",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "subagent",
+      "status": "started",
+      "detail": {
+       "branch": 0,
+       "sub_question": "Can I change the label selector of an existing Kubernetes Deployment?",
+       "as_of": "2026-02-01T00:00:00+00:00"
+      },
+      "t_ms": 1494.6
+     }
+    },
+    {
+     "at_ms": 8997,
+     "id": "7",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "subagent",
+      "status": "completed",
+      "detail": {
+       "branch": 0,
+       "retrieved": 30,
+       "kept": 8,
+       "reranked": true,
+       "rerank_error": null
+      },
+      "t_ms": 8995.1
+     }
+    },
+    {
+     "at_ms": 8997,
+     "id": "8",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "merge",
+      "status": "completed",
+      "detail": {
+       "evidence": 8
+      },
+      "t_ms": 8997.5
+     }
+    },
+    {
+     "at_ms": 9003,
+     "id": "9",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "started",
+      "detail": {
+       "attempt": 0
+      },
+      "t_ms": 8999
+     }
+    },
+    {
+     "at_ms": 12228,
+     "id": "10",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "No,"
+     }
+    },
+    {
+     "at_ms": 12228,
+     "id": "11",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " not in place"
+     }
+    },
+    {
+     "at_ms": 12229,
+     "id": "12",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": ". A Deployment's label"
+     }
+    },
+    {
+     "at_ms": 12243,
+     "id": "13",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " selector is immutable after cre"
+     }
+    },
+    {
+     "at_ms": 12274,
+     "id": "14",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ation, so"
+     }
+    },
+    {
+     "at_ms": 12297,
+     "id": "15",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " it"
+     }
+    },
+    {
+     "at_ms": 12333,
+     "id": "16",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " cannot be updated with"
+     }
+    },
+    {
+     "at_ms": 12368,
+     "id": "17",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " kubectl patch, ed"
+     }
+    },
+    {
+     "at_ms": 12403,
+     "id": "18",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "it, apply or"
+     }
+    },
+    {
+     "at_ms": 12437,
+     "id": "19",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " helm upgrade. If"
+     }
+    },
+    {
+     "at_ms": 12567,
+     "id": "20",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " you must change it, you have"
+     }
+    },
+    {
+     "at_ms": 12988,
+     "id": "21",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " to delete the Deployment"
+     }
+    },
+    {
+     "at_ms": 12988,
+     "id": "22",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " and recreate it, though"
+     }
+    },
+    {
+     "at_ms": 12989,
+     "id": "23",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " this"
+     }
+    },
+    {
+     "at_ms": 12989,
+     "id": "24",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " is gener"
+     }
+    },
+    {
+     "at_ms": 12989,
+     "id": "25",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ally discouraged."
+     }
+    },
+    {
+     "at_ms": 16250,
+     "id": "26",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "completed",
+      "detail": {
+       "attempt": 0,
+       "claims": 4
+      },
+      "t_ms": 16243.2
+     }
+    },
+    {
+     "at_ms": 16257,
+     "id": "27",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "started",
+      "detail": {
+       "attempt": 0
+      },
+      "t_ms": 16251.6
+     }
+    },
+    {
+     "at_ms": 17793,
+     "id": "28",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 0,
+      "verified": false,
+      "citation": {
+       "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "quote": "A Deployment's label selector is **immutable** after creation;",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 2,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-12-17T20:01:55Z",
+       "valid_to": null
+      },
+      "reason": "not_entailed"
+     }
+    },
+    {
+     "at_ms": 19273,
+     "id": "29",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 1,
+      "verified": true,
+      "citation": {
+       "chunk_id": "8c604487-4930-4fcb-b7d2-3fa2d5ffcf57",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "quote": "Also note that `.spec.selector` is immutable after creation of the Deployment in `apps/v1`.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 2,
+       "section_path": "Writing a Deployment Spec > Selector",
+       "valid_from": "2025-12-17T20:01:55Z",
+       "valid_to": null
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 20563,
+     "id": "30",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 2,
+      "verified": true,
+      "citation": {
+       "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "quote": "If you must change the selector, you have to delete the Deployment and recreate it.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 2,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-12-17T20:01:55Z",
+       "valid_to": null
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 21823,
+     "id": "31",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 3,
+      "verified": true,
+      "citation": {
+       "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 2,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-12-17T20:01:55Z",
+       "valid_to": null
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 21823,
+     "id": "32",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "completed",
+      "detail": {
+       "supported": 3,
+       "unsupported": 1
+      },
+      "t_ms": 21816.4
+     }
+    },
+    {
+     "at_ms": 21845,
+     "id": "33",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "re_retrieve",
+      "status": "started",
+      "detail": {
+       "attempt": 1,
+       "claims": 1
+      },
+      "t_ms": 21822
+     }
+    },
+    {
+     "at_ms": 25459,
+     "id": "34",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "re_retrieve",
+      "status": "completed",
+      "detail": {
+       "attempt": 1,
+       "found": 4
+      },
+      "t_ms": 25450.9
+     }
+    },
+    {
+     "at_ms": 25475,
+     "id": "35",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "retry",
+      "detail": {
+       "attempt": 1
+      },
+      "t_ms": 25461.5
+     }
+    },
+    {
+     "at_ms": 26987,
+     "id": "36",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "No,"
+     }
+    },
+    {
+     "at_ms": 26987,
+     "id": "37",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " not in place. In"
+     }
+    },
+    {
+     "at_ms": 26988,
+     "id": "38",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " apps/v1 "
+     }
+    },
+    {
+     "at_ms": 26988,
+     "id": "39",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "a Deployment's sel"
+     }
+    },
+    {
+     "at_ms": 26988,
+     "id": "40",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "ector is immutable after creation"
+     }
+    },
+    {
+     "at_ms": 27007,
+     "id": "41",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "."
+     }
+    },
+    {
+     "at_ms": 27042,
+     "id": "42",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " If you must change it, you have"
+     }
+    },
+    {
+     "at_ms": 27080,
+     "id": "43",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " to delete the Deployment"
+     }
+    },
+    {
+     "at_ms": 27112,
+     "id": "44",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " and recreate it, though"
+     }
+    },
+    {
+     "at_ms": 27147,
+     "id": "45",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": " this is generally discouraged"
+     }
+    },
+    {
+     "at_ms": 27216,
+     "id": "46",
+     "event": "token",
+     "data": {
+      "type": "token",
+      "text": "."
+     }
+    },
+    {
+     "at_ms": 29627,
+     "id": "47",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "draft",
+      "status": "completed",
+      "detail": {
+       "attempt": 1,
+       "claims": 3
+      },
+      "t_ms": 29624.2
+     }
+    },
+    {
+     "at_ms": 29633,
+     "id": "48",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "started",
+      "detail": {
+       "attempt": 1
+      },
+      "t_ms": 29627.7
+     }
+    },
+    {
+     "at_ms": 31157,
+     "id": "49",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 0,
+      "verified": true,
+      "citation": {
+       "chunk_id": "8c604487-4930-4fcb-b7d2-3fa2d5ffcf57",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "quote": "Also note that `.spec.selector` is immutable after creation of the Deployment in `apps/v1`.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 2,
+       "section_path": "Writing a Deployment Spec > Selector",
+       "valid_from": "2025-12-17T20:01:55Z",
+       "valid_to": null
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 32472,
+     "id": "50",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 1,
+      "verified": true,
+      "citation": {
+       "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "quote": "If you must change the selector, you have to delete the Deployment and recreate it.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 2,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-12-17T20:01:55Z",
+       "valid_to": null
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 33934,
+     "id": "51",
+     "event": "claim",
+     "data": {
+      "type": "claim",
+      "idx": 2,
+      "verified": true,
+      "citation": {
+       "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 2,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-12-17T20:01:55Z",
+       "valid_to": null
+      },
+      "reason": null
+     }
+    },
+    {
+     "at_ms": 33934,
+     "id": "52",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "verify",
+      "status": "completed",
+      "detail": {
+       "supported": 3,
+       "unsupported": 0
+      },
+      "t_ms": 33932.6
+     }
+    },
+    {
+     "at_ms": 34030,
+     "id": "53",
+     "event": "step",
+     "data": {
+      "type": "step",
+      "node": "respond",
+      "status": "completed",
+      "detail": {
+       "outcome": "answered",
+       "error": null
+      },
+      "t_ms": 34027.9
+     }
+    },
+    {
+     "at_ms": 34037,
+     "id": "54",
+     "event": "final",
+     "data": {
+      "type": "final",
+      "answer": {
+       "status": "answered",
+       "answer": "No, not in place. In apps/v1 a Deployment's selector is immutable after creation. If you must change it, you have to delete the Deployment and recreate it, though this is generally discouraged.",
+       "claims": [
+        {
+         "idx": 0,
+         "text": "In apps/v1, .spec.selector is immutable after creation of the Deployment.",
+         "citations": [
+          {
+           "chunk_id": "8c604487-4930-4fcb-b7d2-3fa2d5ffcf57",
+           "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+           "quote": "Also note that `.spec.selector` is immutable after creation of the Deployment in `apps/v1`.",
+           "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+           "title": "Deployments",
+           "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+           "version_no": 2,
+           "section_path": "Writing a Deployment Spec > Selector",
+           "valid_from": "2025-12-17T20:01:55Z",
+           "valid_to": null
+          }
+         ],
+         "verified": true,
+         "reason": null
+        },
+        {
+         "idx": 1,
+         "text": "If you must change the selector, you have to delete the Deployment and recreate it.",
+         "citations": [
+          {
+           "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+           "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+           "quote": "If you must change the selector, you have to delete the Deployment and recreate it.",
+           "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+           "title": "Deployments",
+           "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+           "version_no": 2,
+           "section_path": "Updating a Deployment > Label selector updates",
+           "valid_from": "2025-12-17T20:01:55Z",
+           "valid_to": null
+          }
+         ],
+         "verified": true,
+         "reason": null
+        },
+        {
+         "idx": 2,
+         "text": "Making label selector updates is generally discouraged, and it is suggested to plan selectors up front.",
+         "citations": [
+          {
+           "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+           "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+           "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+           "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+           "title": "Deployments",
+           "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+           "version_no": 2,
+           "section_path": "Updating a Deployment > Label selector updates",
+           "valid_from": "2025-12-17T20:01:55Z",
+           "valid_to": null
+          }
+         ],
+         "verified": true,
+         "reason": null
+        }
+       ],
+       "citations": [
+        {
+         "chunk_id": "8c604487-4930-4fcb-b7d2-3fa2d5ffcf57",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "quote": "Also note that `.spec.selector` is immutable after creation of the Deployment in `apps/v1`.",
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "title": "Deployments",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "version_no": 2,
+         "section_path": "Writing a Deployment Spec > Selector",
+         "valid_from": "2025-12-17T20:01:55Z",
+         "valid_to": null
+        },
+        {
+         "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "quote": "If you must change the selector, you have to delete the Deployment and recreate it.",
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "title": "Deployments",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "version_no": 2,
+         "section_path": "Updating a Deployment > Label selector updates",
+         "valid_from": "2025-12-17T20:01:55Z",
+         "valid_to": null
+        },
+        {
+         "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "title": "Deployments",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "version_no": 2,
+         "section_path": "Updating a Deployment > Label selector updates",
+         "valid_from": "2025-12-17T20:01:55Z",
+         "valid_to": null
+        }
+       ],
+       "dropped_claims": [],
+       "nearest_sources": [],
+       "as_of": "2026-02-01T00:00:00Z",
+       "confidence": 1,
+       "degraded": false,
+       "cached": false,
+       "answer_id": "957ac26c-3f98-4ad6-a125-fb5c975bd84b",
+       "cost_usd": 0.038655
+      }
+     }
+    }
+   ],
+   "job": {
+    "job_id": "dbfa1396-0307-4d6a-9e16-744896adc3a8",
+    "status": "succeeded",
+    "error": null,
+    "answer": {
+     "status": "answered",
+     "answer": "No, not in place. In apps/v1 a Deployment's selector is immutable after creation. If you must change it, you have to delete the Deployment and recreate it, though this is generally discouraged.",
+     "claims": [
+      {
+       "idx": 0,
+       "text": "In apps/v1, .spec.selector is immutable after creation of the Deployment.",
+       "citations": [
+        {
+         "chunk_id": "8c604487-4930-4fcb-b7d2-3fa2d5ffcf57",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "quote": "Also note that `.spec.selector` is immutable after creation of the Deployment in `apps/v1`.",
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "title": "Deployments",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "version_no": 2,
+         "section_path": "Writing a Deployment Spec > Selector",
+         "valid_from": "2025-12-17T20:01:55Z",
+         "valid_to": null
+        }
+       ],
+       "verified": true,
+       "reason": null
+      },
+      {
+       "idx": 1,
+       "text": "If you must change the selector, you have to delete the Deployment and recreate it.",
+       "citations": [
+        {
+         "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "quote": "If you must change the selector, you have to delete the Deployment and recreate it.",
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "title": "Deployments",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "version_no": 2,
+         "section_path": "Updating a Deployment > Label selector updates",
+         "valid_from": "2025-12-17T20:01:55Z",
+         "valid_to": null
+        }
+       ],
+       "verified": true,
+       "reason": null
+      },
+      {
+       "idx": 2,
+       "text": "Making label selector updates is generally discouraged, and it is suggested to plan selectors up front.",
+       "citations": [
+        {
+         "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "title": "Deployments",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "version_no": 2,
+         "section_path": "Updating a Deployment > Label selector updates",
+         "valid_from": "2025-12-17T20:01:55Z",
+         "valid_to": null
+        }
+       ],
+       "verified": true,
+       "reason": null
+      }
+     ],
+     "citations": [
+      {
+       "chunk_id": "8c604487-4930-4fcb-b7d2-3fa2d5ffcf57",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "quote": "Also note that `.spec.selector` is immutable after creation of the Deployment in `apps/v1`.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 2,
+       "section_path": "Writing a Deployment Spec > Selector",
+       "valid_from": "2025-12-17T20:01:55Z",
+       "valid_to": null
+      },
+      {
+       "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "quote": "If you must change the selector, you have to delete the Deployment and recreate it.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 2,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-12-17T20:01:55Z",
+       "valid_to": null
+      },
+      {
+       "chunk_id": "87a274f1-af89-479e-b774-caa878550c85",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "quote": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.",
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "title": "Deployments",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "version_no": 2,
+       "section_path": "Updating a Deployment > Label selector updates",
+       "valid_from": "2025-12-17T20:01:55Z",
+       "valid_to": null
+      }
+     ],
+     "dropped_claims": [],
+     "nearest_sources": [],
+     "as_of": "2026-02-01T00:00:00Z",
+     "confidence": 1,
+     "degraded": false,
+     "cached": false,
+     "answer_id": "957ac26c-3f98-4ad6-a125-fb5c975bd84b",
+     "cost_usd": 0.038655
+    },
+    "cost_usd": 0.038655
+   }
+  }
+ ],
+ "drift_events": [
+  {
+   "id": "ef202807-8ac5-4db6-9f97-62e7f5ebbbb1",
+   "answer_id": "957ac26c-3f98-4ad6-a125-fb5c975bd84b",
+   "claim_idx": 1,
+   "verdict": "still_valid",
+   "old_version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+   "new_version_id": "baed1d55-0941-4e60-adbc-cabe48b77ef8",
+   "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+   "document_title": "Deployments",
+   "section_path": "Updating a Deployment > Label selector updates",
+   "before": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\nA Deployment's label selector is **immutable** after creation;\nit cannot be updated via `kubectl patch`, `kubectl edit`, `kubectl apply`, or tools like `helm upgrade`.\n\nIf you must change the selector, you have to delete the Deployment and recreate it.\nExercise great caution and ensure you grasp the following implications:\n\n* **Additions:** When you create a new Deployment with a narrower selector, the new Deployment **must** also have a suitable Pod template.\n  If you have an existing manifest and you edit the manifest to narrow the selector, you need to edit the metadata of the Pod template inside that Deployment, adding the\n  new labels\n  to match, as otherwise the API server returns a validation error. This is a _non-overlapping_ change:\n  the new Deployment will not \"see\" the old Pods (which lack the new label), causing the old\n  ReplicaSet to be **orphaned** and a brand-new ReplicaSet to be created.\n* **Value Updates:** Changing the existing value in a selector key (e.g., from `v1` to `v2`)\n  results in the same behavior as additions (orphaning and recreation).\n* **Removals:** Removing an existing key from the Deployment selector does not require any changes\n  in the Pod template labels. This is an _overlapping_ change: the new, broader selector would\n  match the old Pods. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created,\n  but note that the removed label still exists in any existing Pods and ReplicaSets.\n  You can clean that up by triggering a rollout for the Deployment.",
+   "after": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\nA Deployment's label selector is **immutable** after creation;\nit cannot be updated via `kubectl patch`, `kubectl edit`, `kubectl apply`, or tools like `helm upgrade`.\n\nIf you must change the selector, you have to delete the Deployment and recreate it.\nBy default, deleting the Deployment also deletes its running Pods, causing downtime; use\n`--cascade=orphan` if you need those Pods to keep running while you recreate the Deployment\n(see the implications below).\nExercise great caution and ensure you grasp the following implications:\n\n* **Additions:** When you create a new Deployment with a narrower selector, the new Deployment **must** also have a suitable Pod template.\n  If you have an existing manifest and you edit the manifest to narrow the selector, you need to edit the metadata of the Pod template inside that Deployment, adding the\n  new labels\n  to match, as otherwise the API server returns a validation error.\nThis is a _non-overlapping_ change:\n  the new Deployment will not \"see\" the old Pods (which lack the new label), causing the old\n  ReplicaSet to be **orphaned** and a brand-new ReplicaSet to be created.\n* **Value Updates:** Changing the existing value in a selector key (e.g., from `v1` to `v2`)\n  results in the same behavior as additions (orphaning and recreation).\n* **Removals:** Removing an existing key from the Deployment selector does not require any changes\n  in the Pod template labels. This is an _overlapping_ change: the new, broader selector would\n  match the old Pods. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created,\n  but note that the removed label still exists in any existing Pods and ReplicaSets.\n  You can clean that up by triggering a rollout for the Deployment.",
+   "diff": null,
+   "created_at": "2026-10-25T14:28:07.265985Z"
+  },
+  {
+   "id": "d0c9cb81-f8f1-4621-99d4-09189af47234",
+   "answer_id": "8516d525-6a1c-4be9-82af-e7110a094fa9",
+   "claim_idx": 1,
+   "verdict": "still_valid",
+   "old_version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+   "new_version_id": "baed1d55-0941-4e60-adbc-cabe48b77ef8",
+   "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+   "document_title": "Deployments",
+   "section_path": "Updating a Deployment > Label selector updates",
+   "before": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\nIn any case, if you need to perform a label selector update, exercise great caution and make sure you have grasped\nall of the implications.\n\n\nIn API version `apps/v1`, a Deployment's label selector is immutable after it gets created.\n\n\n* Selector additions require the Pod template labels in the Deployment spec to be updated with the new label too,\notherwise a validation error is returned. This change is a non-overlapping one, meaning that the new selector does\nnot select ReplicaSets and Pods created with the old selector, resulting in orphaning all old ReplicaSets and\ncreating a new ReplicaSet.\n* Selector updates changes the existing value in a selector key -- result in the same behavior as additions.\n* Selector removals removes an existing key from the Deployment selector -- do not require any changes in the\nPod template labels. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created, but note that the\nremoved label still exists in any existing Pods and ReplicaSets.",
+   "after": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\nA Deployment's label selector is **immutable** after creation;\nit cannot be updated via `kubectl patch`, `kubectl edit`, `kubectl apply`, or tools like `helm upgrade`.\n\nIf you must change the selector, you have to delete the Deployment and recreate it.\nBy default, deleting the Deployment also deletes its running Pods, causing downtime; use\n`--cascade=orphan` if you need those Pods to keep running while you recreate the Deployment\n(see the implications below).\nExercise great caution and ensure you grasp the following implications:\n\n* **Additions:** When you create a new Deployment with a narrower selector, the new Deployment **must** also have a suitable Pod template.\n  If you have an existing manifest and you edit the manifest to narrow the selector, you need to edit the metadata of the Pod template inside that Deployment, adding the\n  new labels\n  to match, as otherwise the API server returns a validation error.\nThis is a _non-overlapping_ change:\n  the new Deployment will not \"see\" the old Pods (which lack the new label), causing the old\n  ReplicaSet to be **orphaned** and a brand-new ReplicaSet to be created.\n* **Value Updates:** Changing the existing value in a selector key (e.g., from `v1` to `v2`)\n  results in the same behavior as additions (orphaning and recreation).\n* **Removals:** Removing an existing key from the Deployment selector does not require any changes\n  in the Pod template labels. This is an _overlapping_ change: the new, broader selector would\n  match the old Pods. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created,\n  but note that the removed label still exists in any existing Pods and ReplicaSets.\n  You can clean that up by triggering a rollout for the Deployment.",
+   "diff": null,
+   "created_at": "2026-10-25T14:28:07.265985Z"
+  },
+  {
+   "id": "83d8aad0-24bb-4a2a-a944-cb75b20d6ba9",
+   "answer_id": "8516d525-6a1c-4be9-82af-e7110a094fa9",
+   "claim_idx": 0,
+   "verdict": "changed",
+   "old_version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+   "new_version_id": "baed1d55-0941-4e60-adbc-cabe48b77ef8",
+   "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+   "document_title": "Deployments",
+   "section_path": "Updating a Deployment > Label selector updates",
+   "before": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\nIn any case, if you need to perform a label selector update, exercise great caution and make sure you have grasped\nall of the implications.\n\n\nIn API version `apps/v1`, a Deployment's label selector is immutable after it gets created.\n\n\n* Selector additions require the Pod template labels in the Deployment spec to be updated with the new label too,\notherwise a validation error is returned. This change is a non-overlapping one, meaning that the new selector does\nnot select ReplicaSets and Pods created with the old selector, resulting in orphaning all old ReplicaSets and\ncreating a new ReplicaSet.\n* Selector updates changes the existing value in a selector key -- result in the same behavior as additions.\n* Selector removals removes an existing key from the Deployment selector -- do not require any changes in the\nPod template labels. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created, but note that the\nremoved label still exists in any existing Pods and ReplicaSets.",
+   "after": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\nA Deployment's label selector is **immutable** after creation;\nit cannot be updated via `kubectl patch`, `kubectl edit`, `kubectl apply`, or tools like `helm upgrade`.\n\nIf you must change the selector, you have to delete the Deployment and recreate it.\nBy default, deleting the Deployment also deletes its running Pods, causing downtime; use\n`--cascade=orphan` if you need those Pods to keep running while you recreate the Deployment\n(see the implications below).\nExercise great caution and ensure you grasp the following implications:\n\n* **Additions:** When you create a new Deployment with a narrower selector, the new Deployment **must** also have a suitable Pod template.\n  If you have an existing manifest and you edit the manifest to narrow the selector, you need to edit the metadata of the Pod template inside that Deployment, adding the\n  new labels\n  to match, as otherwise the API server returns a validation error.\nThis is a _non-overlapping_ change:\n  the new Deployment will not \"see\" the old Pods (which lack the new label), causing the old\n  ReplicaSet to be **orphaned** and a brand-new ReplicaSet to be created.\n* **Value Updates:** Changing the existing value in a selector key (e.g., from `v1` to `v2`)\n  results in the same behavior as additions (orphaning and recreation).\n* **Removals:** Removing an existing key from the Deployment selector does not require any changes\n  in the Pod template labels. This is an _overlapping_ change: the new, broader selector would\n  match the old Pods. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created,\n  but note that the removed label still exists in any existing Pods and ReplicaSets.\n  You can clean that up by triggering a rollout for the Deployment.",
+   "diff": "--- before\n+++ after\n@@ -1,16 +1,24 @@\n It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\n-In any case, if you need to perform a label selector update, exercise great caution and make sure you have grasped\n-all of the implications.\n+A Deployment's label selector is **immutable** after creation;\n+it cannot be updated via `kubectl patch`, `kubectl edit`, `kubectl apply`, or tools like `helm upgrade`.\n \n+If you must change the selector, you have to delete the Deployment and recreate it.\n+By default, deleting the Deployment also deletes its running Pods, causing downtime; use\n+`--cascade=orphan` if you need those Pods to keep running while you recreate the Deployment\n+(see the implications below).\n+Exercise great caution and ensure you grasp the following implications:\n \n-In API version `apps/v1`, a Deployment's label selector is immutable after it gets created.\n-\n-\n-* Selector additions require the Pod template labels in the Deployment spec to be updated with the new label too,\n-otherwise a validation error is returned. This change is a non-overlapping one, meaning that the new selector does\n-not select ReplicaSets and Pods created with the old selector, resulting in orphaning all old ReplicaSets and\n-creating a new ReplicaSet.\n-* Selector updates changes the existing value in a selector key -- result in the same behavior as additions.\n-* Selector removals removes an existing key from the Deployment selector -- do not require any changes in the\n-Pod template labels. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created, but note that the\n-removed label still exists in any existing Pods and ReplicaSets.\n+* **Additions:** When you create a new Deployment with a narrower selector, the new Deployment **must** also have a suitable Pod template.\n+  If you have an existing manifest and you edit the manifest to narrow the selector, you need to edit the metadata of the Pod template inside that Deployment, adding the\n+  new labels\n+  to match, as otherwise the API server returns a validation error.\n+This is a _non-overlapping_ change:\n+  the new Deployment will not \"see\" the old Pods (which lack the new label), causing the old\n+  ReplicaSet to be **orphaned** and a brand-new ReplicaSet to be created.\n+* **Value Updates:** Changing the existing value in a selector key (e.g., from `v1` to `v2`)\n+  results in the same behavior as additions (orphaning and recreation).\n+* **Removals:** Removing an existing key from the Deployment selector does not require any changes\n+  in the Pod template labels. This is an _overlapping_ change: the new, broader selector would\n+  match the old Pods. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created,\n+  but note that the removed label still exists in any existing Pods and ReplicaSets.\n+  You can clean that up by triggering a rollout for the Deployment.\n",
+   "created_at": "2026-10-25T14:28:07.265985Z"
+  },
+  {
+   "id": "1be37172-8726-4363-ba51-f30f0420c81e",
+   "answer_id": "957ac26c-3f98-4ad6-a125-fb5c975bd84b",
+   "claim_idx": 2,
+   "verdict": "still_valid",
+   "old_version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+   "new_version_id": "baed1d55-0941-4e60-adbc-cabe48b77ef8",
+   "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+   "document_title": "Deployments",
+   "section_path": "Updating a Deployment > Label selector updates",
+   "before": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\nA Deployment's label selector is **immutable** after creation;\nit cannot be updated via `kubectl patch`, `kubectl edit`, `kubectl apply`, or tools like `helm upgrade`.\n\nIf you must change the selector, you have to delete the Deployment and recreate it.\nExercise great caution and ensure you grasp the following implications:\n\n* **Additions:** When you create a new Deployment with a narrower selector, the new Deployment **must** also have a suitable Pod template.\n  If you have an existing manifest and you edit the manifest to narrow the selector, you need to edit the metadata of the Pod template inside that Deployment, adding the\n  new labels\n  to match, as otherwise the API server returns a validation error. This is a _non-overlapping_ change:\n  the new Deployment will not \"see\" the old Pods (which lack the new label), causing the old\n  ReplicaSet to be **orphaned** and a brand-new ReplicaSet to be created.\n* **Value Updates:** Changing the existing value in a selector key (e.g., from `v1` to `v2`)\n  results in the same behavior as additions (orphaning and recreation).\n* **Removals:** Removing an existing key from the Deployment selector does not require any changes\n  in the Pod template labels. This is an _overlapping_ change: the new, broader selector would\n  match the old Pods. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created,\n  but note that the removed label still exists in any existing Pods and ReplicaSets.\n  You can clean that up by triggering a rollout for the Deployment.",
+   "after": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\nA Deployment's label selector is **immutable** after creation;\nit cannot be updated via `kubectl patch`, `kubectl edit`, `kubectl apply`, or tools like `helm upgrade`.\n\nIf you must change the selector, you have to delete the Deployment and recreate it.\nBy default, deleting the Deployment also deletes its running Pods, causing downtime; use\n`--cascade=orphan` if you need those Pods to keep running while you recreate the Deployment\n(see the implications below).\nExercise great caution and ensure you grasp the following implications:\n\n* **Additions:** When you create a new Deployment with a narrower selector, the new Deployment **must** also have a suitable Pod template.\n  If you have an existing manifest and you edit the manifest to narrow the selector, you need to edit the metadata of the Pod template inside that Deployment, adding the\n  new labels\n  to match, as otherwise the API server returns a validation error.\nThis is a _non-overlapping_ change:\n  the new Deployment will not \"see\" the old Pods (which lack the new label), causing the old\n  ReplicaSet to be **orphaned** and a brand-new ReplicaSet to be created.\n* **Value Updates:** Changing the existing value in a selector key (e.g., from `v1` to `v2`)\n  results in the same behavior as additions (orphaning and recreation).\n* **Removals:** Removing an existing key from the Deployment selector does not require any changes\n  in the Pod template labels. This is an _overlapping_ change: the new, broader selector would\n  match the old Pods. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created,\n  but note that the removed label still exists in any existing Pods and ReplicaSets.\n  You can clean that up by triggering a rollout for the Deployment.",
+   "diff": null,
+   "created_at": "2026-10-25T14:28:07.265985Z"
+  },
+  {
+   "id": "123931b9-972d-4b9a-ba2a-b6942482dccb",
+   "answer_id": "957ac26c-3f98-4ad6-a125-fb5c975bd84b",
+   "claim_idx": 0,
+   "verdict": "still_valid",
+   "old_version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+   "new_version_id": "baed1d55-0941-4e60-adbc-cabe48b77ef8",
+   "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+   "document_title": "Deployments",
+   "section_path": "Writing a Deployment Spec > Selector",
+   "before": "`.spec.selector` is a required field that specifies a [label selector](/docs/concepts/overview/working-with-objects/labels/)\nfor the Pods targeted by this Deployment.\n\n`.spec.selector` must match `.spec.template.metadata.labels`, or it will be rejected by the API.\n\nIn API version `apps/v1`, `.spec.selector` and `.metadata.labels` do not default to `.spec.template.metadata.labels` if not set. So they must be set explicitly. Also note that `.spec.selector` is immutable after creation of the Deployment in `apps/v1`.\n\nA Deployment may terminate Pods whose labels match the selector if their template is different\nfrom `.spec.template` or if the total number of such Pods exceeds `.spec.replicas`. It brings up new\nPods with `.spec.template` if the number of Pods is less than the desired number.\n\n\nYou should not create other Pods whose labels match this selector, either directly, by creating\nanother Deployment, or by creating another controller such as a ReplicaSet or a ReplicationController. If you\ndo so, the first Deployment thinks that it created these other Pods. Kubernetes does not stop you from doing this.\nIf you have multiple controllers that have overlapping selectors, the controllers will fight with each\nother and won't behave correctly.",
+   "after": "`.spec.selector` is a required field that specifies a [label selector](/docs/concepts/overview/working-with-objects/labels/)\nfor the Pods targeted by this Deployment.\n\n`.spec.selector` must match `.spec.template.metadata.labels`, or it will be rejected by the API.\n\nIn API version `apps/v1`, `.spec.selector` and `.metadata.labels` do not default to `.spec.template.metadata.labels` if not set. So they must be set explicitly. Also note that `.spec.selector` is immutable after creation of the Deployment in `apps/v1`.\n\nA Deployment may terminate Pods whose labels match the selector if their template is different\nfrom `.spec.template` or if the total number of such Pods exceeds `.spec.replicas`. It brings up new\nPods with `.spec.template` if the number of Pods is less than the desired number.\n\n\nYou should not create other Pods whose labels match this selector, either directly, by creating\nanother Deployment, or by creating another controller such as a ReplicaSet or a ReplicationController. If you\ndo so, the first Deployment thinks that it created these other Pods. Kubernetes does not stop you from doing this.\nIf you have multiple controllers that have overlapping selectors, the controllers will fight with each\nother and won't behave correctly.",
+   "diff": null,
+   "created_at": "2026-10-25T14:28:07.265985Z"
+  }
+ ],
+ "alerts": [
+  {
+   "at_ms": 2,
+   "id": "1",
+   "event": "alert",
+   "data": {
+    "type": "alert",
+    "drift_event_id": "83d8aad0-24bb-4a2a-a944-cb75b20d6ba9",
+    "answer_id": "8516d525-6a1c-4be9-82af-e7110a094fa9",
+    "verdict": "changed",
+    "document_title": "Deployments",
+    "old_version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+    "new_version_id": "baed1d55-0941-4e60-adbc-cabe48b77ef8",
+    "before": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\nIn any case, if you need to perform a label selector update, exercise great caution and make sure you have grasped\nall of the implications.\n\n\nIn API version `apps/v1`, a Deployment's label selector is immutable after it gets created.\n\n\n* Selector additions require the Pod template labels in the Deployment spec to be updated with the new label too,\notherwise a validation error is returned. This change is a non-overlapping one, meaning that the new selector does\nnot select ReplicaSets and Pods created with the old selector, resulting in orphaning all old ReplicaSets and\ncreating a new ReplicaSet.\n* Selector updates changes the existing value in a selector key -- result in the same behavior as additions.\n* Selector removals removes an existing key from the Deployment selector -- do not require any changes in the\nPod template labels. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created, but note that the\nremoved label still exists in any existing Pods and ReplicaSets.",
+    "after": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front.\nA Deployment's label selector is **immutable** after creation;\nit cannot be updated via `kubectl patch`, `kubectl edit`, `kubectl apply`, or tools like `helm upgrade`.\n\nIf you must change the selector, you have to delete the Deployment and recreate it.\nBy default, deleting the Deployment also deletes its running Pods, causing downtime; use\n`--cascade=orphan` if you need those Pods to keep running while you recreate the Deployment\n(see the implications below).\nExercise great caution and ensure you grasp the following implications:\n\n* **Additions:** When you create a new Deployment with a narrower selector, the new Deployment **must** also have a suitable Pod template.\n  If you have an existing manifest and you edit the manifest to narrow the selector, you need to edit the metadata of the Pod template inside that Deployment, adding the\n  new labels\n  to match, as otherwise the API server returns a validation error.\nThis is a _non-overlapping_ change:\n  the new Deployment will not \"see\" the old Pods (which lack the new label), causing the old\n  ReplicaSet to be **orphaned** and a brand-new ReplicaSet to be created.\n* **Value Updates:** Changing the existing value in a selector key (e.g., from `v1` to `v2`)\n  results in the same behavior as additions (orphaning and recreation).\n* **Removals:** Removing an existing key from the Deployment selector does not require any changes\n  in the Pod template labels. This is an _overlapping_ change: the new, broader selector would\n  match the old Pods. Existing ReplicaSets are not orphaned, and a new ReplicaSet is not created,\n  but note that the removed label still exists in any existing Pods and ReplicaSets.\n  You can clean that up by triggering a rollout for the Deployment.",
+    "t": "2026-10-25T14:28:07.265985Z"
+   }
+  }
+ ],
+ "review": [
+  {
+   "id": "aec5127c-5348-402f-8e56-ede998751c87",
+   "kind": "low_confidence_answer",
+   "ref_id": "be2a37e5-0d42-433c-b6fe-b055e5254384",
+   "tenant_id": "08cd7c9e-19f6-4ad6-b82e-7cee0aeedc4b",
+   "status": "open",
+   "payload": {
+    "job": {
+     "as_of": null,
+     "job_id": "be2a37e5-0d42-433c-b6fe-b055e5254384",
+     "resume": null,
+     "question": "Will Kubernetes automatically roll back a Deployment that exceeds its progress deadline?",
+     "answer_id": null,
+     "tenant_id": "08cd7c9e-19f6-4ad6-b82e-7cee0aeedc4b",
+     "source_kinds": null
+    },
+    "answer": {
+     "as_of": "2026-10-25T14:21:48.083348Z",
+     "answer": "Kubernetes takes no action on a stalled Deployment other than to report a status condition. Automatic rollback is described as something that will be implemented in the future, not a current feature.",
+     "cached": false,
+     "claims": [
+      {
+       "idx": 0,
+       "text": "Kubernetes takes no action on a stalled Deployment other than to report a status condition.",
+       "reason": null,
+       "verified": true,
+       "citations": [
+        {
+         "quote": "Kubernetes takes no action on a stalled Deployment other than to report a status condition with",
+         "title": "Deployments",
+         "chunk_id": "0a6296a2-ca74-4b4f-b616-74ff694a2b94",
+         "valid_to": null,
+         "valid_from": "2025-12-17T20:01:55Z",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "version_no": 2,
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "section_path": "Deployment status > Failed Deployment"
+        }
+       ]
+      },
+      {
+       "idx": 3,
+       "text": "Automatic rollback is described as something that will be implemented in the future, not a current feature.",
+       "reason": null,
+       "verified": true,
+       "citations": [
+        {
+         "quote": "In the future, once automatic rollback will be implemented, the Deployment",
+         "title": "Deployments",
+         "chunk_id": "56b4d98f-6915-4b35-8457-91e9d6062abe",
+         "valid_to": null,
+         "valid_from": "2025-12-17T20:01:55Z",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "version_no": 2,
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "section_path": "Writing a Deployment Spec > Progress Deadline Seconds"
+        }
+       ]
+      }
+     ],
+     "status": "answered",
+     "cost_usd": 0,
+     "degraded": false,
+     "answer_id": null,
+     "citations": [
+      {
+       "quote": "Kubernetes takes no action on a stalled Deployment other than to report a status condition with",
+       "title": "Deployments",
+       "chunk_id": "0a6296a2-ca74-4b4f-b616-74ff694a2b94",
+       "valid_to": null,
+       "valid_from": "2025-12-17T20:01:55Z",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "version_no": 2,
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "section_path": "Deployment status > Failed Deployment"
+      },
+      {
+       "quote": "In the future, once automatic rollback will be implemented, the Deployment",
+       "title": "Deployments",
+       "chunk_id": "56b4d98f-6915-4b35-8457-91e9d6062abe",
+       "valid_to": null,
+       "valid_from": "2025-12-17T20:01:55Z",
+       "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+       "version_no": 2,
+       "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+       "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+       "section_path": "Writing a Deployment Spec > Progress Deadline Seconds"
+      }
+     ],
+     "confidence": 0.5,
+     "dropped_claims": [
+      {
+       "idx": 1,
+       "text": "Higher level orchestrators can act on the stalled condition, for example by rolling back.",
+       "reason": "not_entailed",
+       "verified": false,
+       "citations": [
+        {
+         "quote": "Higher level orchestrators can take advantage of it and act accordingly, for",
+         "title": "Deployments",
+         "chunk_id": "0a6296a2-ca74-4b4f-b616-74ff694a2b94",
+         "valid_to": null,
+         "valid_from": "2025-12-17T20:01:55Z",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "version_no": 2,
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "section_path": "Deployment status > Failed Deployment"
+        }
+       ]
+      },
+      {
+       "idx": 2,
+       "text": "The Deployment controller keeps retrying the Deployment after the failed-progress condition is reported.",
+       "reason": "not_entailed",
+       "verified": false,
+       "citations": [
+        {
+         "quote": "The Deployment controller will keep",
+         "title": "Deployments",
+         "chunk_id": "56b4d98f-6915-4b35-8457-91e9d6062abe",
+         "valid_to": null,
+         "valid_from": "2025-12-17T20:01:55Z",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "version_no": 2,
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "section_path": "Writing a Deployment Spec > Progress Deadline Seconds"
+        },
+        {
+         "quote": "retrying the Deployment.",
+         "title": "Deployments",
+         "chunk_id": "56b4d98f-6915-4b35-8457-91e9d6062abe",
+         "valid_to": null,
+         "valid_from": "2025-12-17T20:01:55Z",
+         "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+         "version_no": 2,
+         "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+         "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+         "section_path": "Writing a Deployment Spec > Progress Deadline Seconds"
+        }
+       ]
+      }
+     ],
+     "nearest_sources": []
+    },
+    "job_id": "be2a37e5-0d42-433c-b6fe-b055e5254384",
+    "reason": "low_confidence",
+    "question": "Will Kubernetes automatically roll back a Deployment that exceeds its progress deadline?",
+    "answer_id": null
+   },
+   "resolution": null,
+   "resolved_at": null,
+   "resolved_by": null,
+   "created_at": "2026-10-25T14:23:09.352891Z"
+  }
+ ],
+ "timelines": {
+  "cc0728de-22dd-47f4-a6d1-abe4bc682036": {
+   "document_id": "cc0728de-22dd-47f4-a6d1-abe4bc682036",
+   "external_id": "a60cc18b-0631-4cf0-b021-9f52224ece65",
+   "title": "LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]",
+   "versions": [
+    {
+     "version_id": "25ce6be3-6b6c-41fe-80d3-c756c497385c",
+     "version_no": 1,
+     "version_key": "1",
+     "valid_from": "2023-02-15T00:00:00Z",
+     "valid_to": "2024-04-15T00:00:00Z",
+     "diff_from_prev": null,
+     "created_at": "2026-10-25T14:13:05.142825Z"
+    },
+    {
+     "version_id": "45b4d5ac-a0ba-402c-b076-fe9eb5076978",
+     "version_no": 2,
+     "version_key": "5",
+     "valid_from": "2024-04-15T00:00:00Z",
+     "valid_to": "2024-04-15T00:00:01Z",
+     "diff_from_prev": {
+      "added": [],
+      "changed": [
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Drug Interactions",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations > Gender",
+       "14 CLINICAL STUDIES",
+       "16 HOW SUPPLIED/STORAGE AND HANDLING",
+       "17 PATIENT COUNSELING INFORMATION",
+       "2 DOSAGE AND ADMINISTRATION > 2.1 Important Dosage Information",
+       "3 DOSAGE FORMS AND STRENGTHS",
+       "5 WARNINGS AND PRECAUTIONS > 5.1 Myopathy and Rhabdomyolysis > Steps to Prevent or Reduce the Risk of Myopathy and Rhabdomyolysis",
+       "5 WARNINGS AND PRECAUTIONS > 5.5 Increased Risk of Hemorrhagic Stroke in Patients on LIPITOR 80 mg with Recent Hemorrhagic Stroke",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience",
+       "6 ADVERSE REACTIONS > 6.2 Postmarketing Experience",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > Data > Human Data",
+       "8 USE IN SPECIFIC POPULATIONS > 8.4 Pediatric Use",
+       "Patient Information"
+      ],
+      "removed": [
+       "RECENT MAJOR CHANGES SECTION"
+      ],
+      "unchanged": [
+       "1 INDICATIONS AND USAGE",
+       "10 OVERDOSAGE",
+       "11 DESCRIPTION",
+       "12 CLINICAL PHARMACOLOGY",
+       "12 CLINICAL PHARMACOLOGY > 12.1 Mechanism of Action",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Absorption",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Distribution",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Elimination",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Elimination > Excretion",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Elimination > Metabolism",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations > Geriatric",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations > Hepatic Impairment",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations > Pediatric",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations > Renal Impairment",
+       "13 NONCLINICAL TOXICOLOGY",
+       "13 NONCLINICAL TOXICOLOGY > 13.1 Carcinogenesis, Mutagenesis, Impairment of Fertility",
+       "2 DOSAGE AND ADMINISTRATION",
+       "2 DOSAGE AND ADMINISTRATION > 2.2 Recommended Dosage in Adult Patients",
+       "2 DOSAGE AND ADMINISTRATION > 2.3 Recommended Dosage in Pediatric Patients 10 Years of Age and Older with HeFH",
+       "2 DOSAGE AND ADMINISTRATION > 2.4 Recommended Dosage in Pediatric Patients 10 Years of Age and Older with HoFH",
+       "2 DOSAGE AND ADMINISTRATION > 2.5 Dosage Modifications Due to Drug Interactions",
+       "2 DOSAGE AND ADMINISTRATION > 2.5 Dosage Modifications Due to Drug Interactions > Anti-Viral Medications",
+       "2 DOSAGE AND ADMINISTRATION > 2.5 Dosage Modifications Due to Drug Interactions > Select Azole Antifungals or Macrolide Antibiotics",
+       "4 CONTRAINDICATIONS",
+       "5 WARNINGS AND PRECAUTIONS",
+       "5 WARNINGS AND PRECAUTIONS > 5.1 Myopathy and Rhabdomyolysis",
+       "5 WARNINGS AND PRECAUTIONS > 5.1 Myopathy and Rhabdomyolysis > Risk Factors for Myopathy",
+       "5 WARNINGS AND PRECAUTIONS > 5.2 Immune-Mediated Necrotizing Myopathy",
+       "5 WARNINGS AND PRECAUTIONS > 5.3 Hepatic Dysfunction",
+       "5 WARNINGS AND PRECAUTIONS > 5.4 Increases in HbA1c and Fasting Serum Glucose Levels",
+       "6 ADVERSE REACTIONS",
+       "7 DRUG INTERACTIONS",
+       "7 DRUG INTERACTIONS > 7.1 Drug Interactions that may Increase the Risk of Myopathy and Rhabdomyolysis with LIPITOR",
+       "7 DRUG INTERACTIONS > 7.2 Drug Interactions that may Decrease Exposure to LIPITOR",
+       "7 DRUG INTERACTIONS > 7.3 LIPITOR Effects on Other Drugs",
+       "8 USE IN SPECIFIC POPULATIONS",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > Data",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > Data > Animal Data",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > Risk Summary",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation > Data",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation > Risk Summary",
+       "8 USE IN SPECIFIC POPULATIONS > 8.5 Geriatric Use",
+       "8 USE IN SPECIFIC POPULATIONS > 8.6 Renal Impairment",
+       "8 USE IN SPECIFIC POPULATIONS > 8.7 Hepatic Impairment",
+       "PRINCIPAL DISPLAY PANEL – 10 mg",
+       "PRINCIPAL DISPLAY PANEL – 20 mg",
+       "PRINCIPAL DISPLAY PANEL – 40 mg",
+       "PRINCIPAL DISPLAY PANEL – 80 mg",
+       "SPL product data elements section"
+      ]
+     },
+     "created_at": "2026-10-25T14:13:05.215295Z"
+    },
+    {
+     "version_id": "9fe6d6a4-de3a-4e81-a027-c8b6d3ad03f8",
+     "version_no": 3,
+     "version_key": "7",
+     "valid_from": "2024-04-15T00:00:01Z",
+     "valid_to": null,
+     "diff_from_prev": {
+      "added": [],
+      "changed": [
+       "PRINCIPAL DISPLAY PANEL – 10 mg",
+       "PRINCIPAL DISPLAY PANEL – 20 mg",
+       "PRINCIPAL DISPLAY PANEL – 40 mg",
+       "PRINCIPAL DISPLAY PANEL – 80 mg"
+      ],
+      "removed": [],
+      "unchanged": [
+       "1 INDICATIONS AND USAGE",
+       "10 OVERDOSAGE",
+       "11 DESCRIPTION",
+       "12 CLINICAL PHARMACOLOGY",
+       "12 CLINICAL PHARMACOLOGY > 12.1 Mechanism of Action",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Absorption",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Distribution",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Drug Interactions",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Elimination",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Elimination > Excretion",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Elimination > Metabolism",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations > Gender",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations > Geriatric",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations > Hepatic Impairment",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations > Pediatric",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > Specific Populations > Renal Impairment",
+       "13 NONCLINICAL TOXICOLOGY",
+       "13 NONCLINICAL TOXICOLOGY > 13.1 Carcinogenesis, Mutagenesis, Impairment of Fertility",
+       "14 CLINICAL STUDIES",
+       "16 HOW SUPPLIED/STORAGE AND HANDLING",
+       "17 PATIENT COUNSELING INFORMATION",
+       "2 DOSAGE AND ADMINISTRATION",
+       "2 DOSAGE AND ADMINISTRATION > 2.1 Important Dosage Information",
+       "2 DOSAGE AND ADMINISTRATION > 2.2 Recommended Dosage in Adult Patients",
+       "2 DOSAGE AND ADMINISTRATION > 2.3 Recommended Dosage in Pediatric Patients 10 Years of Age and Older with HeFH",
+       "2 DOSAGE AND ADMINISTRATION > 2.4 Recommended Dosage in Pediatric Patients 10 Years of Age and Older with HoFH",
+       "2 DOSAGE AND ADMINISTRATION > 2.5 Dosage Modifications Due to Drug Interactions",
+       "2 DOSAGE AND ADMINISTRATION > 2.5 Dosage Modifications Due to Drug Interactions > Anti-Viral Medications",
+       "2 DOSAGE AND ADMINISTRATION > 2.5 Dosage Modifications Due to Drug Interactions > Select Azole Antifungals or Macrolide Antibiotics",
+       "3 DOSAGE FORMS AND STRENGTHS",
+       "4 CONTRAINDICATIONS",
+       "5 WARNINGS AND PRECAUTIONS",
+       "5 WARNINGS AND PRECAUTIONS > 5.1 Myopathy and Rhabdomyolysis",
+       "5 WARNINGS AND PRECAUTIONS > 5.1 Myopathy and Rhabdomyolysis > Risk Factors for Myopathy",
+       "5 WARNINGS AND PRECAUTIONS > 5.1 Myopathy and Rhabdomyolysis > Steps to Prevent or Reduce the Risk of Myopathy and Rhabdomyolysis",
+       "5 WARNINGS AND PRECAUTIONS > 5.2 Immune-Mediated Necrotizing Myopathy",
+       "5 WARNINGS AND PRECAUTIONS > 5.3 Hepatic Dysfunction",
+       "5 WARNINGS AND PRECAUTIONS > 5.4 Increases in HbA1c and Fasting Serum Glucose Levels",
+       "5 WARNINGS AND PRECAUTIONS > 5.5 Increased Risk of Hemorrhagic Stroke in Patients on LIPITOR 80 mg with Recent Hemorrhagic Stroke",
+       "6 ADVERSE REACTIONS",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience",
+       "6 ADVERSE REACTIONS > 6.2 Postmarketing Experience",
+       "7 DRUG INTERACTIONS",
+       "7 DRUG INTERACTIONS > 7.1 Drug Interactions that may Increase the Risk of Myopathy and Rhabdomyolysis with LIPITOR",
+       "7 DRUG INTERACTIONS > 7.2 Drug Interactions that may Decrease Exposure to LIPITOR",
+       "7 DRUG INTERACTIONS > 7.3 LIPITOR Effects on Other Drugs",
+       "8 USE IN SPECIFIC POPULATIONS",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > Data",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > Data > Animal Data",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > Data > Human Data",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > Risk Summary",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation > Data",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation > Risk Summary",
+       "8 USE IN SPECIFIC POPULATIONS > 8.4 Pediatric Use",
+       "8 USE IN SPECIFIC POPULATIONS > 8.5 Geriatric Use",
+       "8 USE IN SPECIFIC POPULATIONS > 8.6 Renal Impairment",
+       "8 USE IN SPECIFIC POPULATIONS > 8.7 Hepatic Impairment",
+       "Patient Information",
+       "SPL product data elements section"
+      ],
+      "valid_from_adjusted": {
+       "applied": "2024-04-15T00:00:01+00:00",
+       "requested": "2024-04-15T00:00:00+00:00"
+      }
+     },
+     "created_at": "2026-10-25T14:13:05.264998Z"
+    }
+   ],
+   "relations": {
+    "outgoing": [],
+    "incoming": []
+   }
+  },
+  "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7": {
+   "document_id": "564d4a7e-4615-4501-9fdd-dd5f4bfdb4f7",
+   "external_id": "content/en/docs/concepts/workloads/controllers/deployment.md",
+   "title": "Deployments",
+   "versions": [
+    {
+     "version_id": "a050a7bf-8e83-49fa-b785-04495585904e",
+     "version_no": 1,
+     "version_key": "release-1.34",
+     "valid_from": "2025-08-27T17:19:17Z",
+     "valid_to": "2025-12-17T20:01:55Z",
+     "diff_from_prev": null,
+     "created_at": "2026-10-25T14:11:20.769583Z"
+    },
+    {
+     "version_id": "aea70975-3cc7-4d18-adaa-3f3307614aba",
+     "version_no": 2,
+     "version_key": "release-1.35",
+     "valid_from": "2025-12-17T20:01:55Z",
+     "valid_to": "2026-04-22T17:57:14Z",
+     "diff_from_prev": {
+      "added": [],
+      "changed": [
+       "Scaling a Deployment",
+       "Updating a Deployment > Label selector updates",
+       "Writing a Deployment Spec > Replicas",
+       "Writing a Deployment Spec > Terminating Pods"
+      ],
+      "removed": [],
+      "unchanged": [
+       "",
+       "Canary Deployment",
+       "Clean up Policy",
+       "Creating a Deployment",
+       "Creating a Deployment > Pod-template-hash label",
+       "Deployment status",
+       "Deployment status > Complete Deployment",
+       "Deployment status > Failed Deployment",
+       "Deployment status > Operating on a failed deployment",
+       "Deployment status > Progressing Deployment",
+       "Pausing and Resuming a rollout of a Deployment",
+       "Rolling Back a Deployment",
+       "Rolling Back a Deployment > Checking Rollout History of a Deployment",
+       "Rolling Back a Deployment > Rolling Back to a Previous Revision",
+       "Scaling a Deployment > Proportional scaling",
+       "Updating a Deployment",
+       "Updating a Deployment > Rollover (aka multiple updates in-flight)",
+       "Use Case",
+       "Writing a Deployment Spec",
+       "Writing a Deployment Spec > Min Ready Seconds",
+       "Writing a Deployment Spec > Paused",
+       "Writing a Deployment Spec > Pod Template",
+       "Writing a Deployment Spec > Progress Deadline Seconds",
+       "Writing a Deployment Spec > Revision History Limit",
+       "Writing a Deployment Spec > Selector",
+       "Writing a Deployment Spec > Strategy",
+       "Writing a Deployment Spec > Strategy > Recreate Deployment",
+       "Writing a Deployment Spec > Strategy > Rolling Update Deployment",
+       "Writing a Deployment Spec > Strategy > Rolling Update Deployment > Max Surge",
+       "Writing a Deployment Spec > Strategy > Rolling Update Deployment > Max Unavailable"
+      ]
+     },
+     "created_at": "2026-10-25T14:11:20.797517Z"
+    },
+    {
+     "version_id": "baed1d55-0941-4e60-adbc-cabe48b77ef8",
+     "version_no": 3,
+     "version_key": "release-1.36",
+     "valid_from": "2026-04-22T17:57:14Z",
+     "valid_to": null,
+     "diff_from_prev": {
+      "added": [],
+      "changed": [
+       "Updating a Deployment > Label selector updates",
+       "Writing a Deployment Spec > Progress Deadline Seconds"
+      ],
+      "removed": [],
+      "unchanged": [
+       "",
+       "Canary Deployment",
+       "Clean up Policy",
+       "Creating a Deployment",
+       "Creating a Deployment > Pod-template-hash label",
+       "Deployment status",
+       "Deployment status > Complete Deployment",
+       "Deployment status > Failed Deployment",
+       "Deployment status > Operating on a failed deployment",
+       "Deployment status > Progressing Deployment",
+       "Pausing and Resuming a rollout of a Deployment",
+       "Rolling Back a Deployment",
+       "Rolling Back a Deployment > Checking Rollout History of a Deployment",
+       "Rolling Back a Deployment > Rolling Back to a Previous Revision",
+       "Scaling a Deployment",
+       "Scaling a Deployment > Proportional scaling",
+       "Updating a Deployment",
+       "Updating a Deployment > Rollover (aka multiple updates in-flight)",
+       "Use Case",
+       "Writing a Deployment Spec",
+       "Writing a Deployment Spec > Min Ready Seconds",
+       "Writing a Deployment Spec > Paused",
+       "Writing a Deployment Spec > Pod Template",
+       "Writing a Deployment Spec > Replicas",
+       "Writing a Deployment Spec > Revision History Limit",
+       "Writing a Deployment Spec > Selector",
+       "Writing a Deployment Spec > Strategy",
+       "Writing a Deployment Spec > Strategy > Recreate Deployment",
+       "Writing a Deployment Spec > Strategy > Rolling Update Deployment",
+       "Writing a Deployment Spec > Strategy > Rolling Update Deployment > Max Surge",
+       "Writing a Deployment Spec > Strategy > Rolling Update Deployment > Max Unavailable",
+       "Writing a Deployment Spec > Terminating Pods"
+      ]
+     },
+     "created_at": "2026-10-25T14:28:07.000166Z"
+    }
+   ],
+   "relations": {
+    "outgoing": [],
+    "incoming": []
+   }
+  },
+  "cb66f90f-656a-4c6f-87c9-1a1991414155": {
+   "document_id": "cb66f90f-656a-4c6f-87c9-1a1991414155",
+   "external_id": "de8b0b67-eb25-4684-83b5-7ad785314227",
+   "title": "PLAVIX (CLOPIDOGREL) TABLET, FILM COATED [SANOFI-AVENTIS U.S. LLC]",
+   "versions": [
+    {
+     "version_id": "96030968-dc21-4d90-befb-016ff012887f",
+     "version_no": 1,
+     "version_key": "1",
+     "valid_from": "2020-04-03T00:00:00Z",
+     "valid_to": "2021-03-05T00:00:00Z",
+     "diff_from_prev": null,
+     "created_at": "2026-10-25T14:11:16.787680Z"
+    },
+    {
+     "version_id": "925bc5ec-751d-4846-87a9-a3c4224d9b7e",
+     "version_no": 2,
+     "version_key": "2",
+     "valid_from": "2021-03-05T00:00:00Z",
+     "valid_to": "2022-09-22T00:00:00Z",
+     "diff_from_prev": {
+      "added": [
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [4]",
+       "7 DRUG INTERACTIONS > 7.1 CYP2C19 Inducers",
+       "7 DRUG INTERACTIONS > 7.2 CYP2C19 Inhibitors",
+       "7 DRUG INTERACTIONS > 7.3 Opioids",
+       "7 DRUG INTERACTIONS > 7.4 Nonsteroidal Anti-inflammatory Drugs (NSAIDs)",
+       "7 DRUG INTERACTIONS > 7.5 Warfarin (CYP2C9 Substrates)",
+       "7 DRUG INTERACTIONS > 7.6 SSRIs and SNRIs",
+       "7 DRUG INTERACTIONS > 7.7 Repaglinide (CYP2C8 Substrates)"
+      ],
+      "changed": [
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "5 WARNINGS AND PRECAUTIONS > 5.2 General Risk of Bleeding",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation > SPL UNCLASSIFIED SECTION",
+       "SPL MEDGUIDE SECTION",
+       "SPL UNCLASSIFIED SECTION [2]"
+      ],
+      "removed": [
+       "7 DRUG INTERACTIONS > 7.1 CYP2C19 Inhibitors",
+       "7 DRUG INTERACTIONS > 7.2 Opioids",
+       "7 DRUG INTERACTIONS > 7.3 Nonsteroidal Anti-inflammatory Drugs (NSAIDs)",
+       "7 DRUG INTERACTIONS > 7.4 Warfarin (CYP2C9 Substrates)",
+       "7 DRUG INTERACTIONS > 7.5 SSRIs and SNRIs",
+       "7 DRUG INTERACTIONS > 7.6 Repaglinide (CYP2C8 Substrates)"
+      ],
+      "unchanged": [
+       "1 INDICATIONS AND USAGE",
+       "1 INDICATIONS AND USAGE > 1.1 Acute Coronary Syndrome (ACS)",
+       "1 INDICATIONS AND USAGE > 1.2 Recent MI, Recent Stroke, or Established Peripheral Arterial Disease",
+       "10 OVERDOSAGE",
+       "11 DESCRIPTION",
+       "12 CLINICAL PHARMACOLOGY",
+       "12 CLINICAL PHARMACOLOGY > 12.1 Mechanism of Action",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION [4]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION [4]",
+       "12 CLINICAL PHARMACOLOGY > 12.5 Pharmacogenomics",
+       "13 NONCLINICAL TOXICOLOGY",
+       "13 NONCLINICAL TOXICOLOGY > 13.1 Carcinogenesis, Mutagenesis, Impairment of Fertility",
+       "14 CLINICAL STUDIES",
+       "14 CLINICAL STUDIES > 14.1 Acute Coronary Syndrome",
+       "14 CLINICAL STUDIES > 14.1 Acute Coronary Syndrome > SPL UNCLASSIFIED SECTION",
+       "14 CLINICAL STUDIES > 14.1 Acute Coronary Syndrome > SPL UNCLASSIFIED SECTION [2]",
+       "14 CLINICAL STUDIES > 14.2 Recent Myocardial Infarction, Recent Stroke, or Established Peripheral Arterial Disease",
+       "14 CLINICAL STUDIES > 14.3 No Demonstrated Benefit of Plavix plus Aspirin in Patients with Multiple Risk Factors or Established Vascular Disease",
+       "14 CLINICAL STUDIES > 14.3 No Demonstrated Benefit of Plavix plus Aspirin in Patients with Multiple Risk Factors or Established Vascular Disease > SPL UNCLASSIFIED SECTION",
+       "16 HOW SUPPLIED/STORAGE AND HANDLING",
+       "16 HOW SUPPLIED/STORAGE AND HANDLING > STORAGE AND HANDLING SECTION",
+       "17 PATIENT COUNSELING INFORMATION",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [2]",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [3]",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [4]",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [5]",
+       "2 DOSAGE AND ADMINISTRATION",
+       "2 DOSAGE AND ADMINISTRATION > 2.1 Acute Coronary Syndrome",
+       "2 DOSAGE AND ADMINISTRATION > 2.2 Recent MI, Recent Stroke, or Established Peripheral Arterial Disease",
+       "3 DOSAGE FORMS AND STRENGTHS",
+       "4 CONTRAINDICATIONS",
+       "4 CONTRAINDICATIONS > 4.1 Active Bleeding",
+       "4 CONTRAINDICATIONS > 4.2 Hypersensitivity",
+       "5 WARNINGS AND PRECAUTIONS",
+       "5 WARNINGS AND PRECAUTIONS > 5.1 Diminished Antiplatelet Activity in Patients with Impaired CYP2C19 Function",
+       "5 WARNINGS AND PRECAUTIONS > 5.3 Discontinuation of Plavix",
+       "5 WARNINGS AND PRECAUTIONS > 5.4 Thrombotic Thrombocytopenic Purpura (TTP)",
+       "5 WARNINGS AND PRECAUTIONS > 5.5 Cross-Reactivity among Thienopyridines",
+       "6 ADVERSE REACTIONS",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION [2]",
+       "6 ADVERSE REACTIONS > 6.2 Postmarketing Experience",
+       "7 DRUG INTERACTIONS",
+       "8 USE IN SPECIFIC POPULATIONS",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [4]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION [2]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION [3]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation",
+       "8 USE IN SPECIFIC POPULATIONS > 8.4 Pediatric Use",
+       "8 USE IN SPECIFIC POPULATIONS > 8.5 Geriatric Use",
+       "8 USE IN SPECIFIC POPULATIONS > 8.6 Renal Impairment",
+       "8 USE IN SPECIFIC POPULATIONS > 8.7 Hepatic Impairment",
+       "PRINCIPAL DISPLAY PANEL - 300 mg Tablet Blister Pack Carton",
+       "PRINCIPAL DISPLAY PANEL - 75 mg Tablet Bottle Label",
+       "SPL PRODUCT DATA ELEMENTS SECTION",
+       "SPL UNCLASSIFIED SECTION",
+       "WARNING: DIMINISHED ANTIPLATELET EFFECT IN PATIENTS WITH TWO LOSS-OF-FUNCTION ALLELES OF THE CYP2C19 GENE",
+       "WARNING: DIMINISHED ANTIPLATELET EFFECT IN PATIENTS WITH TWO LOSS-OF-FUNCTION ALLELES OF THE CYP2C19 GENE > SPL UNCLASSIFIED SECTION"
+      ]
+     },
+     "created_at": "2026-10-25T14:11:16.829375Z"
+    },
+    {
+     "version_id": "15cb462e-6d9a-4e55-ab35-185fc765c59c",
+     "version_no": 3,
+     "version_key": "3",
+     "valid_from": "2022-09-22T00:00:00Z",
+     "valid_to": "2025-05-30T00:00:00Z",
+     "diff_from_prev": {
+      "added": [
+       "7 DRUG INTERACTIONS > 7.7 Other Antiplatelet Agents",
+       "7 DRUG INTERACTIONS > 7.8 Repaglinide (CYP2C8 Substrates)"
+      ],
+      "changed": [
+       "5 WARNINGS AND PRECAUTIONS > 5.2 General Risk of Bleeding",
+       "SPL MEDGUIDE SECTION",
+       "SPL UNCLASSIFIED SECTION [2]"
+      ],
+      "removed": [
+       "7 DRUG INTERACTIONS > 7.7 Repaglinide (CYP2C8 Substrates)"
+      ],
+      "unchanged": [
+       "1 INDICATIONS AND USAGE",
+       "1 INDICATIONS AND USAGE > 1.1 Acute Coronary Syndrome (ACS)",
+       "1 INDICATIONS AND USAGE > 1.2 Recent MI, Recent Stroke, or Established Peripheral Arterial Disease",
+       "10 OVERDOSAGE",
+       "11 DESCRIPTION",
+       "12 CLINICAL PHARMACOLOGY",
+       "12 CLINICAL PHARMACOLOGY > 12.1 Mechanism of Action",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION [4]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [4]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION [4]",
+       "12 CLINICAL PHARMACOLOGY > 12.5 Pharmacogenomics",
+       "13 NONCLINICAL TOXICOLOGY",
+       "13 NONCLINICAL TOXICOLOGY > 13.1 Carcinogenesis, Mutagenesis, Impairment of Fertility",
+       "14 CLINICAL STUDIES",
+       "14 CLINICAL STUDIES > 14.1 Acute Coronary Syndrome",
+       "14 CLINICAL STUDIES > 14.1 Acute Coronary Syndrome > SPL UNCLASSIFIED SECTION",
+       "14 CLINICAL STUDIES > 14.1 Acute Coronary Syndrome > SPL UNCLASSIFIED SECTION [2]",
+       "14 CLINICAL STUDIES > 14.2 Recent Myocardial Infarction, Recent Stroke, or Established Peripheral Arterial Disease",
+       "14 CLINICAL STUDIES > 14.3 No Demonstrated Benefit of Plavix plus Aspirin in Patients with Multiple Risk Factors or Established Vascular Disease",
+       "14 CLINICAL STUDIES > 14.3 No Demonstrated Benefit of Plavix plus Aspirin in Patients with Multiple Risk Factors or Established Vascular Disease > SPL UNCLASSIFIED SECTION",
+       "16 HOW SUPPLIED/STORAGE AND HANDLING",
+       "16 HOW SUPPLIED/STORAGE AND HANDLING > STORAGE AND HANDLING SECTION",
+       "17 PATIENT COUNSELING INFORMATION",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [2]",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [3]",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [4]",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [5]",
+       "2 DOSAGE AND ADMINISTRATION",
+       "2 DOSAGE AND ADMINISTRATION > 2.1 Acute Coronary Syndrome",
+       "2 DOSAGE AND ADMINISTRATION > 2.2 Recent MI, Recent Stroke, or Established Peripheral Arterial Disease",
+       "3 DOSAGE FORMS AND STRENGTHS",
+       "4 CONTRAINDICATIONS",
+       "4 CONTRAINDICATIONS > 4.1 Active Bleeding",
+       "4 CONTRAINDICATIONS > 4.2 Hypersensitivity",
+       "5 WARNINGS AND PRECAUTIONS",
+       "5 WARNINGS AND PRECAUTIONS > 5.1 Diminished Antiplatelet Activity in Patients with Impaired CYP2C19 Function",
+       "5 WARNINGS AND PRECAUTIONS > 5.3 Discontinuation of Plavix",
+       "5 WARNINGS AND PRECAUTIONS > 5.4 Thrombotic Thrombocytopenic Purpura (TTP)",
+       "5 WARNINGS AND PRECAUTIONS > 5.5 Cross-Reactivity among Thienopyridines",
+       "6 ADVERSE REACTIONS",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION [2]",
+       "6 ADVERSE REACTIONS > 6.2 Postmarketing Experience",
+       "7 DRUG INTERACTIONS",
+       "7 DRUG INTERACTIONS > 7.1 CYP2C19 Inducers",
+       "7 DRUG INTERACTIONS > 7.2 CYP2C19 Inhibitors",
+       "7 DRUG INTERACTIONS > 7.3 Opioids",
+       "7 DRUG INTERACTIONS > 7.4 Nonsteroidal Anti-inflammatory Drugs (NSAIDs)",
+       "7 DRUG INTERACTIONS > 7.5 Warfarin (CYP2C9 Substrates)",
+       "7 DRUG INTERACTIONS > 7.6 SSRIs and SNRIs",
+       "8 USE IN SPECIFIC POPULATIONS",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [4]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION [2]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION [3]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation > SPL UNCLASSIFIED SECTION",
+       "8 USE IN SPECIFIC POPULATIONS > 8.4 Pediatric Use",
+       "8 USE IN SPECIFIC POPULATIONS > 8.5 Geriatric Use",
+       "8 USE IN SPECIFIC POPULATIONS > 8.6 Renal Impairment",
+       "8 USE IN SPECIFIC POPULATIONS > 8.7 Hepatic Impairment",
+       "PRINCIPAL DISPLAY PANEL - 300 mg Tablet Blister Pack Carton",
+       "PRINCIPAL DISPLAY PANEL - 75 mg Tablet Bottle Label",
+       "SPL PRODUCT DATA ELEMENTS SECTION",
+       "SPL UNCLASSIFIED SECTION",
+       "WARNING: DIMINISHED ANTIPLATELET EFFECT IN PATIENTS WITH TWO LOSS-OF-FUNCTION ALLELES OF THE CYP2C19 GENE",
+       "WARNING: DIMINISHED ANTIPLATELET EFFECT IN PATIENTS WITH TWO LOSS-OF-FUNCTION ALLELES OF THE CYP2C19 GENE > SPL UNCLASSIFIED SECTION"
+      ]
+     },
+     "created_at": "2026-10-25T14:11:16.854942Z"
+    },
+    {
+     "version_id": "df426ee8-a3eb-4dd1-9022-7bbee12e5ff8",
+     "version_no": 4,
+     "version_key": "5",
+     "valid_from": "2025-05-30T00:00:00Z",
+     "valid_to": null,
+     "diff_from_prev": {
+      "added": [],
+      "changed": [
+       "SPL UNCLASSIFIED SECTION",
+       "SPL UNCLASSIFIED SECTION [2]"
+      ],
+      "removed": [],
+      "unchanged": [
+       "1 INDICATIONS AND USAGE",
+       "1 INDICATIONS AND USAGE > 1.1 Acute Coronary Syndrome (ACS)",
+       "1 INDICATIONS AND USAGE > 1.2 Recent MI, Recent Stroke, or Established Peripheral Arterial Disease",
+       "10 OVERDOSAGE",
+       "11 DESCRIPTION",
+       "12 CLINICAL PHARMACOLOGY",
+       "12 CLINICAL PHARMACOLOGY > 12.1 Mechanism of Action",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.2 Pharmacodynamics > SPL UNCLASSIFIED SECTION [4]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [4]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION [2]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION [3]",
+       "12 CLINICAL PHARMACOLOGY > 12.3 Pharmacokinetics > SPL UNCLASSIFIED SECTION [4]",
+       "12 CLINICAL PHARMACOLOGY > 12.5 Pharmacogenomics",
+       "13 NONCLINICAL TOXICOLOGY",
+       "13 NONCLINICAL TOXICOLOGY > 13.1 Carcinogenesis, Mutagenesis, Impairment of Fertility",
+       "14 CLINICAL STUDIES",
+       "14 CLINICAL STUDIES > 14.1 Acute Coronary Syndrome",
+       "14 CLINICAL STUDIES > 14.1 Acute Coronary Syndrome > SPL UNCLASSIFIED SECTION",
+       "14 CLINICAL STUDIES > 14.1 Acute Coronary Syndrome > SPL UNCLASSIFIED SECTION [2]",
+       "14 CLINICAL STUDIES > 14.2 Recent Myocardial Infarction, Recent Stroke, or Established Peripheral Arterial Disease",
+       "14 CLINICAL STUDIES > 14.3 No Demonstrated Benefit of Plavix plus Aspirin in Patients with Multiple Risk Factors or Established Vascular Disease",
+       "14 CLINICAL STUDIES > 14.3 No Demonstrated Benefit of Plavix plus Aspirin in Patients with Multiple Risk Factors or Established Vascular Disease > SPL UNCLASSIFIED SECTION",
+       "16 HOW SUPPLIED/STORAGE AND HANDLING",
+       "16 HOW SUPPLIED/STORAGE AND HANDLING > STORAGE AND HANDLING SECTION",
+       "17 PATIENT COUNSELING INFORMATION",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [2]",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [3]",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [4]",
+       "17 PATIENT COUNSELING INFORMATION > SPL UNCLASSIFIED SECTION [5]",
+       "2 DOSAGE AND ADMINISTRATION",
+       "2 DOSAGE AND ADMINISTRATION > 2.1 Acute Coronary Syndrome",
+       "2 DOSAGE AND ADMINISTRATION > 2.2 Recent MI, Recent Stroke, or Established Peripheral Arterial Disease",
+       "3 DOSAGE FORMS AND STRENGTHS",
+       "4 CONTRAINDICATIONS",
+       "4 CONTRAINDICATIONS > 4.1 Active Bleeding",
+       "4 CONTRAINDICATIONS > 4.2 Hypersensitivity",
+       "5 WARNINGS AND PRECAUTIONS",
+       "5 WARNINGS AND PRECAUTIONS > 5.1 Diminished Antiplatelet Activity in Patients with Impaired CYP2C19 Function",
+       "5 WARNINGS AND PRECAUTIONS > 5.2 General Risk of Bleeding",
+       "5 WARNINGS AND PRECAUTIONS > 5.3 Discontinuation of Plavix",
+       "5 WARNINGS AND PRECAUTIONS > 5.4 Thrombotic Thrombocytopenic Purpura (TTP)",
+       "5 WARNINGS AND PRECAUTIONS > 5.5 Cross-Reactivity among Thienopyridines",
+       "6 ADVERSE REACTIONS",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "6 ADVERSE REACTIONS > 6.1 Clinical Trials Experience > SPL UNCLASSIFIED SECTION [2]",
+       "6 ADVERSE REACTIONS > 6.2 Postmarketing Experience",
+       "7 DRUG INTERACTIONS",
+       "7 DRUG INTERACTIONS > 7.1 CYP2C19 Inducers",
+       "7 DRUG INTERACTIONS > 7.2 CYP2C19 Inhibitors",
+       "7 DRUG INTERACTIONS > 7.3 Opioids",
+       "7 DRUG INTERACTIONS > 7.4 Nonsteroidal Anti-inflammatory Drugs (NSAIDs)",
+       "7 DRUG INTERACTIONS > 7.5 Warfarin (CYP2C9 Substrates)",
+       "7 DRUG INTERACTIONS > 7.6 SSRIs and SNRIs",
+       "7 DRUG INTERACTIONS > 7.7 Other Antiplatelet Agents",
+       "7 DRUG INTERACTIONS > 7.8 Repaglinide (CYP2C8 Substrates)",
+       "8 USE IN SPECIFIC POPULATIONS",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [2]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [3]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION > SPL UNCLASSIFIED SECTION [4]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION [2]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.1 Pregnancy > SPL UNCLASSIFIED SECTION [3]",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation",
+       "8 USE IN SPECIFIC POPULATIONS > 8.2 Lactation > SPL UNCLASSIFIED SECTION",
+       "8 USE IN SPECIFIC POPULATIONS > 8.4 Pediatric Use",
+       "8 USE IN SPECIFIC POPULATIONS > 8.5 Geriatric Use",
+       "8 USE IN SPECIFIC POPULATIONS > 8.6 Renal Impairment",
+       "8 USE IN SPECIFIC POPULATIONS > 8.7 Hepatic Impairment",
+       "PRINCIPAL DISPLAY PANEL - 300 mg Tablet Blister Pack Carton",
+       "PRINCIPAL DISPLAY PANEL - 75 mg Tablet Bottle Label",
+       "SPL MEDGUIDE SECTION",
+       "SPL PRODUCT DATA ELEMENTS SECTION",
+       "WARNING: DIMINISHED ANTIPLATELET EFFECT IN PATIENTS WITH TWO LOSS-OF-FUNCTION ALLELES OF THE CYP2C19 GENE",
+       "WARNING: DIMINISHED ANTIPLATELET EFFECT IN PATIENTS WITH TWO LOSS-OF-FUNCTION ALLELES OF THE CYP2C19 GENE > SPL UNCLASSIFIED SECTION"
+      ]
+     },
+     "created_at": "2026-10-25T14:28:05.303634Z"
+    }
+   ],
+   "relations": {
+    "outgoing": [],
+    "incoming": []
+   }
+  },
+  "99620ce8-0c24-4d96-b83b-9300cdf321a9": {
+   "document_id": "99620ce8-0c24-4d96-b83b-9300cdf321a9",
+   "external_id": "content/en/docs/reference/using-api/deprecation-guide.md",
+   "title": "Deprecated API Migration Guide",
+   "versions": [
+    {
+     "version_id": "4a209b62-b792-40e9-b418-48e94dfe97cd",
+     "version_no": 1,
+     "version_key": "release-1.34",
+     "valid_from": "2025-08-27T17:19:17Z",
+     "valid_to": null,
+     "diff_from_prev": null,
+     "created_at": "2026-10-25T14:11:22.656167Z"
+    }
+   ],
+   "relations": {
+    "outgoing": [],
+    "incoming": []
+   }
+  }
+ },
+ "stats": {
+  "tenant": "demo",
+  "generated_at": "2026-10-25T14:30:12.165730Z",
+  "window_days": 30,
+  "corpus": {
+   "documents": 4,
+   "versions": 11,
+   "chunks": 1073,
+   "sources": [
+    {
+     "kind": "openfda",
+     "count": 1
+    },
+    {
+     "kind": "git_docs",
+     "count": 1
+    },
+    {
+     "kind": "upload",
+     "count": 0
+    }
+   ]
+  },
+  "drift": {
+   "total": 5,
+   "per_day": [
+    {
+     "day": "2026-09-26",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-09-27",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-09-28",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-09-29",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-09-30",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-01",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-02",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-03",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-04",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-05",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-06",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-07",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-08",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-09",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-10",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-11",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-12",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-13",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-14",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-15",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-16",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-17",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-18",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-19",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-20",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-21",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-22",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-23",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-24",
+     "still_valid": 0,
+     "changed": 0,
+     "broken": 0,
+     "total": 0
+    },
+    {
+     "day": "2026-10-25",
+     "still_valid": 4,
+     "changed": 1,
+     "broken": 0,
+     "total": 5
+    }
+   ]
+  },
+  "asks": {
+   "latency": {
+    "p50_ms": 24198.366,
+    "p95_ms": 33942.700249999994,
+    "samples": 4
+   },
+   "per_day": [
+    {
+     "day": "2026-09-26",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-09-27",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-09-28",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-09-29",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-09-30",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-01",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-02",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-03",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-04",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-05",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-06",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-07",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-08",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-09",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-10",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-11",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-12",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-13",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-14",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-15",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-16",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-17",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-18",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-19",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-20",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-21",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-22",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-23",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-24",
+     "asks": 0,
+     "p50_ms": null,
+     "p95_ms": null
+    },
+    {
+     "day": "2026-10-25",
+     "asks": 4,
+     "p50_ms": 24198.366,
+     "p95_ms": 33942.700249999994
+    }
+   ]
+  },
+  "cost": {
+   "answers": 4,
+   "answers_cost_usd": 0.118107,
+   "per_answer_usd": 0.02952675,
+   "llm_calls": 44,
+   "llm_cost_usd": 0.211027,
+   "per_day": [
+    {
+     "day": "2026-09-26",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-09-27",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-09-28",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-09-29",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-09-30",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-01",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-02",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-03",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-04",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-05",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-06",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-07",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-08",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-09",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-10",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-11",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-12",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-13",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-14",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-15",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-16",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-17",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-18",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-19",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-20",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-21",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-22",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-23",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-24",
+     "answers": 0,
+     "per_answer_usd": null
+    },
+    {
+     "day": "2026-10-25",
+     "answers": 4,
+     "per_answer_usd": 0.02952675
+    }
+   ]
+  },
+  "cache": {
+   "hits": 0,
+   "misses": 5,
+   "hit_rate": 0,
+   "reason": null
+  },
+  "review_backlog": [
+   {
+    "kind": "relation",
+    "open": 0
+   },
+   {
+    "kind": "broken_answer",
+    "open": 0
+   },
+   {
+    "kind": "low_confidence_answer",
+    "open": 1
+   },
+   {
+    "kind": "answer",
+    "open": 0
+   }
+  ],
+  "latest_eval": null
+ }
+}
