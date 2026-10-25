@@ -100,6 +100,114 @@
   "oom_killed": [
     "driftline-bench-reranker-1"
   ],
+  "queueing": {
+    "asks": 318,
+    "queue_p50_ms": 14662.2,
+    "queue_p95_ms": 16542.0,
+    "queue_share_of_wall": 0.7413477332241796,
+    "worker_p50_ms": 4839.5,
+    "worker_p95_ms": 6688.8
+  },
+  "saturation": {
+    "containers": [
+      {
+        "cpu_percent": 0.0,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 219.4,
+        "mem_percent": 3.71,
+        "name": "agent-worker-1"
+      },
+      {
+        "cpu_percent": 0.22,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 218.0,
+        "mem_percent": 3.69,
+        "name": "agent-worker-2"
+      },
+      {
+        "cpu_percent": 0.24,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 222.0,
+        "mem_percent": 3.76,
+        "name": "agent-worker-3"
+      },
+      {
+        "cpu_percent": 0.1,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 220.1,
+        "mem_percent": 3.72,
+        "name": "agent-worker-4"
+      },
+      {
+        "cpu_percent": 1.17,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 220.7,
+        "mem_percent": 3.73,
+        "name": "agent-worker-5"
+      },
+      {
+        "cpu_percent": 5.29,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 220.2,
+        "mem_percent": 3.73,
+        "name": "agent-worker-6"
+      },
+      {
+        "cpu_percent": 4.44,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 217.5,
+        "mem_percent": 3.68,
+        "name": "agent-worker-7"
+      },
+      {
+        "cpu_percent": 1.38,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 218.7,
+        "mem_percent": 3.7,
+        "name": "agent-worker-8"
+      },
+      {
+        "cpu_percent": 7.66,
+        "mem_limit_mib": 2048.0,
+        "mem_mib": 825.4,
+        "mem_percent": 40.3,
+        "name": "embedder-1"
+      },
+      {
+        "cpu_percent": 3.52,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 228.8,
+        "mem_percent": 3.87,
+        "name": "gateway-1"
+      },
+      {
+        "cpu_percent": 0.16,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 183.4,
+        "mem_percent": 3.1,
+        "name": "outbox-relay-1"
+      },
+      {
+        "cpu_percent": 1.62,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 153.8,
+        "mem_percent": 2.6,
+        "name": "postgres-1"
+      },
+      {
+        "cpu_percent": 1.91,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 11.88,
+        "mem_percent": 0.2,
+        "name": "redis-1"
+      }
+    ],
+    "cpu_percent_sum": 27.71,
+    "mem_mib_sum": 3159.88,
+    "source": "one `docker stats --no-stream` snapshot at the middle of the run",
+    "vm_cpu_utilisation": 0.069275,
+    "vm_cpus": 4
+  },
   "stages": {
     "asks": 318,
     "draft": {
@@ -147,29 +255,84 @@
     }
   },
   "summary": {
+    "apdex": {
+      "frustrated": 0,
+      "samples": 318,
+      "satisfied": 10,
+      "score": 0.5157232704402516,
+      "t_ms": 10000.0,
+      "tolerating": 308
+    },
     "attempts": 318,
+    "attempts_per_s": 1.597076598495636,
     "completed": 318,
+    "concurrency": {
+      "in_flight_mean": 30.44467946135287,
+      "vus_max": 32
+    },
     "error_rate": 0.0,
+    "errors": {
+      "failed_by_outcome": {},
+      "failed_post": 0,
+      "failed_sse": 0,
+      "http_429": 0,
+      "http_4xx_other": 0,
+      "http_5xx": 0,
+      "http_timeout_or_network": 0,
+      "interrupted_at_test_end": 0
+    },
     "failed": 0,
+    "goodput_per_s": 1.597076598495636,
+    "http_req_failed_rate": 0.0,
     "http_reqs": 636,
     "latency_ms": {
       "count": 318,
       "max": 24732.0,
       "mean": 19062.754716981133,
+      "min": 3545.0,
       "p50": 19526.5,
+      "p90": 21543.0,
       "p95": 21999.35,
-      "p99": 23010.749999999996
+      "p99": 23010.749999999996,
+      "p99_9": null,
+      "stddev": 3003.4377122001397
     },
     "rate_429": 0.0,
     "rejected_429": 0,
+    "requests_per_s": 3.194153196991272,
+    "streaming": {
+      "first_token_to_final_mean_ms": 3660.0157232704423,
+      "itl_ms": null,
+      "not_captured": "TPOT / ITL and output tokens per second: not captured in this run. k6's `sse_event` samples carry the stream URL but not the event name, so token events cannot be told apart from step, claim and final events, and no output-token count was recorded. Needed: in bench/k6/ask.js, timestamp every `token` event (a Trend of gaps between consecutive tokens = ITL; (last token - first token) / (tokens - 1) per ask = TPOT) and count tokens per ask (a Counter, for output tokens/s). With the stub LLM these would measure the stub's sleeps (800 ms median per call, 70% of it spread evenly over the words of the reply), not Claude.",
+      "output_tokens_per_s": null,
+      "sse_events_per_ask": {
+        "count": 318,
+        "max": 84.0,
+        "mean": 64.49056603773585,
+        "min": 57.0,
+        "p50": 62.0,
+        "p90": 72.50000000000017,
+        "p95": 83.0,
+        "p99": 84.0,
+        "p99_9": null,
+        "stddev": 7.078530140716963
+      },
+      "sse_events_per_s": 102.99637384260537,
+      "tpot_ms": null
+    },
+    "success_rate": 1.0,
     "throughput_per_s": 1.597076598495636,
     "ttft_ms": {
       "count": 318,
       "max": 20058.0,
       "mean": 15402.738993710691,
+      "min": 1039.0,
       "p50": 15856.0,
+      "p90": 17435.4,
       "p95": 18017.25,
-      "p99": 19111.12
+      "p99": 19111.12,
+      "p99_9": null,
+      "stddev": 2968.0785217833336
     },
     "window_s": 199.113806
   },

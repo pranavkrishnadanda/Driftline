@@ -62,6 +62,72 @@
   "k6_exit_code": 0,
   "llm": "stub LLM",
   "oom_killed": [],
+  "queueing": {
+    "asks": 29,
+    "queue_p50_ms": 20945.6,
+    "queue_p95_ms": 24150.4,
+    "queue_share_of_wall": 0.7380141462576649,
+    "worker_p50_ms": 6920.9,
+    "worker_p95_ms": 9043.1
+  },
+  "saturation": {
+    "containers": [
+      {
+        "cpu_percent": 0.35,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 227.2,
+        "mem_percent": 3.84,
+        "name": "agent-worker-1"
+      },
+      {
+        "cpu_percent": 0.41,
+        "mem_limit_mib": 2048.0,
+        "mem_mib": 800.4,
+        "mem_percent": 39.08,
+        "name": "embedder-1"
+      },
+      {
+        "cpu_percent": 0.25,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 241.6,
+        "mem_percent": 4.09,
+        "name": "gateway-1"
+      },
+      {
+        "cpu_percent": 0.27,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 199.8,
+        "mem_percent": 3.38,
+        "name": "outbox-relay-1"
+      },
+      {
+        "cpu_percent": 0.24,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 56.09,
+        "mem_percent": 0.95,
+        "name": "postgres-1"
+      },
+      {
+        "cpu_percent": 0.78,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 4.289,
+        "mem_percent": 0.07,
+        "name": "redis-1"
+      },
+      {
+        "cpu_percent": 1.53,
+        "mem_limit_mib": 3072.0,
+        "mem_mib": 2223.104,
+        "mem_percent": 72.38,
+        "name": "reranker-1"
+      }
+    ],
+    "cpu_percent_sum": 3.83,
+    "mem_mib_sum": 3752.4829999999997,
+    "source": "one `docker stats --no-stream` snapshot at the middle of the run",
+    "vm_cpu_utilisation": 0.009575,
+    "vm_cpus": 4
+  },
   "stages": {
     "asks": 29,
     "draft": {
@@ -109,29 +175,84 @@
     }
   },
   "summary": {
+    "apdex": {
+      "frustrated": 0,
+      "samples": 29,
+      "satisfied": 1,
+      "score": 0.5172413793103449,
+      "t_ms": 10000.0,
+      "tolerating": 28
+    },
     "attempts": 29,
+    "attempts_per_s": 0.14228325979995454,
     "completed": 29,
+    "concurrency": {
+      "in_flight_mean": 3.8107234840291477,
+      "vus_max": 4
+    },
     "error_rate": 0.0,
+    "errors": {
+      "failed_by_outcome": {},
+      "failed_post": 0,
+      "failed_sse": 0,
+      "http_429": 0,
+      "http_4xx_other": 0,
+      "http_5xx": 0,
+      "http_timeout_or_network": 0,
+      "interrupted_at_test_end": 0
+    },
     "failed": 0,
+    "goodput_per_s": 0.14228325979995454,
+    "http_req_failed_rate": 0.0,
     "http_reqs": 58,
     "latency_ms": {
       "count": 29,
       "max": 32876.0,
       "mean": 26782.655172413793,
+      "min": 6863.0,
       "p50": 27751.0,
+      "p90": 30666.8,
       "p95": 31092.6,
-      "p99": 32400.28
+      "p99": 32400.28,
+      "p99_9": null,
+      "stddev": 5280.060431714923
     },
     "rate_429": 0.0,
     "rejected_429": 0,
+    "requests_per_s": 0.2845665195999091,
+    "streaming": {
+      "first_token_to_final_mean_ms": 3734.5172413793116,
+      "itl_ms": null,
+      "not_captured": "TPOT / ITL and output tokens per second: not captured in this run. k6's `sse_event` samples carry the stream URL but not the event name, so token events cannot be told apart from step, claim and final events, and no output-token count was recorded. Needed: in bench/k6/ask.js, timestamp every `token` event (a Trend of gaps between consecutive tokens = ITL; (last token - first token) / (tokens - 1) per ask = TPOT) and count tokens per ask (a Counter, for output tokens/s). With the stub LLM these would measure the stub's sleeps (800 ms median per call, 70% of it spread evenly over the words of the reply), not Claude.",
+      "output_tokens_per_s": null,
+      "sse_events_per_ask": {
+        "count": 29,
+        "max": 84.0,
+        "mean": 66.55172413793103,
+        "min": 46.0,
+        "p50": 67.0,
+        "p90": 84.0,
+        "p95": 84.0,
+        "p99": 84.0,
+        "p99_9": null,
+        "stddev": 12.43435967360647
+      },
+      "sse_events_per_s": 9.469196255652147,
+      "tpot_ms": null
+    },
+    "success_rate": 1.0,
     "throughput_per_s": 0.14228325979995454,
     "ttft_ms": {
       "count": 29,
       "max": 27506.0,
       "mean": 23048.137931034482,
+      "min": 3079.0,
       "p50": 24357.0,
+      "p90": 27162.2,
       "p95": 27250.8,
-      "p99": 27436.0
+      "p99": 27436.0,
+      "p99_9": null,
+      "stddev": 5147.180190052316
     },
     "window_s": 203.818777
   },

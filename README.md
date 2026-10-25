@@ -41,6 +41,8 @@ Driftline against plain RAG (the same retriever and reranker with the as-of filt
 
 The full write-up, with the offline CI-gate baselines, metric definitions, machine and cost breakdown, is in [`evals/RESULTS.md`](evals/RESULTS.md). The report site, [https://pranavkrishnadanda.github.io/Driftline/](https://pranavkrishnadanda.github.io/Driftline/) (live after first deploy), renders the same reports plus benchmarks and the nightly drift log; it is built by `python -m driftline.eval site` and deployed by [`pages.yml`](.github/workflows/pages.yml).
 
+**Benchmarks** (k6, stub LLM with an 800 ms median per call, 4-vCPU Colima VM): at 4 agent workers with the reranker on, 0.43 asks/s with end-to-end p50/p90/p95/p99 of 35670/38169/39398/40881 ms and 0 errors; with the reranker off, 0.83 asks/s at p95 22426 ms (scaling efficiency 1.02 vs 0.76 with it on). Under chaos, 86 of 86 asks succeeded across 8 worker kills. TPOT/ITL were not captured in this run. Percentiles, TTFT, errors, Apdex, saturation and metric definitions are on the [benchmarks page](https://pranavkrishnadanda.github.io/Driftline/benchmarks.html) and in [`bench/results/cd66852df1d8/README.md`](bench/results/cd66852df1d8/README.md).
+
 ## Features
 
 What is built and tested today:

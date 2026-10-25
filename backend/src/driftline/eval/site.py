@@ -25,8 +25,10 @@ from pathlib import Path
 from typing import Any, get_args
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from markupsafe import Markup
 from pydantic import ValidationError
 
+from driftline.bench import summarize as bench_summary
 from driftline.eval.types import EvalReport, System
 
 TEMPLATES = Path(__file__).with_name("site_templates")
@@ -213,6 +215,7 @@ class BenchRun:
     other: list[BenchFile]
     throughput_key: str | None
     p95_key: str | None
+    raw_runs: list[dict[str, Any]] = field(default_factory=list)  # workers-*.json as written
 
     @property
     def chaos_lost(self) -> int | None:
@@ -426,6 +429,7 @@ def _pick(files: list[BenchFile], pattern: str, avoid: str = r"ttft|first") -> s
 
 def _load_bench_dir(repo: Path, directory: Path, unreadable: list[str]) -> BenchRun | None:
     workers: list[tuple[int, BenchFile]] = []
+    raw_runs: list[dict[str, Any]] = []
     chaos, other, machine = None, [], {}
     for path in sorted(directory.glob("*.json")):
         try:
@@ -446,6 +450,7 @@ def _load_bench_dir(repo: Path, directory: Path, unreadable: list[str]) -> Bench
         m = re.match(r"workers-(\d+)$", stem)
         if m or isinstance(raw.get("workers"), int) and "chaos" not in stem:
             workers.append((int(m.group(1)) if m else raw["workers"], bf))
+            raw_runs.append(raw)
         elif stem.startswith("chaos"):
             chaos = bf
         elif stem.startswith("machine"):
@@ -464,6 +469,7 @@ def _load_bench_dir(repo: Path, directory: Path, unreadable: list[str]) -> Bench
         other,
         _pick(files, r"throughput|rps|per_s(ec)?$"),
         _pick(files, r"p95"),
+        raw_runs,
     )
 
 
@@ -755,7 +761,144 @@ def _bench_charts(run: BenchRun) -> list[str]:
     return charts
 
 
+def _ms(value: Any) -> str:
+    return "n/a" if value is None else f"{value:.0f}"
+
+
+def _pc(value: Any) -> str:
+    return "n/a" if value is None else f"{value * 100:.1f}%"
+
+
+def _n2(value: Any, digits: int = 2) -> str:
+    return "n/a" if value is None else f"{value:.{digits}f}"
+
+
+def _run_label(run: dict[str, Any]) -> str:
+    mode = run.get("config", {}).get("reranker", "n/a")
+    oom = any("reranker" in n for n in run.get("oom_killed") or [])
+    label = f"{run['workers']} worker{'' if run['workers'] == 1 else 's'}, reranker {mode}"
+    return label + (" (OOM-killed: RRF fallback)" if oom else "")
+
+
+def bench_metrics(run: BenchRun) -> dict[str, Any] | None:
+    """Table rows for the industry-standard metric sections, from workers-*.json files
+    written by `python -m driftline.bench` (None when no file has the new summary)."""
+    runs = sorted(
+        (r for r in run.raw_runs if isinstance(r.get("summary"), dict) and "apdex" in r["summary"]),
+        key=bench_summary._run_key,
+    )
+    if not runs:
+        return None
+    pct_rows, llm_rows, err_rows, sat_rows, queue_rows = [], [], [], [], []
+    for r in runs:
+        s, label = r["summary"], _run_label(r)
+        lat, ttft, st = s["latency_ms"], s["ttft_ms"], s["streaming"]
+        p999 = lat.get("p99_9")
+        pct_rows.append(
+            [label, str(lat["count"]), _ms(lat["min"])]
+            + [_ms(lat[k]) for k in ("p50", "p90", "p95", "p99")]
+            + [_ms(p999) if p999 is not None else f"n/a (n<{bench_summary.P99_9_MIN_N})"]
+            + [_ms(lat["max"]), _ms(lat["mean"]), _ms(lat["stddev"])]
+        )
+        llm_rows.append(
+            [label]
+            + [_ms(ttft[k]) for k in ("p50", "p90", "p95", "p99")]
+            + [_ms(lat["p50"]), _ms(lat["p95"]), _ms(st["first_token_to_final_mean_ms"])]
+            + [_ms(st["sse_events_per_ask"]["p50"]), _n2(st["sse_events_per_s"], 1)]
+            + [
+                "not captured" if st.get(k) is None else _n2(st[k])
+                for k in ("tpot_ms", "output_tokens_per_s")
+            ]
+        )
+        e, a = s["errors"], s["apdex"]
+        err_rows.append(
+            [label, str(s["attempts"]), str(s["completed"]), _pc(s["success_rate"])]
+            + [str(e[k]) for k in ("http_5xx", "http_429", "http_timeout_or_network")]
+            + [str(e[k]) for k in ("http_4xx_other", "failed_sse", "interrupted_at_test_end")]
+            + [_pc(s["http_req_failed_rate"]), _n2(a["score"], 3)]
+            + [f"{a['satisfied']} / {a['tolerating']} / {a['frustrated']}"]
+            + [_n2(s["requests_per_s"]), _n2(s["goodput_per_s"])]
+            + [str(s["concurrency"]["vus_max"]), _n2(s["concurrency"]["in_flight_mean"], 1)]
+        )
+        if sat := r.get("saturation"):
+            top = sorted(sat["containers"], key=lambda c: c["cpu_percent"] or 0, reverse=True)
+            mem = sorted(sat["containers"], key=lambda c: c["mem_mib"] or 0, reverse=True)
+            sat_rows.append(
+                [label, _pc(sat["vm_cpu_utilisation"]), _ms(sat["mem_mib_sum"])]
+                + [", ".join(f"{c['name']} {_n2(c['cpu_percent'])}%" for c in top[:3])]
+                + [
+                    ", ".join(
+                        f"{c['name']} {_ms(c['mem_mib'])} MiB ({_n2(c['mem_percent'], 1)}%)"
+                        for c in mem[:3]
+                    )
+                ]
+            )
+        if q := r.get("queueing"):
+            queue_rows.append(
+                [label, str(q["asks"])]
+                + [_ms(q[k]) for k in ("queue_p50_ms", "queue_p95_ms")]
+                + [_ms(q[k]) for k in ("worker_p50_ms", "worker_p95_ms")]
+                + [_pc(q["queue_share_of_wall"])]
+            )
+    by_key = {(r["workers"], r.get("config", {}).get("reranker", "on")): r for r in runs}
+    scaling = []
+    for e in bench_summary.scaling_efficiency(runs):
+        r = by_key[(e["workers"], e["reranker"])]
+        scaling.append(
+            {
+                "label": _run_label(r),
+                "short": f"{e['workers']}w, rerank {e['reranker']}",
+                "cells": [_n2(e["throughput_per_s"]), _n2(e["speedup"]), _n2(e["efficiency"])],
+                "efficiency": e["efficiency"],
+                "comparable": e["comparable"],
+                "note": "yes"
+                if e["comparable"]
+                else "no: reranker OOM-killed, RRF fallback"
+                if e["efficiency"] is not None
+                else "no 1-worker baseline",
+            }
+        )
+    return {
+        "percentiles": pct_rows,
+        "llm": llm_rows,
+        "errors": err_rows,
+        "saturation": sat_rows,
+        "queueing": queue_rows,
+        "scaling": scaling,
+        "apdex_t_s": runs[0]["summary"]["apdex"]["t_ms"] / 1000,
+        "not_captured": runs[0]["summary"]["streaming"]["not_captured"],
+        "llm_median_ms": runs[0].get("config", {}).get("llm_median_ms"),
+    }
+
+
+def _scaling_chart(metrics: dict[str, Any]) -> str | None:
+    bars = [
+        (
+            row["short"] + ("" if row["comparable"] else " *"),
+            [("driftline", row["efficiency"], _n2(row["efficiency"]))],
+        )
+        for row in metrics["scaling"]
+        if row["efficiency"] is not None
+    ]
+    if not bars:
+        return None
+    top = max(1.0, max(b[0][1] for _, b in bars))
+    return bar_chart_svg(
+        "Scaling efficiency by worker count",
+        "throughput(N) / (N x throughput(1)) against the 1-worker run with the same reranker "
+        "setting; 1.0 is linear scaling. Rows marked * are not comparable: the reranker was "
+        "OOM-killed and asks fell back to RRF.",
+        bars,
+        max_value=_nice_step(top * 1.1 / 4) * 4,
+    )
+
+
 # ---------------------------------------------------------------------------- build
+
+
+def _ticks(text: str) -> Markup:
+    """Escape `text`, then render `backticked` spans as <code>."""
+    return Markup(re.sub(r"`([^`]+)`", r"<code>\1</code>", str(escape(text))))
 
 
 def _env() -> Environment:
@@ -767,6 +910,7 @@ def _env() -> Environment:
         lstrip_blocks=True,
     )
     env.filters["fmt"] = lambda value, name="x": fmt(name, value)
+    env.filters["ticks"] = _ticks
     env.globals.update(
         PAGES=PAGES,
         METRICS=METRICS,
@@ -792,7 +936,11 @@ def build_site(repo: Path, out: Path, *, source_sha: str | None = None) -> SiteD
             shutil.copy(repo / "docs" / "screenshots" / shot["file"], out / "screenshots")
     (out / ".nojekyll").write_text("")
     env = _env()
+    metrics = bench_metrics(data.bench) if data.bench else None
     context = {
+        "bench_metrics": metrics,
+        "scaling_chart": _scaling_chart(metrics) if metrics else None,
+        "metric_definitions": bench_summary.METRIC_DEFINITIONS,
         "data": data,
         "h": data.headline,
         "source_sha": source_sha,
