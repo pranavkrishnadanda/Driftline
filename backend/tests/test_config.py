@@ -90,3 +90,11 @@ def test_drift_worker_and_scheduler_settings():
     assert s.poll_interval_s == 60.0
     assert s.alert_events_maxlen == 10_000
     assert s.alert_events_ttl_s == 30 * 24 * 3600
+
+
+def test_bench_llm_settings_default_off():
+    s = Settings(_env_file=None)
+    assert s.llm_bench is False
+    assert (s.llm_bench_seed, s.llm_bench_median_ms, s.llm_bench_sigma) == (0, 800.0, 0.5)
+    s = Settings(_env_file=None, llm_bench=True, llm_bench_median_ms=1200.0)
+    assert s.llm_bench is True and s.llm_bench_median_ms == 1200.0

@@ -12,6 +12,7 @@ from driftline.clock import Clock
 from driftline.config import Settings
 from driftline.llm.adapters.anthropic import AnthropicAdapter
 from driftline.llm.adapters.gemini import GeminiAdapter
+from driftline.llm.adapters.latency import LatencyStubAdapter
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.breaker import CircuitBreaker
 from driftline.llm.ratelimit import RateLimitTimeout, RedisTokenBucket
@@ -237,7 +238,30 @@ class LLMRouter:
         return self._base_backoff_s * (2**attempt) * random.uniform(0.5, 1.5)
 
 
+def build_bench_router(settings: Settings, *, clock: Clock) -> LLMRouter:
+    """The `bench` chain: LatencyStubAdapter (replies from the in-repo ExtractiveResponder,
+    so structured outputs stay valid) on every LLM tier; embeddings stay on TEI."""
+    # Imported here: driftline.agents builds on the router, not the other way round.
+    from driftline.agents.offline import ExtractiveResponder
+
+    stub = LatencyStubAdapter(
+        seed=settings.llm_bench_seed,
+        median_ms=settings.llm_bench_median_ms,
+        sigma=settings.llm_bench_sigma,
+        clock=clock,
+        responder=ExtractiveResponder(),
+    )
+    tiers = {t: [Route(stub.name, f"bench-{t}")] for t in ("extract", "answer", "judge")}
+    return LLMRouter(
+        providers={stub.name: stub, "tei": TEIEmbeddingAdapter(settings.embed_url)},
+        chains={**tiers, "embed": [Route("tei", settings.model_embed)]},
+        clock=clock,
+    )
+
+
 def build_router(settings: Settings, redis: Redis, *, clock: Clock) -> LLMRouter:
+    if settings.llm_bench:
+        return build_bench_router(settings, clock=clock)
     if not settings.anthropic_api_key and not settings.gemini_api_key:
         raise ValueError(
             "no LLM provider configured: set DRIFTLINE_ANTHROPIC_API_KEY or DRIFTLINE_GEMINI_API_KEY"

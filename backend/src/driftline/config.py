@@ -58,6 +58,12 @@ class Settings(BaseSettings):
     model_judge: str = "claude-sonnet-5-5"
     answer_max_output_tokens: int = 4096  # thinking counts against it
     llm_offline: bool = False  # DeterministicAdapter + ExtractiveResponder; zero cost demos
+    # P7 benchmarks: the "bench" chain (LatencyStubAdapter, a labelled stub LLM with
+    # seeded log-normal latency) replaces every LLM tier; embeddings stay on TEI.
+    llm_bench: bool = False
+    llm_bench_seed: int = 0
+    llm_bench_median_ms: float = 800.0
+    llm_bench_sigma: float = 0.5
     semantic_cache_enabled: bool = True
     semantic_cache_threshold: float = 0.95  # spec section 4
     semantic_cache_ttl_s: int = 7 * 24 * 3600
