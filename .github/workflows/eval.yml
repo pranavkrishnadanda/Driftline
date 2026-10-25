@@ -1,0 +1,107 @@
+name: eval
+# The eval CI gate (spec section 12). On every PR: load the committed gate snapshot (the
+# versions the gate subset of the golden sets needs, with embeddings), run driftline and
+# plain_rag on both gate subsets, and compare each run with the baseline report committed
+# on the base branch. Fails on a citation precision drop of more than 2 points or an
+# outdated-citation rate rise of more than 1 point, and when a baseline is missing.
+#
+# The LLM is the in-repo offline extractive LLM (DeterministicAdapter + ExtractiveResponder),
+# so the gate is free, needs no key and is deterministic. It measures retrieval, the as-of
+# filter and the citation machinery, not a language model. Every report says so. The
+# cross-encoder reranker is off in the gate (RRF order; see evals/gate.sh for why).
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eval-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  eval-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: driftline
+          POSTGRES_PASSWORD: driftline
+          POSTGRES_DB: driftline
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U driftline"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      embedder:
+        # Hugging Face TEI (x86_64 CPU image); MODEL_ID is TEI's env form of --model-id.
+        image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.4
+        env:
+          MODEL_ID: BAAI/bge-base-en-v1.5
+        ports: ["8080:80"]
+        options: >-
+          --health-cmd "curl -fsS http://localhost:80/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 60
+          --health-start-period 30s
+    env:
+      UV_LINK_MODE: copy
+      DRIFTLINE_DATABASE_URL: postgresql://driftline:driftline@localhost:5432/driftline
+      DRIFTLINE_EMBED_URL: http://localhost:8080
+      DRIFTLINE_LLM_OFFLINE: "true"
+      BASE_REF: ${{ github.base_ref }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+        working-directory: backend
+
+      - name: Fetch the baseline reports from the base branch
+        # A missing baseline fails here, loudly: skipping the gate would hide regressions.
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE_REF"
+          mkdir -p "$RUNNER_TEMP/base"
+          missing=0
+          for corpus in pharma k8s; do
+            for system in driftline plain_rag; do
+              file="evals/reports/gate/$corpus.$system.json"
+              if ! git show "origin/$BASE_REF:$file" > "$RUNNER_TEMP/base/$corpus.$system.json"; then
+                echo "::error::no baseline $file on $BASE_REF"
+                rm -f "$RUNNER_TEMP/base/$corpus.$system.json"
+                missing=1
+              fi
+            done
+          done
+          if [ "$missing" = 1 ]; then
+            echo "## Eval gate: FAILED, baseline missing on \`$BASE_REF\`" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Migrate and load the gate snapshot
+        working-directory: backend
+        run: |
+          uv run python -m driftline.db.migrate
+          uv run python -m driftline.eval load-snapshot --path ../evals/snapshot/gate.snapshot.gz
+
+      - name: Run the evals (offline extractive LLM)
+        run: bash evals/gate.sh run "$RUNNER_TEMP/reports" "$HEAD_SHA"
+
+      - name: Gate against the base branch
+        run: |
+          set -o pipefail
+          bash evals/gate.sh compare "$RUNNER_TEMP/base" "$RUNNER_TEMP/reports" "$HEAD_SHA" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: eval-reports
+          path: ${{ runner.temp }}/reports
+          if-no-files-found: ignore
