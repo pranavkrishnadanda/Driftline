@@ -8,8 +8,13 @@ import asyncpg
 from driftline.clock import Clock, SystemClock
 from driftline.streams.bus import StreamBus
 
-# Which streams each outbox topic fans out to. P4 adds "drift" to version.created.
-TOPIC_STREAMS: dict[str, tuple[str, ...]] = {"version.created": ("embed",)}
+# Which streams each outbox topic fans out to; a topic not listed here goes to a stream
+# named after it. "drift.alert" maps to no static stream: alerts go to a per-tenant
+# stream (events:alerts:{tenant}) chosen by the alert publisher.
+TOPIC_STREAMS: dict[str, tuple[str, ...]] = {
+    "version.created": ("embed", "drift"),
+    "drift.alert": (),
+}
 
 
 def streams_for(topic: str) -> tuple[str, ...]:

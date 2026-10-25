@@ -163,3 +163,54 @@ async def embed_all(conn: asyncpg.Connection, embedder_url: str) -> int:
     for row in await conn.fetch("SELECT DISTINCT version_id FROM chunks WHERE embedding IS NULL"):
         done += await stage.embed_version(conn, row["version_id"])
     return done
+
+
+async def seed_watched_answer(
+    conn: asyncpg.Connection,
+    tenant_id: UUID,
+    version_id: UUID,
+    chunk_ids: Sequence[UUID],
+    claims: Sequence[tuple[str, str]],
+    *,
+    question: str = "What does the document say?",
+    as_of: datetime | None = None,
+    confidence: float = 0.9,
+) -> UUID:
+    """A watched answer whose claim i, given as (text, quote), cites chunk_ids[i] in
+    version_id. Writes the answer body (AnswerSchema JSON) and answer_citations."""
+    from driftline.agents.schemas import AnswerSchema, Citation, Claim
+
+    if len(chunk_ids) != len(claims):
+        raise ValueError("one chunk id per claim")
+    as_of = as_of or datetime(2024, 6, 1, tzinfo=UTC)
+    claim_models = [
+        Claim(
+            idx=idx,
+            text=text,
+            citations=[Citation(chunk_id=chunk_id, version_id=version_id, quote=quote)],
+            verified=True,
+        )
+        for idx, (chunk_id, (text, quote)) in enumerate(zip(chunk_ids, claims, strict=True))
+    ]
+    body = AnswerSchema(
+        status="answered",
+        answer=" ".join(c.text for c in claim_models),
+        claims=claim_models,
+        citations=[c.citations[0] for c in claim_models],
+        as_of=as_of,
+        confidence=confidence,
+    )
+    answer_id = await conn.fetchval(
+        "INSERT INTO answers (tenant_id, question, as_of, body, confidence, watched, watched_at) "
+        "VALUES ($1, $2, $3, $4::jsonb, $5, true, now()) RETURNING id",
+        tenant_id,
+        question,
+        as_of,
+        body.model_dump_json(),
+        confidence,
+    )
+    await conn.executemany(
+        "INSERT INTO answer_citations (answer_id, claim_idx, chunk_id) VALUES ($1, $2, $3)",
+        [(answer_id, idx, chunk_id) for idx, chunk_id in enumerate(chunk_ids)],
+    )
+    return answer_id
