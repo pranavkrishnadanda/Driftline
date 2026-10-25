@@ -8,10 +8,11 @@ import {
   type AnswerSchema,
   type AskAccepted,
   type DocumentTimeline,
+  type DriftEventList,
   type JobStatus,
   type ReviewItem,
   type Stats,
-  type WatchResult,
+  type WatchState,
 } from "@/lib/api/client";
 
 import { closedPortUrl, startApiServer, type ApiServer } from "../support/api-server";
@@ -71,20 +72,70 @@ const job = {
   cost_usd: 0.0031,
 } satisfies JobStatus;
 
+const V1_ID = "1a2b3c4d-0000-4000-8000-000000000001";
+const V2_ID = "1a2b3c4d-0000-4000-8000-000000000002";
+const OTHER_DOC_ID = "e7f6a5b4-3c2d-4e1f-9a8b-7c6d5e4f3a21";
+const DRIFT_ID = "5e6f7a8b-9c0d-4e1f-a2b3-c4d5e6f7a8b9";
+
 const timeline = {
   document_id: DOC_ID,
+  external_id: "acme-label",
+  title: "Acme tablets label",
   versions: [
     {
-      version_id: DOC_ID,
+      version_id: V1_ID,
       version_no: 1,
+      version_key: "2026-01",
       valid_from: "2026-01-01T00:00:00Z",
-      valid_to: null,
+      valid_to: "2026-06-01T00:00:00Z",
       diff_from_prev: null,
+      created_at: "2026-01-01T00:00:05Z",
+    },
+    {
+      version_id: V2_ID,
+      version_no: 2,
+      version_key: null,
+      valid_from: "2026-06-01T00:00:00Z",
+      valid_to: null,
+      diff_from_prev: { changed_sections: ["Dosage"] },
+      created_at: "2026-06-01T00:00:05Z",
     },
   ],
-  relations_in: [],
-  relations_out: [],
+  relations: {
+    outgoing: [
+      {
+        id: ITEM_ID,
+        kind: "supersedes",
+        status: "approved",
+        confidence: 0.9,
+        src_version_id: V2_ID,
+        document_id: OTHER_DOC_ID,
+        document_title: "Acme tablets label (2025)",
+      },
+    ],
+    incoming: [],
+  },
 } satisfies DocumentTimeline;
+
+const driftEvents = {
+  events: [
+    {
+      id: DRIFT_ID,
+      answer_id: ANSWER_ID,
+      claim_idx: 0,
+      verdict: "changed",
+      before: "Take 10 mg once daily.",
+      after: "Take 5 mg once daily.",
+      diff: "-10 mg\n+5 mg",
+      section_path: "Dosage",
+      old_version_id: V1_ID,
+      new_version_id: V2_ID,
+      document_id: DOC_ID,
+      document_title: "Acme tablets label",
+      created_at: "2026-06-01T00:01:00Z",
+    },
+  ],
+} satisfies DriftEventList;
 
 const item = {
   id: ITEM_ID,
@@ -160,11 +211,14 @@ describe("api client: success", () => {
     });
     const api = createApiClient({ baseUrl: server.url });
 
-    const watched = await api.watch(ANSWER_ID);
-    expectTypeOf(watched).toEqualTypeOf<WatchResult>();
+    const watched = await api.watch(ANSWER_ID, "acme");
+    expectTypeOf(watched).toEqualTypeOf<WatchState>();
     expect(watched.watched).toBe(true);
 
-    expectTypeOf(await api.timeline(DOC_ID)).toEqualTypeOf<DocumentTimeline>();
+    const docTimeline = await api.timeline(DOC_ID, "acme");
+    expectTypeOf(docTimeline).toEqualTypeOf<DocumentTimeline>();
+    expect(docTimeline).toEqual(timeline);
+    expect(docTimeline.relations.outgoing[0].document_id).toBe(OTHER_DOC_ID);
     expect((await api.review({ tenant: "acme", kind: "relation" }))[0].id).toBe(ITEM_ID);
     const resolved = await api.resolve(ITEM_ID, { action: "approve", by: "reviewer@acme" });
     expectTypeOf(resolved).toEqualTypeOf<ReviewItem>();
@@ -172,8 +226,8 @@ describe("api client: success", () => {
     expect((await api.stats()).ask_latency_ms.p95).toBe(5200);
 
     expect(server.requests.map((r) => `${r.method} ${r.url}`)).toEqual([
-      `POST /v1/answers/${ANSWER_ID}/watch`,
-      `GET /v1/documents/${DOC_ID}/timeline`,
+      `POST /v1/answers/${ANSWER_ID}/watch?tenant=acme`,
+      `GET /v1/documents/${DOC_ID}/timeline?tenant=acme`,
       "GET /v1/review?tenant=acme&kind=relation",
       `POST /v1/review/${ITEM_ID}/resolve`,
       "GET /v1/stats",
@@ -182,6 +236,38 @@ describe("api client: success", () => {
       action: "approve",
       by: "reviewer@acme",
     });
+  });
+
+  it("unwatch() sends DELETE with the tenant and returns the watch state", async () => {
+    server = await startApiServer({
+      [`DELETE /v1/answers/${ANSWER_ID}/watch`]: {
+        status: 200,
+        json: { answer_id: ANSWER_ID, watched: false },
+      },
+    });
+    const result = await createApiClient({ baseUrl: server.url }).unwatch(ANSWER_ID, "acme");
+
+    expectTypeOf(result).toEqualTypeOf<WatchState>();
+    expect(result).toEqual({ answer_id: ANSWER_ID, watched: false });
+    const [req] = server.requests;
+    expect(`${req.method} ${req.url}`).toBe(`DELETE /v1/answers/${ANSWER_ID}/watch?tenant=acme`);
+    expect(req.body).toBe("");
+  });
+
+  it("driftEvents() sends tenant and limit and returns the typed event list", async () => {
+    server = await startApiServer({ "GET /v1/drift/events": { status: 200, json: driftEvents } });
+    const api = createApiClient({ baseUrl: server.url });
+
+    const result = await api.driftEvents({ tenant: "acme", limit: 20 });
+    expectTypeOf(result).toEqualTypeOf<DriftEventList>();
+    expect(result).toEqual(driftEvents);
+    expect(result.events[0].verdict).toBe("changed");
+
+    await api.driftEvents({ tenant: "acme" });
+    expect(server.requests.map((r) => r.url)).toEqual([
+      "/v1/drift/events?tenant=acme&limit=20",
+      "/v1/drift/events?tenant=acme",
+    ]);
   });
 
   it("health() is typed from the generated OpenAPI schema", async () => {
