@@ -4,7 +4,6 @@
  * it into the README media with ffmpeg:
  *
  *   docs/media/driftline-demo.mp4   the whole tour, H.264
- *   docs/media/driftline-demo.gif   the whole tour, ~960 px wide, palette-optimised
  *   docs/media/driftline-ask.gif    just the Ask flow (20-30 s), for the top of the README
  *
  *   NEXT_PUBLIC_DRIFTLINE_DEMO=1 bun run build          # the export, in out/
@@ -318,13 +317,12 @@ async function main(): Promise<void> {
   const raw = join(videoDir, "tour.webm");
   renameSync(video, raw);
   mp4(raw, join(outDir, "driftline-demo.mp4"));
-  gif(raw, join(outDir, "driftline-demo.gif"), {});
   const askStart = Math.max(0, (marks.ask_start ?? 0) - 0.5);
   const askLength = Math.min(30, Math.max(20, (marks.ask_end ?? askStart + 25) - askStart + 1));
   gif(raw, join(outDir, "driftline-ask.gif"), { ss: askStart, t: askLength });
   rmSync(videoDir, { recursive: true, force: true });
 
-  for (const name of ["driftline-demo.mp4", "driftline-demo.gif", "driftline-ask.gif"]) {
+  for (const name of ["driftline-demo.mp4", "driftline-ask.gif"]) {
     console.log(`${name}: ${mb(join(outDir, name)).toFixed(2)} MB`);
   }
   console.log(`tour marks (s): ${JSON.stringify(marks)}`);

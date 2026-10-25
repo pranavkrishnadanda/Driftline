@@ -393,5 +393,21 @@ def test_readme_states_sample_model_cost_and_links() -> None:
     assert "$3.061530" in text and "claude-sonnet-5-5" in text and "40 of 150" in text
     assert "not yet published" not in text.lower()
     assert "will come with the github pages report" not in text.lower()
+    assert "docs/screenshots/README.md" in text
+    gallery = (REPO / "docs" / "screenshots" / "README.md").read_text()
     for shot in sorted((REPO / "docs" / "screenshots").glob("*.webp")):
-        assert f"docs/screenshots/{shot.name}" in text
+        assert f"]({shot.name})" in gallery or f'src="{shot.name}"' in gallery, shot.name
+
+
+@pytest.mark.parametrize(
+    "doc",
+    ["README.md", "docs/architecture.md", "docs/getting-started.md", "docs/screenshots/README.md"],
+)
+def test_relative_links_in_docs_resolve(doc: str) -> None:
+    path = REPO / doc
+    targets = re.findall(r"\]\(([^)\s]+)\)", path.read_text())
+    targets += re.findall(r'src="([^"]+)"', path.read_text())
+    for target in targets:
+        if target.startswith(("http://", "https://", "#", "mailto:")):
+            continue
+        assert (path.parent / target.split("#")[0]).exists(), (doc, target)
