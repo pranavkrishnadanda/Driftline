@@ -1,8 +1,8 @@
 """Watch answers, stream drift alerts, list drift events, and document timelines (P4).
 
-Every route is scoped to a tenant by name (`?tenant=`, as in `POST /v1/ask`; API keys
-come in P6). A row of another tenant is reported as unknown (404), never as forbidden,
-so ids do not leak across tenants.
+Every route is scoped to the caller's tenant (`require_tenant`: a bearer API key, or in
+dev mode the `?tenant=` name, as in `POST /v1/ask`). A row of another tenant is reported
+as unknown (404), never as forbidden, so ids do not leak across tenants.
 """
 
 import json
@@ -10,12 +10,13 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-import asyncpg
 from fastapi import APIRouter, Header, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from driftline.agents.events import DriftVerdict
+from driftline.auth import TenantRow
+from driftline.gateway.auth import AUTH_RESPONSES, CallerTenant
 from driftline.gateway.sse import (
     alert_event_stream,
     check_stream_slot,
@@ -26,7 +27,7 @@ from driftline.gateway.sse import (
 
 ALERTS_SCHEMA_REF = "#/components/schemas/AlertEvents"
 
-TenantName = Query(min_length=1, description="tenant name")
+Caller = CallerTenant
 
 
 class WatchState(BaseModel):
@@ -90,24 +91,22 @@ class DocumentTimeline(BaseModel):
     relations: TimelineRelations
 
 
-async def _tenant_id(conn: asyncpg.Connection, tenant: str) -> UUID:
-    tenant_id = await conn.fetchval("SELECT id FROM tenants WHERE name = $1", tenant)
-    if tenant_id is None:
-        raise HTTPException(status_code=404, detail={"code": "unknown_tenant"})
-    return tenant_id
-
-
 def _json(value: Any) -> Any:
     return json.loads(value) if isinstance(value, str) else value
 
 
 def build_drift_router() -> APIRouter:
     router = APIRouter(prefix="/v1", tags=["drift"])
-    not_found = {404: {"description": "unknown tenant, or not found in this tenant"}}
+    not_found = {
+        **AUTH_RESPONSES,
+        404: {"description": "unknown tenant, or not found in this tenant"},
+    }
 
-    async def set_watch(request: Request, answer_id: UUID, tenant: str, on: bool) -> WatchState:
+    async def set_watch(
+        request: Request, answer_id: UUID, caller: TenantRow, on: bool
+    ) -> WatchState:
+        tenant_id = caller.id
         async with request.app.state.pg.acquire() as conn:
-            tenant_id = await _tenant_id(conn, tenant)
             # Watching again keeps the original watch time.
             found = await conn.fetchval(
                 "UPDATE answers SET watched = $3, "
@@ -123,23 +122,22 @@ def build_drift_router() -> APIRouter:
         return WatchState(answer_id=answer_id, watched=on)
 
     @router.post("/answers/{answer_id}/watch", response_model=WatchState, responses=not_found)
-    async def watch(answer_id: UUID, request: Request, tenant: str = TenantName) -> WatchState:
+    async def watch(answer_id: UUID, request: Request, caller: TenantRow = Caller) -> WatchState:
         """Re-check this answer whenever a document it cites changes."""
-        return await set_watch(request, answer_id, tenant, True)
+        return await set_watch(request, answer_id, caller, True)
 
     @router.delete("/answers/{answer_id}/watch", response_model=WatchState, responses=not_found)
-    async def unwatch(answer_id: UUID, request: Request, tenant: str = TenantName) -> WatchState:
-        return await set_watch(request, answer_id, tenant, False)
+    async def unwatch(answer_id: UUID, request: Request, caller: TenantRow = Caller) -> WatchState:
+        return await set_watch(request, answer_id, caller, False)
 
     async def alerts(
         request: Request,
-        tenant: str = TenantName,
+        caller: TenantRow = Caller,
         last_event_id: str | None = Header(default=None),
         last_event_id_query: str | None = Query(default=None, alias="last_event_id"),
     ) -> StreamingResponse:
         state = request.app.state
-        async with state.pg.acquire() as conn:
-            tenant_id = await _tenant_id(conn, tenant)
+        tenant_id = caller.id
         check_stream_slot(state.sse_slots, state.settings.ask_retry_after_s)
         after = await resume_point(state.alerts, tenant_id, last_event_id or last_event_id_query)
         return await open_stream(
@@ -154,23 +152,26 @@ def build_drift_router() -> APIRouter:
         alerts,
         methods=["GET"],
         response_class=StreamingResponse,
-        responses=sse_responses(
-            ALERTS_SCHEMA_REF,
-            ends="open-ended: one `alert` per drift verdict on a watched answer.",
-            not_found="unknown tenant",
-        ),
+        responses={
+            **AUTH_RESPONSES,
+            **sse_responses(
+                ALERTS_SCHEMA_REF,
+                ends="open-ended: one `alert` per drift verdict on a watched answer.",
+                not_found="unknown tenant",
+            ),
+        },
         summary="Drift alerts for a tenant (SSE)",
     )
 
     @router.get("/drift/events", response_model=DriftEventList, responses=not_found)
     async def drift_events(
         request: Request,
-        tenant: str = TenantName,
+        caller: TenantRow = Caller,
         limit: int = Query(default=50, ge=1, le=500),
     ) -> DriftEventList:
         """Drift verdicts on this tenant's answers, latest first."""
+        tenant_id = caller.id
         async with request.app.state.pg.acquire() as conn:
-            tenant_id = await _tenant_id(conn, tenant)
             rows = await conn.fetch(
                 "SELECT e.id, e.answer_id, e.claim_idx, e.verdict, e.old_version_id, "
                 "e.new_version_id, e.detail, e.created_at, d.id AS document_id, "
@@ -201,12 +202,12 @@ def build_drift_router() -> APIRouter:
         "/documents/{document_id}/timeline", response_model=DocumentTimeline, responses=not_found
     )
     async def timeline(
-        document_id: UUID, request: Request, tenant: str = TenantName
+        document_id: UUID, request: Request, caller: TenantRow = Caller
     ) -> DocumentTimeline:
         """Every version of a document with its validity window and diff from the previous
         version, plus the relations it declares (outgoing) and receives (incoming)."""
+        tenant_id = caller.id
         async with request.app.state.pg.acquire() as conn:
-            tenant_id = await _tenant_id(conn, tenant)
             doc = await conn.fetchrow(
                 "SELECT d.id, d.external_id, d.title FROM documents d "
                 "JOIN sources s ON s.id = d.source_id WHERE d.id = $1 AND s.tenant_id = $2",

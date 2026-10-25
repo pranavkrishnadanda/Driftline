@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     # Browser origins allowed to call the gateway (the Next.js frontend, P5).
     cors_origins: list[str] = ["http://localhost:3000"]
+    # P6: when true, every tenant-scoped route needs `Authorization: Bearer <tenant key>`.
+    # When false (dev mode), a tenant name is enough; a key, if sent, must still be valid.
+    auth_required: bool = False
 
     anthropic_api_key: str | None = None
     gemini_api_key: str | None = None

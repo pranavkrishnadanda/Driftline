@@ -13,18 +13,33 @@ import asyncpg
 EMBED_MODEL = "BAAI/bge-base-en-v1.5"
 
 
+async def seed_tenant(
+    conn: asyncpg.Connection, name: str | None = None, *, api_key: str | None = "test-key"
+) -> UUID:
+    """Create a tenant whose API key is `api_key` (its sha256 is stored).
+
+    With `api_key=None` the stored hash is a placeholder that no key hashes to. Give
+    each tenant of one test its own key: a key identifies exactly one tenant.
+    """
+    from driftline.auth import hash_api_key
+
+    return await conn.fetchval(
+        "INSERT INTO tenants (name, api_key_hash) VALUES ($1, $2) RETURNING id",
+        name or f"t-{uuid.uuid4()}",
+        hash_api_key(api_key) if api_key is not None else "x",
+    )
+
+
 async def seed_source(
     conn: asyncpg.Connection,
     *,
     kind: str = "upload",
     config: dict[str, Any] | None = None,
     tenant: str | None = None,
+    api_key: str | None = None,
 ) -> tuple[UUID, UUID]:
     """Create a tenant and one source; returns (tenant_id, source_id)."""
-    tenant_id = await conn.fetchval(
-        "INSERT INTO tenants (name, api_key_hash) VALUES ($1, 'x') RETURNING id",
-        tenant or f"t-{uuid.uuid4()}",
-    )
+    tenant_id = await seed_tenant(conn, tenant, api_key=api_key)
     source_id = await conn.fetchval(
         "INSERT INTO sources (tenant_id, kind, config) VALUES ($1, $2, $3::jsonb) RETURNING id",
         tenant_id,
