@@ -56,6 +56,65 @@
   "k6_exit_code": 0,
   "llm": "stub LLM",
   "oom_killed": [],
+  "queueing": {
+    "asks": 40,
+    "queue_p50_ms": 14764.0,
+    "queue_p95_ms": 18267.0,
+    "queue_share_of_wall": 0.7435904119444068,
+    "worker_p50_ms": 4526.3,
+    "worker_p95_ms": 6964.4
+  },
+  "saturation": {
+    "containers": [
+      {
+        "cpu_percent": 3.04,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 210.1,
+        "mem_percent": 3.56,
+        "name": "agent-worker-1"
+      },
+      {
+        "cpu_percent": 0.22,
+        "mem_limit_mib": 2048.0,
+        "mem_mib": 804.7,
+        "mem_percent": 39.29,
+        "name": "embedder-1"
+      },
+      {
+        "cpu_percent": 0.24,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 221.4,
+        "mem_percent": 3.75,
+        "name": "gateway-1"
+      },
+      {
+        "cpu_percent": 0.08,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 183.9,
+        "mem_percent": 3.11,
+        "name": "outbox-relay-1"
+      },
+      {
+        "cpu_percent": 0.17,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 52.91,
+        "mem_percent": 0.9,
+        "name": "postgres-1"
+      },
+      {
+        "cpu_percent": 0.31,
+        "mem_limit_mib": 5910.528,
+        "mem_mib": 4.629,
+        "mem_percent": 0.08,
+        "name": "redis-1"
+      }
+    ],
+    "cpu_percent_sum": 4.06,
+    "mem_mib_sum": 1477.6390000000001,
+    "source": "one `docker stats --no-stream` snapshot at the middle of the run",
+    "vm_cpu_utilisation": 0.01015,
+    "vm_cpus": 4
+  },
   "stages": {
     "asks": 40,
     "draft": {
@@ -103,29 +162,84 @@
     }
   },
   "summary": {
+    "apdex": {
+      "frustrated": 0,
+      "samples": 40,
+      "satisfied": 2,
+      "score": 0.525,
+      "t_ms": 10000.0,
+      "tolerating": 38
+    },
     "attempts": 40,
+    "attempts_per_s": 0.2027816286009049,
     "completed": 40,
+    "concurrency": {
+      "in_flight_mean": 3.8910499327048886,
+      "vus_max": 4
+    },
     "error_rate": 0.0,
+    "errors": {
+      "failed_by_outcome": {},
+      "failed_post": 0,
+      "failed_sse": 0,
+      "http_429": 0,
+      "http_4xx_other": 0,
+      "http_5xx": 0,
+      "http_timeout_or_network": 0,
+      "interrupted_at_test_end": 0
+    },
     "failed": 0,
+    "goodput_per_s": 0.2027816286009049,
+    "http_req_failed_rate": 0.0,
     "http_reqs": 80,
     "latency_ms": {
       "count": 40,
       "max": 25865.0,
       "mean": 19188.375,
+      "min": 3551.0,
       "p50": 19448.5,
+      "p90": 23032.7,
       "p95": 24177.199999999997,
-      "p99": 25541.69
+      "p99": 25541.69,
+      "p99_9": null,
+      "stddev": 3833.1974180196903
     },
     "rate_429": 0.0,
     "rejected_429": 0,
+    "requests_per_s": 0.4055632572018098,
+    "streaming": {
+      "first_token_to_final_mean_ms": 3661.1499999999996,
+      "itl_ms": null,
+      "not_captured": "TPOT / ITL and output tokens per second: not captured in this run. k6's `sse_event` samples carry the stream URL but not the event name, so token events cannot be told apart from step, claim and final events, and no output-token count was recorded. Needed: in bench/k6/ask.js, timestamp every `token` event (a Trend of gaps between consecutive tokens = ITL; (last token - first token) / (tokens - 1) per ask = TPOT) and count tokens per ask (a Counter, for output tokens/s). With the stub LLM these would measure the stub's sleeps (800 ms median per call, 70% of it spread evenly over the words of the reply), not Claude.",
+      "output_tokens_per_s": null,
+      "sse_events_per_ask": {
+        "count": 40,
+        "max": 84.0,
+        "mean": 64.475,
+        "min": 57.0,
+        "p50": 61.5,
+        "p90": 69.50000000000003,
+        "p95": 83.0,
+        "p99": 83.61,
+        "p99_9": null,
+        "stddev": 7.0927463850085095
+      },
+      "sse_events_per_s": 13.074345504043343,
+      "tpot_ms": null
+    },
+    "success_rate": 1.0,
     "throughput_per_s": 0.2027816286009049,
     "ttft_ms": {
       "count": 40,
       "max": 21737.0,
       "mean": 15527.225,
+      "min": 1067.0,
       "p50": 15811.5,
+      "p90": 19080.5,
       "p95": 19327.25,
-      "p99": 20925.02
+      "p99": 20925.02,
+      "p99_9": null,
+      "stddev": 3552.356180798374
     },
     "window_s": 197.256528
   },

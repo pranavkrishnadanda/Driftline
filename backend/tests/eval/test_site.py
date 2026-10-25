@@ -8,6 +8,7 @@ yet, are written into a temporary repo by the tests themselves and are clearly t
 import json
 import re
 import shutil
+from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -254,6 +255,55 @@ def test_bench_results_render_charts_chaos_and_machine(tmp_path: Path) -> None:
     for value in ("1.25", "7.75", "1100", "test-cpu", "stub LLM", "0123abc"):
         assert value in text, value
     assert "zero lost jobs" in text.lower()
+    _assert_links_valid(out)
+
+
+BENCH_DIR = REPO / "bench" / "results" / "cd66852df1d8"
+
+
+def test_benchmarks_page_shows_industry_standard_metrics_from_the_committed_results(
+    real_site: Path,
+) -> None:
+    html = (real_site / "benchmarks.html").read_text()
+    text = unescape(_text(real_site / "benchmarks.html"))
+    for heading in (
+        "Latency percentiles",
+        "LLM-serving metrics",
+        "Errors, success rate, Apdex and concurrency",
+        "Scaling efficiency",
+        "Saturation and queueing",
+        "Metric definitions",
+    ):
+        assert heading in text, heading
+    for path in sorted(BENCH_DIR.glob("workers-*.json")):
+        s = json.loads(path.read_text())["summary"]
+        lat, ttft = s["latency_ms"], s["ttft_ms"]
+        for value in (lat["p90"], lat["p99"], lat["stddev"], ttft["p90"], ttft["p99"]):
+            assert f"{value:.0f}" in text, (path.name, value)
+        assert f"{s['apdex']['score']:.3f}" in text, path.name
+    assert "n/a (n<1000)" in text  # p99.9 is not reported on these sample sizes
+    assert "not captured" in text and "TPOT" in text
+    assert "Stub LLM" in text and "800 ms median" in text
+    assert "OOM-killed: RRF fallback" in text and "reranker off" in text
+    assert "Apdex T = 10 s" in text
+    assert 'aria-labelledby="scaling-efficiency-by-worker-count-t' in html
+    for url in (
+        "https://sre.google/sre-book/monitoring-distributed-systems/",
+        "https://docs.nvidia.com/nim/benchmarking/llm/latest/metrics.html",
+        "grafana.com/docs/k6",
+    ):
+        assert url in text, url
+
+
+def test_bench_files_without_the_new_summary_skip_the_metric_sections(tmp_path: Path) -> None:
+    repo, out = tmp_path / "repo", tmp_path / "out"
+    run = repo / "bench" / "results" / "0123abc"
+    run.mkdir(parents=True)
+    (run / "workers-1.json").write_text(json.dumps({"workers": 1, "throughput_rps": 1.0}))
+    build_site(repo, out)
+    html = (out / "benchmarks.html").read_text()
+    assert 'id="percentiles"' not in html and 'id="scaling-efficiency"' not in html
+    assert 'id="definitions"' in html
     _assert_links_valid(out)
 
 

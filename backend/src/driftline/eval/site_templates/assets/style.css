@@ -158,6 +158,7 @@ tr.ours td, tr.ours th { font-weight: 650; background: color-mix(in oklch, var(-
 .toc a { display: inline-block; padding: 4px 12px; border: 1px solid var(--border); border-radius: 999px; text-decoration: none; font-size: 0.9rem; }
 .defs dt { font-weight: 650; margin-top: 10px; }
 .defs dd { margin: 2px 0 0; color: var(--muted); max-width: 80ch; }
+.defs dd code { overflow-wrap: anywhere; }
 
 /* charts */
 .charts { margin: 16px 0; }

@@ -12,6 +12,84 @@ provider's quota. A chaos run kills workers at random under load and then checks
 {% if b %}
 <p class="meta">Results: <code>{{ b.path }}</code>{% if data.bench_other_runs %} · older runs not shown: {% for r in data.bench_other_runs %}<code>{{ r }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</p>
 
+{% macro rows_table(id, caption, headers, rows) %}
+<div class="table-scroll" tabindex="0" role="region" aria-label="{{ caption }}">
+<table id="{{ id }}-table">
+  <caption>{{ caption }}</caption>
+  <thead><tr>{% for h in headers %}<th scope="col"{% if not loop.first %} class="num"{% endif %}>{{ h }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for row in rows %}
+    <tr><th scope="row">{{ row[0] }}</th>{% for cell in row[1:] %}<td class="num">{{ cell }}</td>{% endfor %}</tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endmacro %}
+
+{% set bm = bench_metrics %}
+{% if bm %}
+<section aria-labelledby="percentiles">
+  <h2 id="percentiles">Latency percentiles</h2>
+  <p>End-to-end ask latency in ms (POST sent to the <code>final</code> SSE event), recomputed from every raw k6 sample
+  in the measured window (the warm-up is a separate, discarded k6 run). p99.9 is shown only with at least
+  1000 samples; with fewer than 100, p99 is interpolated between the two largest samples.</p>
+  {{ rows_table('percentiles', 'E2E latency percentiles per run (ms)', ['Run', 'n', 'min', 'p50', 'p90', 'p95', 'p99', 'p99.9', 'max', 'mean', 'stddev'], bm.percentiles) }}
+</section>
+
+<section aria-labelledby="llm-serving">
+  <h2 id="llm-serving">LLM-serving metrics</h2>
+  <p class="note warn"><strong>Stub LLM.</strong> Every LLM call in these runs is the seeded latency stub
+  ({{ bm.llm_median_ms }} ms median per call), so TTFT and any per-token figure reflect the stub and Driftline's
+  pipeline, not Claude. TTFT is measured from the POST, so it includes queueing, planning and retrieval: tokens
+  stream only in the draft stage.</p>
+  {{ rows_table('llm', 'TTFT and E2E percentiles (ms), streaming counts', ['Run', 'TTFT p50', 'TTFT p90', 'TTFT p95', 'TTFT p99', 'E2E p50', 'E2E p95', 'first token to final, mean', 'SSE events / ask p50', 'SSE events/s', 'TPOT / ITL (ms)', 'output tokens/s'], bm.llm) }}
+  <p><em>first token to final</em> is mean E2E minus mean TTFT; it covers the rest of drafting plus verification,
+  so it is not a decode time. SSE events count every event type (step, token, claim, final), not tokens.</p>
+  <p class="note">{{ bm.not_captured|ticks }}</p>
+</section>
+
+<section aria-labelledby="errors-apdex">
+  <h2 id="errors-apdex">Errors, success rate, Apdex and concurrency</h2>
+  <p>Apdex T = {{ '%g'|format(bm.apdex_t_s) }} s on E2E latency (satisfied at most T, tolerating at most
+  4T = {{ '%g'|format(4 * bm.apdex_t_s) }} s; failures and 429s count as frustrated). T is about 1.5 to 2 times an
+  unloaded ask's in-worker time, chosen from the service time rather than from these results. <em>Interrupted</em>
+  asks were still running when k6 ended the test; they are not errors. Goodput is successful asks per second
+  (no latency SLO was set). In-flight mean is Little's law over completed asks.</p>
+  {{ rows_table('errors', 'Errors by kind, Apdex, throughput and concurrency', ['Run', 'attempts', 'completed', 'success rate', '5xx', '429', 'timeout / network', 'other 4xx', 'failed SSE', 'interrupted', 'http_req_failed', 'Apdex', 'satisfied / tolerating / frustrated', 'HTTP req/s', 'goodput (asks/s)', 'VUs', 'asks in flight, mean'], bm.errors) }}
+</section>
+
+<section aria-labelledby="scaling-efficiency">
+  <h2 id="scaling-efficiency">Scaling efficiency</h2>
+  {% if scaling_chart %}<div class="charts"><figure class="chart-fig">{{ scaling_chart|safe }}</figure></div>{% endif %}
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Scaling efficiency">
+  <table>
+    <caption>throughput(N) / (N &times; throughput(1)), per reranker setting</caption>
+    <thead><tr><th scope="col">Run</th><th scope="col" class="num">asks/s</th><th scope="col" class="num">speedup</th><th scope="col" class="num">efficiency</th><th scope="col">comparable</th></tr></thead>
+    <tbody>
+    {% for row in bm.scaling %}
+      <tr><th scope="row">{{ row.label }}</th>{% for c in row.cells %}<td class="num">{{ c }}</td>{% endfor %}<td>{{ row.note }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+{% if bm.saturation or bm.queueing %}
+<section aria-labelledby="saturation">
+  <h2 id="saturation">Saturation and queueing</h2>
+  {% if bm.saturation %}
+  <p>From one <code>docker stats</code> snapshot half-way through each run (a point sample, not a time series).
+  VM CPU is the sum of container CPU over 100% &times; the VM's vCPUs.</p>
+  {{ rows_table('saturation', 'CPU and memory per container, mid-run snapshot', ['Run', 'VM CPU', 'memory, all containers (MiB)', 'top CPU', 'top memory (% of limit)'], bm.saturation) }}
+  {% endif %}
+  {% if bm.queueing %}
+  <p>Time waiting for a free agent worker versus time inside the worker, server side, from each ask's step events.</p>
+  {{ rows_table('queueing', 'Queue vs worker time (ms)', ['Run', 'asks', 'queue p50', 'queue p95', 'worker p50', 'worker p95', 'queue share of wall time'], bm.queueing) }}
+  {% endif %}
+</section>
+{% endif %}
+{% endif %}
+
 {% if b.workers %}
 <section aria-labelledby="scaling">
   <h2 id="scaling">Throughput and p95 latency vs workers</h2>
@@ -65,6 +143,15 @@ provider's quota. A chaos run kills workers at random under load and then checks
   </div>
 </section>
 {% endfor %}
+
+<section aria-labelledby="definitions">
+  <h2 id="definitions">Metric definitions</h2>
+  <dl class="defs">
+  {% for name, text, url in metric_definitions %}
+    <dt>{{ name }}</dt><dd>{{ text|ticks }} Source: <code>{{ url }}</code></dd>
+  {% endfor %}
+  </dl>
+</section>
 
 <section aria-labelledby="machine">
   <h2 id="machine">Machine</h2>
