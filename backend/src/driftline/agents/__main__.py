@@ -23,7 +23,7 @@ from driftline.config import Settings
 from driftline.health import run_with_heartbeat
 from driftline.llm.adapters.deterministic import DeterministicAdapter
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
-from driftline.llm.router import LLMRouter, Route, build_router
+from driftline.llm.router import LLMRouter, Route, build_bench_router, build_router
 from driftline.obs.cost import CostLedger
 from driftline.obs.tracing import build_tracer
 from driftline.retrieval.hybrid import HybridRetriever
@@ -31,10 +31,15 @@ from driftline.retrieval.rerank import TEIReranker
 from driftline.streams.bus import StreamBus
 
 
-def build_agent_router(settings: Settings, redis: Redis, *, clock: Clock) -> LLMRouter:
+def build_agent_router(
+    settings: Settings, redis: Redis, *, clock: Clock, consumer: str | None = None
+) -> LLMRouter:
     """Claude (and Gemini) when keys are set; the keyless offline ExtractiveResponder when
-    DRIFTLINE_LLM_OFFLINE=true. Embeddings always come from TEI. Raises ValueError when
-    neither a key nor offline mode is configured."""
+    DRIFTLINE_LLM_OFFLINE=true; the bench stub (seeded per `consumer`) when
+    DRIFTLINE_LLM_BENCH=true, which wins over both. Embeddings always come from TEI.
+    Raises ValueError when no key, offline or bench mode is configured."""
+    if settings.llm_bench:
+        return build_bench_router(settings, clock=clock, consumer=consumer)
     if settings.llm_offline:
         det = DeterministicAdapter("deterministic", responder=ExtractiveResponder())
         tiers = {
@@ -72,7 +77,7 @@ def _events(settings: Settings, redis: Redis) -> AskEventLog:
 async def _run_worker(
     settings: Settings, pool: asyncpg.Pool, redis: Redis, *, consumer: str, clock: Clock
 ) -> None:
-    router = build_agent_router(settings, redis, clock=clock)
+    router = build_agent_router(settings, redis, clock=clock, consumer=consumer)
     tracer = build_tracer(settings)
     try:
         deps = AgentDeps(

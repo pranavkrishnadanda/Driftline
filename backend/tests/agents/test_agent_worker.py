@@ -20,6 +20,7 @@ from driftline.agents.worker import AgentWorker, reap_lost_asks
 from driftline.clock import ManualClock
 from driftline.config import Settings
 from driftline.llm.adapters.deterministic import DeterministicAdapter
+from driftline.llm.adapters.latency import LatencyStubAdapter, worker_seed
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.router import LLMRouter, Route
 from driftline.llm.types import ProviderError
@@ -312,6 +313,27 @@ def test_offline_mode_builds_a_keyless_router(redis_client):
     assert "anthropic" not in router.providers and "gemini" not in router.providers
     with pytest.raises(ValueError):
         build_agent_router(Settings(_env_file=None), redis_client, clock=ManualClock())
+
+
+def test_bench_mode_wins_over_offline_mode(redis_client):
+    settings = Settings(_env_file=None, llm_offline=True, llm_bench=True)
+    router = build_agent_router(settings, redis_client, clock=ManualClock(), consumer="w1")
+    assert set(router.providers) == {"bench", "tei"}
+    assert isinstance(router.providers["bench"], LatencyStubAdapter)
+    for tier in ("extract", "answer", "judge"):
+        assert router.chains[tier] == [Route("bench", f"bench-{tier}")]
+
+
+def test_bench_stub_seed_is_derived_per_worker(redis_client):
+    settings = Settings(_env_file=None, llm_bench=True, llm_bench_seed=7)
+
+    def seed(consumer: str | None) -> int:
+        router = build_agent_router(settings, redis_client, clock=ManualClock(), consumer=consumer)
+        return router.providers["bench"].seed
+
+    assert seed("agent-1") == seed("agent-1") == worker_seed(7, "agent-1")
+    assert len({seed("agent-1"), seed("agent-2"), seed("agent-3")}) == 3
+    assert seed(None) == 7  # no consumer (a one-off CLI): the configured seed as-is
 
 
 async def test_reap_cli_fails_lost_asks(fresh_dsn, fresh_conn, redis_url, redis_client):

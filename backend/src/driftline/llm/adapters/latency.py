@@ -10,6 +10,7 @@ its numbers with `label` ("stub LLM").
 import math
 import random
 import re
+import zlib
 
 from driftline.clock import Clock, SystemClock
 from driftline.llm.adapters.deterministic import Responder, _vector
@@ -20,6 +21,18 @@ STUB_LABEL = "stub LLM"
 # the rest is spread evenly across the deltas.
 FIRST_TOKEN_SHARE = 0.3
 _PIECE = re.compile(r"\S+\s*|\s+")
+
+
+def worker_seed(seed: int, consumer: str | None) -> int:
+    """The stub's seed for one worker process: `seed` mixed with the consumer name.
+
+    Workers sharing `llm_bench_seed` would otherwise draw the same latency sequence in
+    lock-step. crc32, not `hash()`, so it is stable across processes and runs. No consumer
+    (a one-off CLI) keeps `seed` as-is.
+    """
+    if consumer is None:
+        return seed
+    return seed ^ zlib.crc32(consumer.encode())
 
 
 def _last_user_message(request: CompletionRequest) -> str:

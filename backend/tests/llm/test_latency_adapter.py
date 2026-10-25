@@ -12,7 +12,7 @@ from driftline.agents.offline import ExtractiveResponder
 from driftline.agents.prompts import JUDGE_SCHEMA
 from driftline.clock import ManualClock
 from driftline.config import Settings
-from driftline.llm.adapters.latency import STUB_LABEL, LatencyStubAdapter
+from driftline.llm.adapters.latency import STUB_LABEL, LatencyStubAdapter, worker_seed
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.router import LLMRouter, Route, build_router
 from driftline.llm.types import CompletionRequest, Message, Role
@@ -127,6 +127,21 @@ async def test_embed_is_deterministic_and_normalised():
     [v1], [v2] = await adapter.embed("e", ["x"], 8), await adapter.embed("e", ["x"], 8)
     assert v1 == v2 and len(v1) == 8
     assert sum(x * x for x in v1) == pytest.approx(1.0)
+
+
+def test_worker_seed_is_stable_and_distinct_per_consumer():
+    # Stable across processes (crc32, not Python's salted hash()): a bench run reproduces.
+    assert worker_seed(0, "agent-1") == worker_seed(0, "agent-1") == 226_182_553
+    assert worker_seed(5, "agent-1") != worker_seed(0, "agent-1")
+    assert len({worker_seed(0, f"agent-worker-{i}") for i in range(1, 9)}) == 8
+    assert worker_seed(9, None) == 9
+
+
+async def test_per_worker_seeds_are_not_lock_stepped():
+    c1, c2 = ManualClock(), ManualClock()
+    a = LatencyStubAdapter(seed=worker_seed(0, "w1"), median_ms=800, sigma=0.5, clock=c1)
+    b = LatencyStubAdapter(seed=worker_seed(0, "w2"), median_ms=800, sigma=0.5, clock=c2)
+    assert await delays(a, c1, 20) != await delays(b, c2, 20)
 
 
 def test_build_router_in_bench_mode_uses_the_stub_for_llm_tiers(redis_client):
