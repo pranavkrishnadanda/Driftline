@@ -186,6 +186,35 @@ describe("useEventStream", () => {
     expect(server.connections.map((c) => c.lastEventId)).toEqual([null, "1"]);
   });
 
+  it("keeps a quiet alert stream alive: heartbeats reset the reconnect budget", async () => {
+    // A proxy closes an idle stream after each heartbeat, again and again. The server is
+    // alive (it answers and pings), so the hook never runs out of attempts.
+    server = await startSseServer({ events: [], retryMs: 5 });
+    const { result } = renderHook(() =>
+      useEventStream<AlertStreamEvent>(server!.url, { ...FAST, maxAttempts: 2 }),
+    );
+
+    await waitFor(() => expect(server!.connections.length).toBeGreaterThanOrEqual(6), {
+      timeout: 3000,
+    });
+    expect(result.current.status).not.toBe("failed");
+    expect(result.current.error).toBeNull();
+  });
+
+  it("still gives up when reconnects never reach a live stream", async () => {
+    server = await startSseServer({
+      events: [],
+      connections: Array.from({ length: 10 }, () => ({ status: 503 })),
+    });
+    const { result } = renderHook(() =>
+      useEventStream<AlertStreamEvent>(server!.url, { ...FAST, maxAttempts: 2 }),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("failed"));
+    expect(result.current.error?.code).toBe("reconnect_exhausted");
+    expect(server.connections).toHaveLength(3);
+  });
+
   it("reports events_expired on an alert stream as expired", async () => {
     server = await startSseServer({ events: [EXPIRED_FRAME] });
     const { result } = renderHook(() => useEventStream<AlertStreamEvent>(server!.url, FAST));

@@ -6,6 +6,7 @@ import { useEffect, useReducer, useState } from "react";
 import { TenantSelect } from "@/components/ask/ask-controls";
 import { AlertCard } from "@/components/drift/alert-card";
 import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/section-heading";
 import { createApiClient, type ApiClient } from "@/lib/api/client";
 import { describeApiFailure, isAbort } from "@/lib/api/failure";
 import { INITIAL_INBOX, alertStreamUrl, inboxReducer } from "@/lib/drift/inbox";
@@ -46,7 +47,7 @@ export function DriftInbox({ tenants, client: clientProp, streamBaseUrl, streamO
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-8">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">Drift</h1>
+          <SectionHeading>Drift</SectionHeading>
           <p className="text-sm text-muted-foreground">
             Watched answers re-checked against each new document version, as it lands.
           </p>

@@ -5,6 +5,7 @@ import { useEffect, useId, useReducer, useRef, useState } from "react";
 import { TenantSelect } from "@/components/ask/ask-controls";
 import { ReviewItemCard, type Resolution } from "@/components/review/review-item-card";
 import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/section-heading";
 import { ApiError, createApiClient, type ApiClient, type ReviewItem } from "@/lib/api/client";
 import { describeApiFailure, isAbort } from "@/lib/api/failure";
 import {
@@ -41,7 +42,7 @@ export function ReviewQueue({ tenants, client: clientProp, reviewer, focusItem }
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-8">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">Review</h1>
+          <SectionHeading>Review</SectionHeading>
           <p className="text-sm text-muted-foreground">
             Low-confidence answers, broken answers and proposed relations waiting for a
             person to decide.

@@ -14,6 +14,7 @@ import { AsOfPicker, TenantSelect } from "@/components/ask/ask-controls";
 import AI_Prompt from "@/components/kokonutui/ai-prompt";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SectionHeading } from "@/components/section-heading";
 import { createApiClient, type ApiClient, type AskRequest } from "@/lib/api/client";
 import {
   classifyAskFailure,
@@ -190,7 +191,7 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
     <TooltipProvider>
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-8">
         <header>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">Ask</h1>
+          <SectionHeading>Ask</SectionHeading>
           <p className="text-sm text-muted-foreground">
             Answers come only from the document versions in force on the as-of date, with the
             exact quotes they rest on.
