@@ -6,6 +6,9 @@ answer cites still in force at the requested as_of and owned by the tenant. When
 closest match fails that check it is evicted and the next closest one is tried. Entries are also indexed by cited
 version id, so `invalidate_versions` drops every answer that cites a superseded version
 (the drift engine in P4 calls it; lookups re-check validity regardless).
+
+Every lookup also counts a hit or a miss in a per-tenant Redis hash (`lookup_counts`),
+which `GET /v1/stats` reports as the cache hit rate.
 """
 
 import json
@@ -63,6 +66,16 @@ def _version_key(version_id: UUID) -> str:
     return f"{PREFIX}:version:{version_id}"
 
 
+def _counts_key(tenant_id: UUID) -> str:
+    return f"{PREFIX}:counts:{tenant_id}"
+
+
+async def lookup_counts(redis: Redis, tenant_id: UUID) -> tuple[int, int]:
+    """(hits, misses) of this tenant's cache lookups since the counter was created."""
+    hits, misses = await redis.hmget(_counts_key(tenant_id), ["hits", "misses"])
+    return int(hits or 0), int(misses or 0)
+
+
 async def invalidate_versions(redis: Redis, version_ids: Sequence[UUID]) -> int:
     """Drop every cached answer that cites any of these versions; returns how many.
 
@@ -110,6 +123,19 @@ class SemanticCache:
         as_of: datetime,
         source_kinds: Sequence[str] | None = None,
         vector: list[float] | None = None,
+    ) -> CacheHit | None:
+        hit = await self._find(conn, tenant_id, question, as_of, source_kinds, vector)
+        await self._redis.hincrby(_counts_key(tenant_id), "hits" if hit else "misses", 1)
+        return hit
+
+    async def _find(
+        self,
+        conn: asyncpg.Connection,
+        tenant_id: UUID,
+        question: str,
+        as_of: datetime,
+        source_kinds: Sequence[str] | None,
+        vector: list[float] | None,
     ) -> CacheHit | None:
         bucket = bucket_key(tenant_id, as_of, source_kinds)
         entry_ids = await self._redis.lrange(bucket, 0, -1)

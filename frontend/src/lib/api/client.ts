@@ -61,26 +61,22 @@ export type ReviewItem = ReviewItemList["items"][number];
 export type ReviewKind = ReviewItem["kind"];
 export type ResolveRequest = JsonBody<"/v1/review/{item_id}/resolve", "post">;
 
+export type StatsQuery = QueryParams<"/v1/stats", "get">;
+export type Stats = JsonResponse<"/v1/stats", "get", 200>;
+export type DriftDay = Stats["drift"]["per_day"][number];
+export type AskDay = Stats["asks"]["per_day"][number];
+export type CostDay = Stats["cost"]["per_day"][number];
+export type ReviewBacklog = Stats["review_backlog"][number];
+export type EvalSummary = NonNullable<Stats["latest_eval"]>;
+
 // ---------------------------------------------------------------------------------
 // pending backend: every type and route in this block is typed from the plans, not
-// from the OpenAPI document, because the gateway does not serve it yet.
-//   /v1/stats                             P5b T4
+// from the OpenAPI document, because the gateway does not serve it yet. None today.
 // When a route lands in contracts/openapi.json, regenerate schema.d.ts, delete its
 // PendingRoutes entry and derive its types from `paths` instead. Typecheck fails
 // while a route is listed in both places (see `_NoPendingRouteIsGenerated`).
 
-export interface Stats {
-  corpus: { documents: number; versions: number; chunks: number };
-  drift_events_per_day: { day: string; count: number }[];
-  ask_latency_ms: { p50: number | null; p95: number | null };
-  cost_per_answer_usd: number | null;
-  cache_hit_rate: number | null;
-  latest_eval: Record<string, number> | null;
-}
-
-interface PendingRoutes {
-  "/v1/stats": true;
-}
+type PendingRoutes = Record<never, true>;
 
 // end pending backend
 // ---------------------------------------------------------------------------------
@@ -310,7 +306,9 @@ export function createApiClient(options: ApiClientOptions = {}) {
         ...opts,
       }),
 
-    stats: (opts: RequestOptions = {}) => request<Stats>("GET", "/v1/stats", opts),
+    /** Corpus, drift, latency, cost, cache, review backlog and eval stats (last 30 UTC days). */
+    stats: (query: StatsQuery = {}, opts: RequestOptions = {}) =>
+      request<Stats>("GET", "/v1/stats", { query: { tenant: query.tenant }, ...opts }),
   };
 }
 

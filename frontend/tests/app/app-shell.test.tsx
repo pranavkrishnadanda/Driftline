@@ -54,21 +54,11 @@ describe("app shell navigation", () => {
   });
 });
 
-describe("views that are not built yet", () => {
-  it.each([
-    ["Stats", StatsPage],
-  ])("%s renders a coming-soon placeholder instead of a 404", (name, Page) => {
-    render(<Page />);
-    expect(screen.getByRole("heading", { level: 1, name })).toBeInTheDocument();
-    expect(screen.getByText(/coming soon/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Ask a question/ })).toHaveAttribute("href", "/ask");
-  });
-});
-
 describe("built views", () => {
   it.each([
     ["Drift", DriftPage],
     ["Review", ReviewPage],
+    ["Stats", StatsPage],
   ])("%s server-renders its heading, not the placeholder", (name, Page) => {
     const html = renderToStaticMarkup(<Page />);
     const doc = new DOMParser().parseFromString(html, "text/html");

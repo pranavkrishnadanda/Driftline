@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 
-import { ComingSoon } from "@/components/coming-soon";
+import { StatsView } from "@/components/stats/stats-view";
+import { parseTenants } from "@/lib/ask/format";
 
 export const metadata: Metadata = { title: "Stats · Driftline" };
 
 export default function StatsPage() {
-  return (
-    <ComingSoon
-      title="Stats"
-      summary="Corpus size, drift over time, latency, cost per answer and eval scores."
-    />
-  );
+  return <StatsView tenants={parseTenants(process.env.NEXT_PUBLIC_DRIFTLINE_TENANTS)} />;
 }

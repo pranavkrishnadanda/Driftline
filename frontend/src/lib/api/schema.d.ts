@@ -209,6 +209,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stats
+         * @description Corpus size, drift, ask latency and throughput, cost, cache hit rate, review
+         *     backlog and the latest eval metrics for the caller's tenant (last 30 UTC days).
+         */
+        get: operations["stats_v1_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -333,6 +354,23 @@ export interface components {
             /** Status Url */
             status_url: string;
         };
+        /** AskDay */
+        AskDay: {
+            /**
+             * Asks
+             * @description asks that succeeded this day
+             */
+            asks: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** P50 Ms */
+            p50_ms: number | null;
+            /** P95 Ms */
+            p95_ms: number | null;
+        };
         AskEvent: components["schemas"]["StepEvent"] | components["schemas"]["TokenEvent"] | components["schemas"]["ClaimEvent"] | components["schemas"]["FinalEvent"] | components["schemas"]["ErrorEvent"];
         /**
          * AskRequest
@@ -347,6 +385,26 @@ export interface components {
             source_kinds?: ("openfda" | "git_docs" | "upload")[] | null;
             /** Tenant */
             tenant?: string | null;
+        };
+        /** AskStats */
+        AskStats: {
+            latency: components["schemas"]["Latency"];
+            /** Per Day */
+            per_day: components["schemas"]["AskDay"][];
+        };
+        /** CacheStats */
+        CacheStats: {
+            /** Hit Rate */
+            hit_rate: number | null;
+            /** Hits */
+            hits: number;
+            /** Misses */
+            misses: number;
+            /**
+             * Reason
+             * @description why hit_rate is null: `no_lookups` or `redis_unavailable`
+             */
+            reason: string | null;
         };
         /**
          * Citation
@@ -444,6 +502,53 @@ export interface components {
             /** Verified */
             verified: boolean;
         };
+        /** CorpusStats */
+        CorpusStats: {
+            /** Chunks */
+            chunks: number;
+            /** Documents */
+            documents: number;
+            /**
+             * Sources
+             * @description every source kind, zero when absent
+             */
+            sources: components["schemas"]["KindCount"][];
+            /** Versions */
+            versions: number;
+        };
+        /** CostDay */
+        CostDay: {
+            /** Answers */
+            answers: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Per Answer Usd */
+            per_answer_usd: number | null;
+        };
+        /** CostStats */
+        CostStats: {
+            /** Answers */
+            answers: number;
+            /** Answers Cost Usd */
+            answers_cost_usd: number;
+            /** Llm Calls */
+            llm_calls: number;
+            /**
+             * Llm Cost Usd
+             * @description every LLM call, answers and drift checks alike
+             */
+            llm_cost_usd: number;
+            /**
+             * Per Answer Usd
+             * @description null when there were no answers
+             */
+            per_answer_usd: number | null;
+            /** Per Day */
+            per_day: components["schemas"]["CostDay"][];
+        };
         /** DocumentTimeline */
         DocumentTimeline: {
             /**
@@ -458,6 +563,22 @@ export interface components {
             title: string | null;
             /** Versions */
             versions: components["schemas"]["TimelineVersion"][];
+        };
+        /** DriftDay */
+        DriftDay: {
+            /** Broken */
+            broken: number;
+            /** Changed */
+            changed: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Still Valid */
+            still_valid: number;
+            /** Total */
+            total: number;
         };
         /** DriftEventList */
         DriftEventList: {
@@ -505,6 +626,13 @@ export interface components {
              */
             verdict: "still_valid" | "changed" | "broken";
         };
+        /** DriftStats */
+        DriftStats: {
+            /** Per Day */
+            per_day: components["schemas"]["DriftDay"][];
+            /** Total */
+            total: number;
+        };
         /** ErrorEvent */
         ErrorEvent: {
             /** Code */
@@ -521,6 +649,22 @@ export interface components {
              * @enum {string}
              */
             type: "error";
+        };
+        /** EvalSummary */
+        EvalSummary: {
+            /** Corpus */
+            corpus: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Git Sha */
+            git_sha: string;
+            /** Metrics */
+            metrics: {
+                [key: string]: number;
+            };
         };
         /** FinalEvent */
         FinalEvent: {
@@ -553,6 +697,28 @@ export interface components {
             job_id: string;
             /** Status */
             status: string;
+        };
+        /** KindCount */
+        KindCount: {
+            /** Count */
+            count: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "openfda" | "git_docs" | "upload";
+        };
+        /** Latency */
+        Latency: {
+            /** P50 Ms */
+            p50_ms: number | null;
+            /** P95 Ms */
+            p95_ms: number | null;
+            /**
+             * Samples
+             * @description succeeded asks the percentiles are over
+             */
+            samples: number;
         };
         /** NearestSource */
         NearestSource: {
@@ -606,6 +772,16 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /** ReviewBacklog */
+        ReviewBacklog: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "relation" | "broken_answer" | "low_confidence_answer" | "answer";
+            /** Open */
+            open: number;
+        };
         /** ReviewItem */
         ReviewItem: {
             /**
@@ -655,6 +831,26 @@ export interface components {
         ReviewItemList: {
             /** Items */
             items: components["schemas"]["ReviewItem"][];
+        };
+        /** Stats */
+        Stats: {
+            asks: components["schemas"]["AskStats"];
+            cache: components["schemas"]["CacheStats"];
+            corpus: components["schemas"]["CorpusStats"];
+            cost: components["schemas"]["CostStats"];
+            drift: components["schemas"]["DriftStats"];
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            latest_eval: components["schemas"]["EvalSummary"] | null;
+            /** Review Backlog */
+            review_backlog: components["schemas"]["ReviewBacklog"][];
+            /** Tenant */
+            tenant: string;
+            /** Window Days */
+            window_days: number;
         };
         /** StepEvent */
         StepEvent: {
@@ -1398,6 +1594,59 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    stats_v1_stats_get: {
+        parameters: {
+            query?: {
+                /** @description tenant name; optional with a bearer key, which must then match it */
+                tenant?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Stats"];
+                };
+            };
+            /** @description missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the API key is not the named tenant's */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown tenant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

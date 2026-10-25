@@ -18,6 +18,7 @@ import {
 } from "@/lib/api/client";
 
 import { closedPortUrl, startApiServer, type ApiServer } from "../support/api-server";
+import { busyStats } from "../support/stats-fixtures";
 
 const JOB_ID = "6f1c2b0e-3c1a-4c55-9a77-0d4d1d6b2f10";
 const ANSWER_ID = "0b8e2f7a-5d36-4a3c-8f61-2a9c4e1d7b55";
@@ -168,14 +169,7 @@ const resolvedItem = {
   resolved_at: "2026-10-24T09:05:00Z",
 } satisfies ReviewItem;
 
-const stats = {
-  corpus: { documents: 12, versions: 30, chunks: 900 },
-  drift_events_per_day: [{ day: "2026-10-24", count: 3 }],
-  ask_latency_ms: { p50: 1800, p95: 5200 },
-  cost_per_answer_usd: 0.004,
-  cache_hit_rate: 0.25,
-  latest_eval: null,
-} satisfies Stats;
+const stats = busyStats() satisfies Stats;
 
 let server: ApiServer | undefined;
 
@@ -237,12 +231,14 @@ describe("api client: success", () => {
     expectTypeOf(docTimeline).toEqualTypeOf<DocumentTimeline>();
     expect(docTimeline).toEqual(timeline);
     expect(docTimeline.relations.outgoing[0].document_id).toBe(OTHER_DOC_ID);
-    expect((await api.stats()).ask_latency_ms.p95).toBe(5200);
+    const result = await api.stats({ tenant: "acme" });
+    expectTypeOf(result).toEqualTypeOf<Stats>();
+    expect(result.asks.latency.p95_ms).toBe(5240.5);
 
     expect(server.requests.map((r) => `${r.method} ${r.url}`)).toEqual([
       `POST /v1/answers/${ANSWER_ID}/watch?tenant=acme`,
       `GET /v1/documents/${DOC_ID}/timeline?tenant=acme`,
-      "GET /v1/stats",
+      "GET /v1/stats?tenant=acme",
     ]);
   });
 
@@ -386,7 +382,7 @@ describe("api client: error mapping", () => {
     const controller = new AbortController();
     controller.abort();
     const error = await createApiClient({ baseUrl: server.url })
-      .stats({ signal: controller.signal })
+      .stats({ tenant: "acme" }, { signal: controller.signal })
       .catch((e: unknown) => e);
 
     expect(error).not.toBeInstanceOf(ApiError);

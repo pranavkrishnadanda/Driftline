@@ -94,6 +94,11 @@
   --color-chart-background: var(--chart-background);
   --color-chart-negative: var(--chart-negative);
   --color-chart-positive: var(--chart-positive);
+  --color-legend-track: var(--legend-track);
+  --color-legend-muted-foreground: var(--legend-muted-foreground);
+  --color-legend-muted: var(--legend-muted);
+  --color-legend-foreground: var(--legend-foreground);
+  --color-legend: var(--legend);
 }
 
 :root {
@@ -159,6 +164,11 @@
   --chart-marker-badge-foreground: oklch(0.84 0 0);
   --chart-segment-background: oklch(0.756 0 0 / 0.06);
   --chart-segment-line: oklch(0.5 0 0 / 0.25);
+  --legend: oklch(1 0 0);
+  --legend-foreground: oklch(0.141 0.005 285.823);
+  --legend-muted: oklch(0.967 0.001 286.375);
+  --legend-muted-foreground: oklch(0.552 0.016 285.938);
+  --legend-track: oklch(0.92 0.004 286.32);
 }
 
 .dark {
@@ -218,6 +228,11 @@
   --chart-marker-badge-foreground: oklch(0.15 0 0);
   --chart-segment-background: oklch(0.41 0.0127 248.14 / 0.25);
   --chart-segment-line: oklch(1 0 0 / 0.25);
+  --legend: oklch(0.21 0.006 285.885);
+  --legend-foreground: oklch(0.985 0 0);
+  --legend-muted: oklch(0.274 0.006 286.033);
+  --legend-muted-foreground: oklch(0.705 0.015 286.067);
+  --legend-track: oklch(0.274 0.006 286.033);
 }
 
 @layer base {
