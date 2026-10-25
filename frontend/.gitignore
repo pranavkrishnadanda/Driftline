@@ -43,3 +43,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Lighthouse CI (report-only step in CI)
+/.lighthouseci/
+/lhci-report/

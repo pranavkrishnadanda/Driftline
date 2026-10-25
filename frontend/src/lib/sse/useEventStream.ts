@@ -45,7 +45,10 @@ export interface UseEventStreamOptions {
   initialRetryMs?: number;
   /** Upper bound for the exponential backoff (ms); a server `retry:` is never cut short. */
   maxRetryMs?: number;
-  /** Reconnect attempts in a row without receiving an event before giving up. */
+  /**
+   * Reconnect attempts in a row without receiving anything (an event or a `: ping`
+   * heartbeat) before giving up.
+   */
   maxAttempts?: number;
   /** Resume an earlier stream from this event id. */
   lastEventId?: string | null;
@@ -129,6 +132,11 @@ async function runEventStream<E extends StreamEvent>(
   const parser = createSseParser({
     onRetry: (ms) => {
       retryMs = ms;
+    },
+    // A heartbeat proves the server is alive even when nothing happens: a quiet alert
+    // stream that a proxy keeps closing must not use up its reconnect attempts.
+    onComment: () => {
+      receivedThisConnection = true;
     },
     onMessage: (message: SseMessage) => {
       if (terminal) return;
