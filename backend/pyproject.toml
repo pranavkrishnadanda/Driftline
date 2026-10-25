@@ -21,6 +21,12 @@ dependencies = [
   "pypdf>=6.0",
   "python-docx>=1.2",
   "pyyaml>=6.0",
+  "langgraph>=1.2.17",
+  "langgraph-checkpoint-postgres>=3.2.0",
+  "psycopg-pool>=3.3.3",
+  "opentelemetry-api>=1.45.1",
+  "opentelemetry-sdk>=1.45.1",
+  "opentelemetry-exporter-otlp-proto-http>=1.45.1",
 ]
 
 [dependency-groups]
