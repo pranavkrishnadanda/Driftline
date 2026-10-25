@@ -1,6 +1,7 @@
 name: pages
 # Build the static report site from the committed reports (python -m driftline.eval site)
-# and deploy it to GitHub Pages. Every number on the site is read from evals/reports,
+# and the recorded demo (frontend, NEXT_PUBLIC_DRIFTLINE_DEMO=1, under /demo/), and deploy
+# them to GitHub Pages. Every number on the site is read from evals/reports,
 # bench/results and reports/; nothing is computed from a live system here.
 #
 # drift-watch.yml commits reports/ with GITHUB_TOKEN, and such pushes do not trigger other
@@ -16,6 +17,7 @@ on:
       - "backend/src/driftline/eval/site.py"
       - "backend/src/driftline/eval/site_templates/**"
       - ".github/workflows/pages.yml"
+      - "frontend/**"
   workflow_run:
     workflows: [drift-watch]
     types: [completed]
@@ -51,6 +53,27 @@ jobs:
       - name: Build the report site
         working-directory: backend
         run: uv run python -m driftline.eval site --out ../reports/site --source-sha "$(git rev-parse HEAD)"
+      # The recorded demo: a static export of the UI that replays
+      # frontend/public/demo/recording.json (captured from a real run), at /demo/.
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: frontend/package.json
+      - run: bun install --frozen-lockfile
+        working-directory: frontend
+      - name: Build the recorded demo
+        working-directory: frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          DRIFTLINE_DEMO_BASE_PATH: /Driftline/demo
+        run: bun run build:demo
+      - name: Place the demo under the site's demo/ folder
+        run: |
+          rm -rf reports/site/demo
+          cp -R frontend/out reports/site/demo
       - uses: actions/upload-pages-artifact@v5
         with:
           path: reports/site

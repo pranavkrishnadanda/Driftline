@@ -22,6 +22,7 @@
       {% for p in PAGES %}
         <li><a href="{{ p.file }}"{% if p.file == page.file %} aria-current="page"{% endif %}>{{ p.title }}</a></li>
       {% endfor %}
+        <li><a href="{{ DEMO_PATH }}">Live demo</a></li>
       </ul>
     </nav>
     <button class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">

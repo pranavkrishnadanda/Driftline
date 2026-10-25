@@ -1,0 +1,37 @@
+[
+  {
+    "question": "What should a patient do if they miss a dose of Lipitor?",
+    "as_of": "2023-06-01",
+    "watch": false
+  },
+  {
+    "question": "What should a patient do if they miss a dose of Lipitor?",
+    "as_of": "2025-06-01",
+    "watch": false
+  },
+  {
+    "question": "Can I change the label selector of an existing Kubernetes Deployment?",
+    "as_of": "2025-10-01",
+    "watch": false
+  },
+  {
+    "question": "Can I change the label selector of an existing Kubernetes Deployment?",
+    "as_of": "2026-02-01",
+    "watch": false
+  },
+  {
+    "question": "Will Kubernetes automatically roll back a Deployment that exceeds its progress deadline?",
+    "as_of": null,
+    "watch": true
+  },
+  {
+    "question": "Where is the manufacturer of Plavix located?",
+    "as_of": null,
+    "watch": true
+  },
+  {
+    "question": "What is the recommended dose of metformin for children?",
+    "as_of": null,
+    "watch": false
+  }
+]

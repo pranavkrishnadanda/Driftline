@@ -16,6 +16,8 @@ for (const view of VIEWS) {
     const header = page.getByRole("banner");
     await expect(header.getByRole("link", { name: "Driftline" })).toHaveAttribute("href", "/");
     await expect(header.getByRole("link", { name: "Try Ask" })).toBeVisible();
+    // The recorded-demo banner belongs to the demo build only.
+    await expect(page.getByTestId("demo-banner")).toHaveCount(0);
     const nav = header.getByRole("navigation", { name: "Views" });
     await expect(nav.getByRole("link")).toHaveCount(5);
     const current = nav.locator("[aria-current=page]");
