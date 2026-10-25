@@ -229,6 +229,50 @@
         "title": "AskAccepted",
         "type": "object"
       },
+      "AskDay": {
+        "properties": {
+          "asks": {
+            "description": "asks that succeeded this day",
+            "title": "Asks",
+            "type": "integer"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "p50_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P50 Ms"
+          },
+          "p95_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Ms"
+          }
+        },
+        "required": [
+          "day",
+          "asks",
+          "p50_ms",
+          "p95_ms"
+        ],
+        "title": "AskDay",
+        "type": "object"
+      },
       "AskEvent": {
         "discriminator": {
           "mapping": {
@@ -316,6 +360,69 @@
           "question"
         ],
         "title": "AskRequest",
+        "type": "object"
+      },
+      "AskStats": {
+        "properties": {
+          "latency": {
+            "$ref": "#/components/schemas/Latency"
+          },
+          "per_day": {
+            "items": {
+              "$ref": "#/components/schemas/AskDay"
+            },
+            "title": "Per Day",
+            "type": "array"
+          }
+        },
+        "required": [
+          "latency",
+          "per_day"
+        ],
+        "title": "AskStats",
+        "type": "object"
+      },
+      "CacheStats": {
+        "properties": {
+          "hit_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hit Rate"
+          },
+          "hits": {
+            "title": "Hits",
+            "type": "integer"
+          },
+          "misses": {
+            "title": "Misses",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "why hit_rate is null: `no_lookups` or `redis_unavailable`",
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "hits",
+          "misses",
+          "hit_rate",
+          "reason"
+        ],
+        "title": "CacheStats",
         "type": "object"
       },
       "Citation": {
@@ -521,6 +628,119 @@
         "title": "ClaimEvent",
         "type": "object"
       },
+      "CorpusStats": {
+        "properties": {
+          "chunks": {
+            "title": "Chunks",
+            "type": "integer"
+          },
+          "documents": {
+            "title": "Documents",
+            "type": "integer"
+          },
+          "sources": {
+            "description": "every source kind, zero when absent",
+            "items": {
+              "$ref": "#/components/schemas/KindCount"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "versions": {
+            "title": "Versions",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "documents",
+          "versions",
+          "chunks",
+          "sources"
+        ],
+        "title": "CorpusStats",
+        "type": "object"
+      },
+      "CostDay": {
+        "properties": {
+          "answers": {
+            "title": "Answers",
+            "type": "integer"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "per_answer_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Answer Usd"
+          }
+        },
+        "required": [
+          "day",
+          "answers",
+          "per_answer_usd"
+        ],
+        "title": "CostDay",
+        "type": "object"
+      },
+      "CostStats": {
+        "properties": {
+          "answers": {
+            "title": "Answers",
+            "type": "integer"
+          },
+          "answers_cost_usd": {
+            "title": "Answers Cost Usd",
+            "type": "number"
+          },
+          "llm_calls": {
+            "title": "Llm Calls",
+            "type": "integer"
+          },
+          "llm_cost_usd": {
+            "description": "every LLM call, answers and drift checks alike",
+            "title": "Llm Cost Usd",
+            "type": "number"
+          },
+          "per_answer_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null when there were no answers",
+            "title": "Per Answer Usd"
+          },
+          "per_day": {
+            "items": {
+              "$ref": "#/components/schemas/CostDay"
+            },
+            "title": "Per Day",
+            "type": "array"
+          }
+        },
+        "required": [
+          "answers",
+          "answers_cost_usd",
+          "per_answer_usd",
+          "llm_calls",
+          "llm_cost_usd",
+          "per_day"
+        ],
+        "title": "CostStats",
+        "type": "object"
+      },
       "DocumentTimeline": {
         "properties": {
           "document_id": {
@@ -562,6 +782,40 @@
           "relations"
         ],
         "title": "DocumentTimeline",
+        "type": "object"
+      },
+      "DriftDay": {
+        "properties": {
+          "broken": {
+            "title": "Broken",
+            "type": "integer"
+          },
+          "changed": {
+            "title": "Changed",
+            "type": "integer"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "still_valid": {
+            "title": "Still Valid",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "still_valid",
+          "changed",
+          "broken",
+          "total"
+        ],
+        "title": "DriftDay",
         "type": "object"
       },
       "DriftEventList": {
@@ -716,6 +970,27 @@
         "title": "DriftEventOut",
         "type": "object"
       },
+      "DriftStats": {
+        "properties": {
+          "per_day": {
+            "items": {
+              "$ref": "#/components/schemas/DriftDay"
+            },
+            "title": "Per Day",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "per_day"
+        ],
+        "title": "DriftStats",
+        "type": "object"
+      },
       "ErrorEvent": {
         "properties": {
           "code": {
@@ -743,6 +1018,38 @@
           "retryable"
         ],
         "title": "ErrorEvent",
+        "type": "object"
+      },
+      "EvalSummary": {
+        "properties": {
+          "corpus": {
+            "title": "Corpus",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "git_sha": {
+            "title": "Git Sha",
+            "type": "string"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Metrics",
+            "type": "object"
+          }
+        },
+        "required": [
+          "git_sha",
+          "corpus",
+          "created_at",
+          "metrics"
+        ],
+        "title": "EvalSummary",
         "type": "object"
       },
       "FinalEvent": {
@@ -819,6 +1126,67 @@
           "status"
         ],
         "title": "JobStatus",
+        "type": "object"
+      },
+      "KindCount": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "openfda",
+              "git_docs",
+              "upload"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "count"
+        ],
+        "title": "KindCount",
+        "type": "object"
+      },
+      "Latency": {
+        "properties": {
+          "p50_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P50 Ms"
+          },
+          "p95_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Ms"
+          },
+          "samples": {
+            "description": "succeeded asks the percentiles are over",
+            "title": "Samples",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "p50_ms",
+          "p95_ms",
+          "samples"
+        ],
+        "title": "Latency",
         "type": "object"
       },
       "NearestSource": {
@@ -918,6 +1286,30 @@
           "by"
         ],
         "title": "ResolveRequest",
+        "type": "object"
+      },
+      "ReviewBacklog": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "relation",
+              "broken_answer",
+              "low_confidence_answer",
+              "answer"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "open": {
+            "title": "Open",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "open"
+        ],
+        "title": "ReviewBacklog",
         "type": "object"
       },
       "ReviewItem": {
@@ -1027,6 +1419,69 @@
           "items"
         ],
         "title": "ReviewItemList",
+        "type": "object"
+      },
+      "Stats": {
+        "properties": {
+          "asks": {
+            "$ref": "#/components/schemas/AskStats"
+          },
+          "cache": {
+            "$ref": "#/components/schemas/CacheStats"
+          },
+          "corpus": {
+            "$ref": "#/components/schemas/CorpusStats"
+          },
+          "cost": {
+            "$ref": "#/components/schemas/CostStats"
+          },
+          "drift": {
+            "$ref": "#/components/schemas/DriftStats"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "latest_eval": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "review_backlog": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewBacklog"
+            },
+            "title": "Review Backlog",
+            "type": "array"
+          },
+          "tenant": {
+            "title": "Tenant",
+            "type": "string"
+          },
+          "window_days": {
+            "title": "Window Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tenant",
+          "generated_at",
+          "window_days",
+          "corpus",
+          "drift",
+          "asks",
+          "cost",
+          "cache",
+          "review_backlog",
+          "latest_eval"
+        ],
+        "title": "Stats",
         "type": "object"
       },
       "StepEvent": {
@@ -2194,6 +2649,73 @@
         "summary": "Resolve",
         "tags": [
           "review"
+        ]
+      }
+    },
+    "/v1/stats": {
+      "get": {
+        "description": "Corpus size, drift, ask latency and throughput, cost, cache hit rate, review\nbacklog and the latest eval metrics for the caller's tenant (last 30 UTC days).",
+        "operationId": "stats_v1_stats_get",
+        "parameters": [
+          {
+            "description": "tenant name; optional with a bearer key, which must then match it",
+            "in": "query",
+            "name": "tenant",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tenant name; optional with a bearer key, which must then match it",
+              "title": "Tenant"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "missing or invalid API key"
+          },
+          "403": {
+            "description": "the API key is not the named tenant's"
+          },
+          "404": {
+            "description": "unknown tenant"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Stats",
+        "tags": [
+          "stats"
         ]
       }
     }

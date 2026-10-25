@@ -6,7 +6,7 @@ from uuid import uuid4
 import pytest
 from dbseed import EMBED_MODEL, VersionSeed, seed_history, seed_source
 
-from driftline.cache.semantic import SemanticCache, bucket_key, cosine
+from driftline.cache.semantic import SemanticCache, bucket_key, cosine, lookup_counts
 from driftline.clock import ManualClock
 from driftline.llm.adapters.deterministic import DeterministicAdapter
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
@@ -301,3 +301,34 @@ async def test_bucket_keeps_only_the_newest_entries(redis_client, fresh_conn, ci
     assert len(await redis_client.lrange(bucket_key(tenant, JUNE, None), 0, -1)) == 2
     assert await cache.lookup(fresh_conn, tenant_id=tenant, question="q0", as_of=JUNE) is None
     assert await cache.lookup(fresh_conn, tenant_id=tenant, question="q2", as_of=JUNE)
+
+
+async def test_lookups_count_hits_and_misses_per_tenant(redis_client, fresh_conn, cited):
+    tenant, version = cited
+    cache = det_cache(redis_client)
+    assert await lookup_counts(redis_client, tenant) == (0, 0)
+    # An empty bucket is a miss too.
+    assert await cache.lookup(fresh_conn, tenant_id=tenant, question=QUESTION, as_of=JUNE) is None
+    await cache.store(
+        tenant_id=tenant, question=QUESTION, as_of=JUNE, answer=ANSWER, version_ids=[version]
+    )
+    assert await cache.lookup(fresh_conn, tenant_id=tenant, question=QUESTION, as_of=JUNE)
+    assert await cache.lookup(fresh_conn, tenant_id=tenant, question=QUESTION, as_of=JUNE)
+    assert not await cache.lookup(fresh_conn, tenant_id=tenant, question="other", as_of=JUNE)
+    assert await lookup_counts(redis_client, tenant) == (2, 2)
+    # Another tenant's lookups never move this tenant's counts.
+    other = uuid4()
+    assert not await cache.lookup(fresh_conn, tenant_id=other, question=QUESTION, as_of=JUNE)
+    assert await lookup_counts(redis_client, tenant) == (2, 2)
+    assert await lookup_counts(redis_client, other) == (0, 1)
+
+
+async def test_a_stale_entry_evicted_on_lookup_counts_as_a_miss(redis_client, fresh_conn):
+    cache = det_cache(redis_client)
+    tenant_a, _ = await seed_cited(fresh_conn, "a-label")
+    _, version_b = await seed_cited(fresh_conn, "b-label")
+    await cache.store(
+        tenant_id=tenant_a, question=QUESTION, as_of=JUNE, answer=ANSWER, version_ids=[version_b]
+    )
+    assert await cache.lookup(fresh_conn, tenant_id=tenant_a, question=QUESTION, as_of=JUNE) is None
+    assert await lookup_counts(redis_client, tenant_a) == (0, 1)

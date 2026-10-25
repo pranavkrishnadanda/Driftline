@@ -14,6 +14,7 @@ from driftline.gateway.ask import build_ask_router
 from driftline.gateway.contract import install_event_schemas
 from driftline.gateway.drift import build_drift_router
 from driftline.gateway.review import build_review_router
+from driftline.gateway.stats import build_stats_router
 from driftline.mcp import build_mcp
 from driftline.mcp.server import transport_security
 from driftline.streams.bus import StreamBus
@@ -68,6 +69,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(build_ask_router())
     app.include_router(build_drift_router())
     app.include_router(build_review_router())
+    app.include_router(build_stats_router())
     install_event_schemas(app)
     mcp = build_mcp(app.state)
     app.add_route(
