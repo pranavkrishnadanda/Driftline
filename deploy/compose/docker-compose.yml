@@ -54,6 +54,32 @@ services:
       timeout: 5s
       retries: 60
       start_period: 30s
+  ingest-worker:
+    build: ../../backend
+    command: ["python", "-m", "driftline.ingest", "worker"]
+    environment:
+      DRIFTLINE_DATABASE_URL: postgresql://driftline:driftline@postgres:5432/driftline
+      DRIFTLINE_REDIS_URL: redis://redis:6379/0
+      DRIFTLINE_ANTHROPIC_API_KEY: ${DRIFTLINE_ANTHROPIC_API_KEY:-}
+      DRIFTLINE_GEMINI_API_KEY: ${DRIFTLINE_GEMINI_API_KEY:-}
+      DRIFTLINE_EMBED_URL: http://embedder:80
+      DRIFTLINE_GITHUB_TOKEN: ${DRIFTLINE_GITHUB_TOKEN:-}
+      DRIFTLINE_OPENFDA_API_KEY: ${DRIFTLINE_OPENFDA_API_KEY:-}
+      DRIFTLINE_UPLOAD_ROOT: /data/uploads
+    volumes: [uploads:/data/uploads]
+    # No ports or container_name, so "--scale ingest-worker=N" works.
+    depends_on:
+      gateway: {condition: service_healthy}
+      embedder: {condition: service_healthy}
+  outbox-relay:
+    build: ../../backend
+    command: ["python", "-m", "driftline.ingest", "relay"]
+    environment:
+      DRIFTLINE_DATABASE_URL: postgresql://driftline:driftline@postgres:5432/driftline
+      DRIFTLINE_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      gateway: {condition: service_healthy}
 volumes:
   pgdata: {}
   embedder-models: {}
+  uploads: {}
