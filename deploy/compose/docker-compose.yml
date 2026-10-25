@@ -162,6 +162,28 @@ services:
       gateway: {condition: service_healthy}
       embedder: {condition: service_healthy}
       reranker: {condition: service_started}
+  drift-poll:
+    # The source scheduler: enqueues ingest jobs for sources whose `schedule` is due.
+    # One replica is enough; a due source is claimed with a compare-and-set, so extra
+    # replicas never enqueue it twice.
+    build: ../../backend
+    command: ["python", "-m", "driftline.drift", "poll"]
+    environment:
+      DRIFTLINE_DATABASE_URL: postgresql://driftline:driftline@postgres:5432/driftline
+      DRIFTLINE_REDIS_URL: redis://redis:6379/0
+      DRIFTLINE_GITHUB_TOKEN: ${DRIFTLINE_GITHUB_TOKEN:-}
+      DRIFTLINE_OPENFDA_API_KEY: ${DRIFTLINE_OPENFDA_API_KEY:-}
+      DRIFTLINE_UPLOAD_ROOT: /data/uploads
+    volumes: [uploads:/data/uploads]
+    # No HTTP server: the event loop touches a heartbeat file every 10 s (driftline.health).
+    healthcheck:
+      test: ["CMD", "python", "-m", "driftline.health", "--max-age", "60"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      gateway: {condition: service_healthy}
 volumes:
   pgdata: {}
   embedder-models: {}

@@ -11,6 +11,7 @@ import yaml
 from driftline.clock import ManualClock
 from driftline.config import Settings
 from driftline.drift.alerts import AlertLog
+from driftline.drift.worker import SourcePoller
 from driftline.ingest.__main__ import amain, build_ingest_router
 from driftline.ingest.connectors.k8s_docs import KubernetesDocsConnector
 from driftline.ingest.connectors.openfda import OpenFDAConnector
@@ -18,6 +19,7 @@ from driftline.ingest.connectors.upload import UploadConnector
 from driftline.ingest.embed import EmbedStage
 from driftline.ingest.outbox import OutboxRelay
 from driftline.ingest.supersession import SupersessionExtractor
+from driftline.ingest.types import SourceFetchError
 from driftline.ingest.worker import (
     EMBED_STREAM,
     INGEST_GROUP,
@@ -26,6 +28,7 @@ from driftline.ingest.worker import (
     default_connector_factory,
     enqueue_ingest,
     ensure_source,
+    failure_key,
 )
 from driftline.llm.adapters.deterministic import DeterministicAdapter
 from driftline.llm.router import LLMRouter, Route
@@ -130,22 +133,74 @@ async def test_changed_file_creates_second_version(worker, fresh_pool, redis_cli
         assert await conn.fetchval("SELECT count(*) FROM outbox") == 2
 
 
-async def test_fetch_failure_marks_source_stale_and_job_failed(
+async def test_fetch_failure_feeds_the_failure_streak_and_fails_the_job(
     worker, fresh_pool, redis_client, tmp_path
 ):
+    """One rule for "stale" (shared with the scheduler): a failed fetch counts towards
+    the source's consecutive-failure streak, and the source is marked `stale_source`
+    only once the streak reaches `stale_after_failures` (3), never on the first failure."""
     source = await upload_source(fresh_pool, tmp_path)
-    job = await enqueue_ingest(
-        fresh_pool, StreamBus(redis_client), source_id=source, external_id="missing.md"
-    )
+    bus = StreamBus(redis_client)
+    job = await enqueue_ingest(fresh_pool, bus, source_id=source, external_id="missing.md")
     assert await worker.run_once() == 0
+    async with fresh_pool.acquire() as conn:
+        assert await conn.fetchval("SELECT status FROM sources WHERE id = $1", source) == ("active")
+        job_row = await conn.fetchrow("SELECT status, error FROM jobs WHERE id = $1", job)
+        assert job_row["status"] == "failed" and "missing.md" in job_row["error"]
+    assert await redis_client.get(failure_key(source)) == "1"
+    # The message stays pending: it is reclaimed later and dead-lettered after 3 deliveries.
+    assert (await redis_client.xpending(INGEST_STREAM, INGEST_GROUP))["pending"] == 1
+
+    # A redelivery of the same job is the same failure: it does not grow the streak.
+    payload = {"job_id": str(job), "source_id": str(source), "external_id": "missing.md"}
+    with pytest.raises(SourceFetchError):
+        await worker.handle_ingest("redelivered", payload)
+    assert await redis_client.get(failure_key(source)) == "1"
+
+    # Two more failed jobs make three in a row: now the source is stale.
+    for n in (2, 3):
+        await enqueue_ingest(fresh_pool, bus, source_id=source, external_id="missing.md")
+        await worker.run_once()
+        assert await redis_client.get(failure_key(source)) == str(n)
     async with fresh_pool.acquire() as conn:
         assert await conn.fetchval("SELECT status FROM sources WHERE id = $1", source) == (
             "stale_source"
         )
-        job_row = await conn.fetchrow("SELECT status, error FROM jobs WHERE id = $1", job)
-        assert job_row["status"] == "failed" and "missing.md" in job_row["error"]
-    # The message stays pending: it is reclaimed later and dead-lettered after 3 deliveries.
-    assert (await redis_client.xpending(INGEST_STREAM, INGEST_GROUP))["pending"] == 1
+
+    # A successful fetch makes it active again and resets the streak.
+    write(tmp_path, "missing.md", "# Back\n\nbody\n", T1)
+    await enqueue_ingest(fresh_pool, bus, source_id=source, external_id="missing.md")
+    await worker.run_once()
+    async with fresh_pool.acquire() as conn:
+        assert await conn.fetchval("SELECT status FROM sources WHERE id = $1", source) == ("active")
+    assert await redis_client.get(failure_key(source)) is None
+
+
+async def test_ingest_and_scheduler_failures_share_one_streak(
+    worker, fresh_pool, redis_client, tmp_path
+):
+    """The scheduler's discovery failures and the worker's fetch failures add up."""
+    source = await upload_source(fresh_pool, tmp_path)
+    bus = StreamBus(redis_client)
+    async with fresh_pool.acquire() as conn:
+        await conn.execute("UPDATE sources SET schedule = '1h' WHERE id = $1", source)
+    for _ in range(2):
+        await enqueue_ingest(fresh_pool, bus, source_id=source, external_id="missing.md")
+        await worker.run_once()
+    poller = SourcePoller(
+        pool=fresh_pool,
+        bus=bus,
+        redis=redis_client,
+        connector_factory=lambda kind, config: UploadConnector(str(tmp_path / "gone")),
+        clock=ManualClock(T2),
+        stale_after_failures=3,
+    )
+    result = await poller.poll_once()
+    assert result.failed == [source] and result.stale == [source]
+    async with fresh_pool.acquire() as conn:
+        assert await conn.fetchval("SELECT status FROM sources WHERE id = $1", source) == (
+            "stale_source"
+        )
 
 
 async def test_embed_event_embeds_runs_extraction_and_dedupes(
