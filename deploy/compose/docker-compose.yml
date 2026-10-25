@@ -19,5 +19,15 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       retries: 10
+  gateway:
+    build: ../../backend
+    environment:
+      DRIFTLINE_DATABASE_URL: postgresql://driftline:driftline@postgres:5432/driftline
+      DRIFTLINE_REDIS_URL: redis://redis:6379/0
+      DRIFTLINE_GEMINI_API_KEY: ${DRIFTLINE_GEMINI_API_KEY:-}
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
 volumes:
   pgdata: {}
