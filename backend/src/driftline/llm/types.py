@@ -18,7 +18,8 @@ class Message(BaseModel):
 class CompletionRequest(BaseModel):
     messages: list[Message]
     temperature: float = 0.0
-    max_output_tokens: int = 1024
+    # Keep in step with Settings.default_max_output_tokens: thinking tokens count against it.
+    max_output_tokens: int = 2048
 
 
 class Usage(BaseModel):

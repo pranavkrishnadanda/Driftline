@@ -80,8 +80,8 @@ async def test_message_is_dead_lettered_after_max_deliveries(bus, redis_client):
         raise RuntimeError("always fails")
 
     await bus.publish(STREAM, {"x": 1})
-    await bus.consume_once(STREAM, GROUP, "c1", boom)                  # delivery 1
-    await bus.reclaim_once(STREAM, GROUP, "c1", boom, min_idle_ms=0)   # delivery 2
+    await bus.consume_once(STREAM, GROUP, "c1", boom)  # delivery 1
+    await bus.reclaim_once(STREAM, GROUP, "c1", boom, min_idle_ms=0)  # delivery 2
     result = await bus.reclaim_once(STREAM, GROUP, "c1", boom, min_idle_ms=0)  # delivery 3
     assert result.dead_lettered == 1
     dlq = await redis_client.xrange(f"dlq:{STREAM}")

@@ -7,9 +7,19 @@ import pytest
 from driftline.db.migrate import run_migrations
 
 EXPECTED_TABLES = {
-    "tenants", "sources", "documents", "doc_versions", "chunks", "relations",
-    "answers", "answer_citations", "drift_events", "review_items", "jobs",
-    "outbox", "eval_runs",
+    "tenants",
+    "sources",
+    "documents",
+    "doc_versions",
+    "chunks",
+    "relations",
+    "answers",
+    "answer_citations",
+    "drift_events",
+    "review_items",
+    "jobs",
+    "outbox",
+    "eval_runs",
 }
 
 INSERT_VERSION = (
@@ -64,7 +74,8 @@ async def test_adjacent_versions_are_allowed(conn):
     async with conn.transaction():
         await conn.execute(
             "UPDATE doc_versions SET valid_to = $2 WHERE document_id = $1 AND version_no = 1",
-            doc, ts(2025),
+            doc,
+            ts(2025),
         )
         await conn.execute(INSERT_VERSION, doc, 2, "h2", ts(2025), None)
     count = await conn.fetchval("SELECT count(*) FROM doc_versions WHERE document_id = $1", doc)
@@ -85,7 +96,8 @@ async def test_chunk_tsv_is_generated_and_embedding_is_768(conn):
     await conn.execute(
         "INSERT INTO chunks (version_id, ord, text, embedding, embed_model) "
         "VALUES ($1, 0, 'Boxed warning: hepatotoxicity', $2::vector, 'm')",
-        version, vec,
+        version,
+        vec,
     )
     hit = await conn.fetchval(
         "SELECT count(*) FROM chunks WHERE version_id = $1 AND tsv @@ plainto_tsquery('english', 'warning')",

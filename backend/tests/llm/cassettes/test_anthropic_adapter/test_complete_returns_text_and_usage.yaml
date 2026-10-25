@@ -51,8 +51,6 @@ interactions:
         P9JZe0l3lfA5nUb1RXL8KG6wRVoh2bP5CGGDGmTC0p0ozRsVTPmJtIRQSpIWPCPr/JdypcEewJy6
         vMagsuRjQn3ob/cDhu7YWiECAAA=
     headers:
-      anthropic-organization-id:
-      - e0510282-6d40-47cb-b151-dcef383cb0bb
       anthropic-ratelimit-input-tokens-limit:
       - '10000000'
       anthropic-ratelimit-input-tokens-remaining:
@@ -77,12 +75,8 @@ interactions:
       - '12000000'
       anthropic-ratelimit-tokens-reset:
       - '2026-10-25T03:01:12Z'
-      anthropic-workspace-id:
-      - wrkspc_01BTfLLtez7HAeLJDHwXPHZT
       cf-cache-status:
       - DYNAMIC
-      cf-ray:
-      - a4fdf9a99a6c7f1f-MAA
       connection:
       - keep-alive
       content-encoding:
@@ -93,8 +87,6 @@ interactions:
       - application/json
       date:
       - Sun, 25 Oct 2026 03:01:12 GMT
-      request-id:
-      - req_011CgND7V9QKj95CUmYv7wkM
       server:
       - cloudflare
       server-timing:

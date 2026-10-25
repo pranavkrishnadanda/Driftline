@@ -4,11 +4,11 @@ import pytest
 from anthropic.types import Message as SdkMessage
 from anthropic.types import TextBlock, ThinkingBlock
 from anthropic.types import Usage as SdkUsage
+from conftest_cassettes import scrub_response_headers
 
 from driftline.llm.adapters.anthropic import AnthropicAdapter, _result_text
 from driftline.llm.types import CompletionRequest, Message, ProviderError, Role
 
-CASSETTE_PROVIDER = "anthropic"
 API_KEY = os.environ.get("DRIFTLINE_ANTHROPIC_API_KEY", "replay-only")
 MODEL = "claude-haiku-5-5"
 
@@ -17,6 +17,7 @@ MODEL = "claude-haiku-5-5"
 def vcr_config():
     return {
         "filter_headers": ["x-api-key", "authorization"],
+        "before_record_response": scrub_response_headers,
         "match_on": ["method", "scheme", "host", "path"],
     }
 
