@@ -1,0 +1,12 @@
+# Overrides for capturing the recorded demo (frontend/public/demo/recording.json) from a
+# throwaway stack that never touches a dev stack's ports or data:
+#
+#   docker compose -p driftline-demo-capture \
+#     -f deploy/compose/docker-compose.yml -f deploy/demo/compose.capture.yml \
+#     --env-file backend/.env --env-file deploy/demo/capture.env up -d --build
+#
+# The later --env-file wins, so capture.env pins the ports and models whatever the first
+# file sets. Redis's host port is fixed in the base file, so it is replaced here.
+services:
+  redis:
+    ports: !override ["127.0.0.1:${DEMO_REDIS_PORT:-16379}:6379"]
