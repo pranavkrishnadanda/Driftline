@@ -29,5 +29,20 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
+  embedder:
+    # Hugging Face TEI; native arm64 tag by default. On amd64 hosts set
+    # DRIFTLINE_EMBED_IMAGE=ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.4
+    image: ${DRIFTLINE_EMBED_IMAGE:-ghcr.io/huggingface/text-embeddings-inference:cpu-arm64-1.9.4}
+    command: ["--model-id", "BAAI/bge-base-en-v1.5"]
+    ports: ["${DRIFTLINE_EMBED_PORT:-8080}:80"]
+    volumes: [embedder-models:/data]
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:80/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
 volumes:
   pgdata: {}
+  embedder-models: {}

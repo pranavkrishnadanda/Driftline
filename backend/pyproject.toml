@@ -38,6 +38,9 @@ packages = ["src/driftline"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = [
+  "slow: runs against a real embedder container (still runs by default)",
+]
 
 [tool.ruff]
 line-length = 100
