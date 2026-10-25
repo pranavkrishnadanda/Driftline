@@ -2,6 +2,10 @@
 
 **A version-aware knowledge engine.** Driftline keeps every version of your documents and knows which version was in force on any date. It answers questions only from in-force sources, backs every claim with an exact-quote citation, and raises an alert when a source changes under an answer it already gave.
 
+![Asking the same question as of two dates: the answer follows the label version in force](docs/media/driftline-ask.gif)
+
+**[Try the live recorded demo](https://pranavkrishnadanda.github.io/Driftline/demo/)**: the real UI replaying real answers from a recorded run. Full tour: [MP4](docs/media/driftline-demo.mp4) · [GIF](docs/media/driftline-demo.gif).
+
 ## Why it matters
 
 Regular RAG answers from whatever text it retrieves, and that includes superseded text. Ask it about a drug label or a Kubernetes API and it can quote a warning that was rewritten two versions ago, or a field that was removed three releases back. The citation looks fine, but the source is no longer in force.
