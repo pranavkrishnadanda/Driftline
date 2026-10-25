@@ -38,6 +38,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/alerts/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Drift alerts for a tenant (SSE) */
+        get: operations["alerts_v1_alerts_stream_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/answers/{answer_id}/watch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Watch
+         * @description Re-check this answer whenever a document it cites changes.
+         */
+        post: operations["watch_v1_answers__answer_id__watch_post"];
+        /** Unwatch */
+        delete: operations["unwatch_v1_answers__answer_id__watch_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/ask": {
         parameters: {
             query?: never;
@@ -49,6 +87,47 @@ export interface paths {
         put?: never;
         /** Ask */
         post: operations["ask_v1_ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/documents/{document_id}/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Timeline
+         * @description Every version of a document with its validity window and diff from the previous
+         *     version, plus the relations it declares (outgoing) and receives (incoming).
+         */
+        get: operations["timeline_v1_documents__document_id__timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/drift/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Drift Events
+         * @description Drift verdicts on this tenant's answers, latest first.
+         */
+        get: operations["drift_events_v1_drift_events_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -93,6 +172,57 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AlertEvent
+         * @description A drift verdict on a watched answer, streamed on `events:alerts:{tenant}` (P4).
+         */
+        AlertEvent: {
+            /**
+             * After
+             * @default null
+             */
+            after: string | null;
+            /**
+             * Answer Id
+             * Format: uuid
+             */
+            answer_id: string;
+            /**
+             * Before
+             * @default null
+             */
+            before: string | null;
+            /** Document Title */
+            document_title: string;
+            /**
+             * Drift Event Id
+             * Format: uuid
+             */
+            drift_event_id: string;
+            /**
+             * New Version Id
+             * Format: uuid
+             */
+            new_version_id: string;
+            /** Old Version Id */
+            old_version_id: string | null;
+            /**
+             * T
+             * Format: date-time
+             */
+            t: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "alert";
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "still_valid" | "changed" | "broken";
+        };
+        AlertEvents: components["schemas"]["AlertEvent"] | components["schemas"]["ErrorEvent"];
         /** AnswerSchema */
         AnswerSchema: {
             /** Answer */
@@ -273,6 +403,67 @@ export interface components {
             /** Verified */
             verified: boolean;
         };
+        /** DocumentTimeline */
+        DocumentTimeline: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** External Id */
+            external_id: string;
+            relations: components["schemas"]["TimelineRelations"];
+            /** Title */
+            title: string | null;
+            /** Versions */
+            versions: components["schemas"]["TimelineVersion"][];
+        };
+        /** DriftEventList */
+        DriftEventList: {
+            /** Events */
+            events: components["schemas"]["DriftEventOut"][];
+        };
+        /** DriftEventOut */
+        DriftEventOut: {
+            /** After */
+            after?: string | null;
+            /**
+             * Answer Id
+             * Format: uuid
+             */
+            answer_id: string;
+            /** Before */
+            before?: string | null;
+            /** Claim Idx */
+            claim_idx: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Diff */
+            diff?: string | null;
+            /** Document Id */
+            document_id: string | null;
+            /** Document Title */
+            document_title: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** New Version Id */
+            new_version_id: string | null;
+            /** Old Version Id */
+            old_version_id: string | null;
+            /** Section Path */
+            section_path?: string | null;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "still_valid" | "changed" | "broken";
+        };
         /** ErrorEvent */
         ErrorEvent: {
             /** Code */
@@ -380,6 +571,71 @@ export interface components {
              */
             type: "step";
         };
+        /**
+         * TimelineRelation
+         * @description A relation touching the document. For an outgoing one, `document_*` is the
+         *     document it points at; for an incoming one, the document whose version declared it.
+         */
+        TimelineRelation: {
+            /** Confidence */
+            confidence: number;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Document Title */
+            document_title: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /**
+             * Src Version Id
+             * Format: uuid
+             */
+            src_version_id: string;
+            /** Status */
+            status: string;
+        };
+        /** TimelineRelations */
+        TimelineRelations: {
+            /** Incoming */
+            incoming: components["schemas"]["TimelineRelation"][];
+            /** Outgoing */
+            outgoing: components["schemas"]["TimelineRelation"][];
+        };
+        /** TimelineVersion */
+        TimelineVersion: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Diff From Prev */
+            diff_from_prev: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to: string | null;
+            /**
+             * Version Id
+             * Format: uuid
+             */
+            version_id: string;
+            /** Version Key */
+            version_key: string | null;
+            /** Version No */
+            version_no: number;
+        };
         /** TokenEvent */
         TokenEvent: {
             /** Text */
@@ -402,6 +658,16 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WatchState */
+        WatchState: {
+            /**
+             * Answer Id
+             * Format: uuid
+             */
+            answer_id: string;
+            /** Watched */
+            watched: boolean;
         };
     };
     responses: never;
@@ -454,6 +720,137 @@ export interface operations {
             };
         };
     };
+    alerts_v1_alerts_stream_get: {
+        parameters: {
+            query: {
+                /** @description tenant name */
+                tenant: string;
+                last_event_id?: string | null;
+            };
+            header?: {
+                "last-event-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Server-sent events: `id: <n>`, `event: <type>`, `data: <JSON>`; `: ping` heartbeats; open-ended: one `alert` per drift verdict on a watched answer. Reconnect with Last-Event-ID to replay missed events. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["AlertEvents"];
+                };
+            };
+            /** @description unknown tenant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description too many open streams */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    watch_v1_answers__answer_id__watch_post: {
+        parameters: {
+            query: {
+                /** @description tenant name */
+                tenant: string;
+            };
+            header?: never;
+            path: {
+                answer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchState"];
+                };
+            };
+            /** @description unknown tenant, or not found in this tenant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unwatch_v1_answers__answer_id__watch_delete: {
+        parameters: {
+            query: {
+                /** @description tenant name */
+                tenant: string;
+            };
+            header?: never;
+            path: {
+                answer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchState"];
+                };
+            };
+            /** @description unknown tenant, or not found in this tenant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ask_v1_ask_post: {
         parameters: {
             query?: never;
@@ -498,6 +895,87 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    timeline_v1_documents__document_id__timeline_get: {
+        parameters: {
+            query: {
+                /** @description tenant name */
+                tenant: string;
+            };
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentTimeline"];
+                };
+            };
+            /** @description unknown tenant, or not found in this tenant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    drift_events_v1_drift_events_get: {
+        parameters: {
+            query: {
+                /** @description tenant name */
+                tenant: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DriftEventList"];
+                };
+            };
+            /** @description unknown tenant, or not found in this tenant */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

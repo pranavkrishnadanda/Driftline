@@ -35,41 +35,31 @@ export type Citation = Claim["citations"][number];
 export type NearestSource = AnswerSchema["nearest_sources"][number];
 export type SourceKind = NonNullable<AskRequest["source_kinds"]>[number];
 
+/** The query string of a generated route, e.g. `{ tenant: string; limit?: number }`. */
+type QueryParams<P extends keyof paths, M extends keyof paths[P]> = paths[P][M] extends {
+  parameters: { query: infer Q };
+}
+  ? Q
+  : never;
+
+/** Answer watch state; POST and DELETE on the watch route both return it. */
+export type WatchState = JsonResponse<"/v1/answers/{answer_id}/watch", "post", 200>;
+export type DocumentTimeline = JsonResponse<"/v1/documents/{document_id}/timeline", "get", 200>;
+export type TimelineVersion = DocumentTimeline["versions"][number];
+export type TimelineRelation = DocumentTimeline["relations"]["outgoing"][number];
+export type DriftEventsQuery = QueryParams<"/v1/drift/events", "get">;
+export type DriftEventList = JsonResponse<"/v1/drift/events", "get", 200>;
+export type DriftEvent = DriftEventList["events"][number];
+export type DriftVerdict = DriftEvent["verdict"];
+
 // ---------------------------------------------------------------------------------
 // pending backend: every type and route in this block is typed from the plans, not
 // from the OpenAPI document, because the gateway does not serve it yet.
-//   /v1/answers/{id}/watch, timeline      P4 T4
 //   /v1/review, /v1/review/{id}/resolve   P4 T5
 //   /v1/stats                             P5b T4
 // When a route lands in contracts/openapi.json, regenerate schema.d.ts, delete its
 // PendingRoutes entry and derive its types from `paths` instead. Typecheck fails
 // while a route is listed in both places (see `_NoPendingRouteIsGenerated`).
-
-export interface WatchResult {
-  answer_id: string;
-  watched: boolean;
-}
-
-export interface TimelineVersion {
-  version_id: string;
-  version_no: number;
-  valid_from: string;
-  valid_to: string | null;
-  diff_from_prev: unknown;
-}
-
-export interface TimelineRelation {
-  kind: string;
-  document_id: string;
-  status: string;
-}
-
-export interface DocumentTimeline {
-  document_id: string;
-  versions: TimelineVersion[];
-  relations_in: TimelineRelation[];
-  relations_out: TimelineRelation[];
-}
 
 export type ReviewKind = "relation" | "broken_answer" | "low_confidence_answer";
 
@@ -102,8 +92,6 @@ export interface Stats {
 }
 
 interface PendingRoutes {
-  "/v1/answers/{answer_id}/watch": true;
-  "/v1/documents/{document_id}/timeline": true;
   "/v1/review": true;
   "/v1/review/{item_id}/resolve": true;
   "/v1/stats": true;
@@ -209,18 +197,18 @@ export function createApiClient(options: ApiClientOptions = {}) {
   ).replace(/\/+$/, "");
 
   async function request<T>(
-    method: "GET" | "POST",
+    method: "GET" | "POST" | "DELETE",
     route: Route,
     init: {
       params?: Record<string, string>;
-      query?: Record<string, string | undefined>;
+      query?: Record<string, string | number | undefined>;
       body?: unknown;
       signal?: AbortSignal;
     } = {},
   ): Promise<T> {
     const url = new URL(baseUrl + expand(route, init.params ?? {}));
     for (const [key, value] of Object.entries(init.query ?? {})) {
-      if (value !== undefined) url.searchParams.set(key, value);
+      if (value !== undefined) url.searchParams.set(key, String(value));
     }
     const headers: Record<string, string> = { Accept: "application/json" };
     if (init.body !== undefined) headers["Content-Type"] = "application/json";
@@ -267,15 +255,32 @@ export function createApiClient(options: ApiClientOptions = {}) {
     job: (jobId: string, opts: RequestOptions = {}) =>
       request<JobStatus>("GET", "/v1/jobs/{job_id}", { params: { job_id: jobId }, ...opts }),
 
-    watch: (answerId: string, opts: RequestOptions = {}) =>
-      request<WatchResult>("POST", "/v1/answers/{answer_id}/watch", {
+    /** Re-check the answer whenever a document it cites changes. */
+    watch: (answerId: string, tenant: string, opts: RequestOptions = {}) =>
+      request<WatchState>("POST", "/v1/answers/{answer_id}/watch", {
         params: { answer_id: answerId },
+        query: { tenant },
         ...opts,
       }),
 
-    timeline: (documentId: string, opts: RequestOptions = {}) =>
+    unwatch: (answerId: string, tenant: string, opts: RequestOptions = {}) =>
+      request<WatchState>("DELETE", "/v1/answers/{answer_id}/watch", {
+        params: { answer_id: answerId },
+        query: { tenant },
+        ...opts,
+      }),
+
+    /** Drift verdicts on the tenant's answers, latest first. */
+    driftEvents: (query: DriftEventsQuery, opts: RequestOptions = {}) =>
+      request<DriftEventList>("GET", "/v1/drift/events", {
+        query: { tenant: query.tenant, limit: query.limit },
+        ...opts,
+      }),
+
+    timeline: (documentId: string, tenant: string, opts: RequestOptions = {}) =>
       request<DocumentTimeline>("GET", "/v1/documents/{document_id}/timeline", {
         params: { document_id: documentId },
+        query: { tenant },
         ...opts,
       }),
 
