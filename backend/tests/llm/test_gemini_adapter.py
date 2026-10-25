@@ -7,7 +7,7 @@ from driftline.llm.adapters.gemini import GeminiAdapter, _result_text
 from driftline.llm.types import CompletionRequest, Message, ProviderError, Role
 
 API_KEY = os.environ.get("DRIFTLINE_GEMINI_API_KEY", "replay-only")
-MODEL = os.environ.get("DRIFTLINE_MODEL_EXTRACT", "gemini-2.5-flash")
+MODEL = os.environ.get("DRIFTLINE_MODEL_EXTRACT", "gemini-3.8-flash")
 EMBED_MODEL = os.environ.get("DRIFTLINE_MODEL_EMBED", "gemini-embedding-001")
 
 
