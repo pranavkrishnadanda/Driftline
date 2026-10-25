@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { AgentTimeline } from "@/components/agent-timeline/agent-timeline";
+import { buildTimeline } from "@/components/agent-timeline/reducer";
 import {
   FinalAnswer,
   ReviewPending,
@@ -160,6 +162,9 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
   }
   if (streaming && recovered?.failure) failure = recovered.failure;
 
+  // The live agent timeline, folded from the stream's step, claim, final and error events.
+  const timeline = useMemo(() => buildTimeline(stream.events), [stream.events]);
+
   const lastStep =
     (stream.events.filter((e): e is StepEvent => e.type === "step").at(-1) as StepEvent | undefined) ??
     null;
@@ -201,6 +206,8 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
             {request.question}
           </p>
         ) : null}
+
+        {streaming && timeline.phase !== "idle" ? <AgentTimeline state={timeline} /> : null}
 
         {answer ? (
           <FinalAnswer answer={answer} />

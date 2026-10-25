@@ -74,6 +74,52 @@ test.describe("Ask view (real backend)", () => {
     expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
   });
 
+  test("nodes light up in order", async ({ page }) => {
+    await page.goto("/ask");
+
+    const tenant = page.getByRole("combobox", { name: "Tenant" });
+    if ((await tenant.textContent())?.trim() !== TENANT) {
+      await tenant.click();
+      await page.getByRole("option", { name: TENANT }).click();
+    }
+    const question = page.getByRole("textbox", { name: "Question" });
+    await question.fill(QUESTION);
+    await question.press("Enter");
+
+    const timeline = page.getByRole("region", { name: "Agent timeline" });
+    await expect(timeline).toBeVisible({ timeout: 60_000 });
+    // The first node lights up before the run ends.
+    await expect(timeline.locator('[data-node="classify"]')).toHaveAttribute(
+      "data-lit-order",
+      "0",
+      { timeout: 60_000 },
+    );
+    await expect(page.getByRole("region", { name: "Answer" })).toBeVisible({ timeout: 60_000 });
+
+    const lit = await timeline.locator("[data-lit-order]").evaluateAll((items) =>
+      items
+        .map((el) => ({
+          node: (el as HTMLElement).dataset.node!,
+          order: Number((el as HTMLElement).dataset.litOrder),
+        }))
+        .sort((a, b) => a.order - b.order)
+        .map((item) => item.node),
+    );
+    // The answer graph's order. A cache hit goes straight from cache to respond.
+    const graph = ["classify", "cache", "plan", "subagent", "merge", "draft", "verify", "re_retrieve", "respond"];
+    expect(lit[0]).toBe("classify");
+    expect(lit).toContain("respond");
+    const positions = lit.filter((n) => n !== "re_retrieve").map((n) => graph.indexOf(n));
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
+    await expect(timeline.locator('[data-node="respond"]')).toHaveAttribute("data-status", "done");
+
+    // Every node is keyboard-reachable and opens its details.
+    const classify = timeline.locator('[data-node="classify"]').getByRole("button");
+    await classify.focus();
+    await classify.press("Enter");
+    await expect(classify).toHaveAttribute("aria-expanded", "true");
+  });
+
   test("the Ask view has no serious or critical axe violations before asking", async ({ page }) => {
     await page.goto("/ask");
     await expect(page.getByRole("textbox", { name: "Question" })).toBeVisible();

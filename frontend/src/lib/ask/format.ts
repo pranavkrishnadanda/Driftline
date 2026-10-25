@@ -159,7 +159,9 @@ const STEP_LABELS: Record<string, string> = {
   merge: "Merging evidence",
   draft: "Drafting",
   verify: "Verifying claims",
+  re_retrieve: "Searching again",
   respond: "Finishing",
+  review: "Human review",
 };
 
 export function stepLabel(node: string): string {
