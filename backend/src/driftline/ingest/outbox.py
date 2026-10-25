@@ -43,14 +43,13 @@ class OutboxRelay:
         pool: asyncpg.Pool,
         bus: StreamBus,
         *,
+        alerts: AlertLog,
         batch_size: int = 100,
-        alerts: AlertLog | None = None,
     ) -> None:
         self._pool = pool
         self._bus = bus
         self._batch_size = batch_size
-        # Default: the alert log on the bus's own Redis client, with AlertLog's defaults.
-        self._alerts = alerts if alerts is not None else AlertLog(bus._redis)
+        self._alerts = alerts  # where `drift.alert` rows go: the per-tenant alert log
 
     async def claim_and_publish(self, conn: asyncpg.Connection) -> list[int]:
         """Lock a batch of unpublished rows and publish them. Call inside a transaction.

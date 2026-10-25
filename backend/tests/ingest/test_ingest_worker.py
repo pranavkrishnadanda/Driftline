@@ -10,6 +10,7 @@ import yaml
 
 from driftline.clock import ManualClock
 from driftline.config import Settings
+from driftline.drift.alerts import AlertLog
 from driftline.ingest.__main__ import amain, build_ingest_router
 from driftline.ingest.connectors.k8s_docs import KubernetesDocsConnector
 from driftline.ingest.connectors.openfda import OpenFDAConnector
@@ -163,7 +164,12 @@ async def test_embed_event_embeds_runs_extraction_and_dedupes(
             fresh_pool, StreamBus(redis_client), source_id=source, external_id=name
         )
     assert await worker.run_once() == 2
-    assert await OutboxRelay(fresh_pool, StreamBus(redis_client)).relay_once() == 2
+    assert (
+        await OutboxRelay(
+            fresh_pool, StreamBus(redis_client), alerts=AlertLog(redis_client)
+        ).relay_once()
+        == 2
+    )
     assert await worker.run_once() == 2
     async with fresh_pool.acquire() as conn:
         assert await conn.fetchval("SELECT count(*) FROM chunks WHERE embedding IS NULL") == 0

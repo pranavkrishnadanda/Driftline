@@ -27,6 +27,7 @@ from driftline.agents.offline import ExtractiveResponder
 from driftline.agents.worker import AgentWorker
 from driftline.clock import ManualClock
 from driftline.config import Settings
+from driftline.drift.alerts import AlertLog
 from driftline.gateway.app import create_app
 from driftline.ingest.connectors.upload import UploadConnector
 from driftline.ingest.embed import EmbedStage
@@ -141,7 +142,7 @@ async def test_ask_as_of_each_version_with_sse_replay(
         source = await ensure_source(
             conn, tenant="e2e", kind="upload", config={"root": str(tmp_path)}
         )
-    relay = OutboxRelay(fresh_pool, bus)
+    relay = OutboxRelay(fresh_pool, bus, alerts=AlertLog(redis_client))
     for text, mtime in ((V1, T1), (V2, T2)):
         write(tmp_path, text, mtime)
         await enqueue_ingest(fresh_pool, bus, source_id=source, external_id=DOC)

@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from driftline.clock import ManualClock
+from driftline.drift.alerts import AlertLog
 from driftline.ingest.chunker import count_tokens
 from driftline.ingest.connectors.upload import UploadConnector
 from driftline.ingest.embed import EmbedStage
@@ -70,7 +71,7 @@ async def stack(fresh_pool, redis_client, embedder_url, tmp_path):
         )
     return {
         "worker": worker,
-        "relay": OutboxRelay(fresh_pool, bus),
+        "relay": OutboxRelay(fresh_pool, bus, alerts=AlertLog(redis_client)),
         "bus": bus,
         "source": source,
         "root": tmp_path,
