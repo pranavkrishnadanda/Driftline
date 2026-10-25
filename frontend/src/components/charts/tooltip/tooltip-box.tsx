@@ -81,15 +81,10 @@ const TOOLTIP_PANEL_CLASS_NAME =
   "relative min-w-[160px] rounded-xl border not-dark:bg-clip-padding text-chart-tooltip-foreground shadow-lg/5 before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-xl)-1px)] before:shadow-[0_1px_rgb(0_0_0/0.04)] dark:before:shadow-[0_-1px_rgb(255_255_255/0.06)]";
 
 /** Clips content to the panel's inner radius without clipping the edge highlight. */
-const TOOLTIP_PANEL_INNER_CLASS_NAME =
-  "overflow-hidden rounded-[calc(var(--radius-xl)-1px)]";
+const TOOLTIP_PANEL_INNER_CLASS_NAME = "overflow-hidden rounded-[calc(var(--radius-xl)-1px)]";
 
 /** Spring to `value`, or jump there (no animation) when `snap`. */
-function moveTo(
-  spring: MotionValue<number>,
-  value: number,
-  snap: boolean
-): void {
+function moveTo(spring: MotionValue<number>, value: number, snap: boolean): void {
   if (snap) {
     spring.jump(value);
   } else {
@@ -125,10 +120,7 @@ function resolveTooltipTarget({
   return {
     flipped,
     left: flipped ? x - offset - width : x + offset,
-    top: Math.max(
-      offset,
-      Math.min(y - height / 2, containerHeight - height - offset)
-    ),
+    top: Math.max(offset, Math.min(y - height / 2, containerHeight - height - offset)),
   };
 }
 
@@ -204,7 +196,7 @@ function TooltipBoxInner({
       offset,
       containerWidth,
       containerHeight,
-    })
+    }),
   );
   const animatedLeft = useSpring(initialTarget.left, effectiveSpring);
   const animatedTop = useSpring(initialTarget.top, effectiveSpring);
@@ -233,9 +225,7 @@ function TooltipBoxInner({
       containerHeight,
     });
     setFlip((prev) =>
-      prev.flipped === target.flipped
-        ? prev
-        : { flipped: target.flipped, key: prev.key + 1 }
+      prev.flipped === target.flipped ? prev : { flipped: target.flipped, key: prev.key + 1 },
     );
     const tx = target.left;
     const ty = target.top;
@@ -268,9 +258,7 @@ function TooltipBoxInner({
 
   const flipKey = replayOnFlip ? flip.key : 0;
 
-  const finalLeft = animate
-    ? (leftOverride ?? animatedLeft)
-    : staticPosition.left;
+  const finalLeft = animate ? (leftOverride ?? animatedLeft) : staticPosition.left;
   const finalTop = animate ? (topOverride ?? animatedTop) : staticPosition.top;
   const isFlipped = flippedOverride ?? shouldFlipX;
   const transformOrigin = isFlipped ? "right top" : "left top";
@@ -280,7 +268,7 @@ function TooltipBoxInner({
     panelStyle?.backgroundColor === undefined &&
       backgroundColor === chartCssVars.tooltipBackground &&
       "bg-chart-tooltip-background",
-    panelStyle?.backdropFilter === undefined && "backdrop-blur-md"
+    panelStyle?.backdropFilter === undefined && "backdrop-blur-md",
   );
   const panelStyleResolved = {
     transformOrigin,
@@ -301,7 +289,7 @@ function TooltipBoxInner({
           <div className={TOOLTIP_PANEL_INNER_CLASS_NAME}>{children}</div>
         </div>
       </div>,
-      container
+      container,
     );
   }
 
@@ -319,9 +307,7 @@ function TooltipBoxInner({
         animate={{ scale: 1, opacity: 1, x: 0 }}
         className={panelClassName}
         initial={
-          reducedMotion
-            ? { opacity: 0 }
-            : { scale: 0.85, opacity: 0, x: isFlipped ? 20 : -20 }
+          reducedMotion ? { opacity: 0 } : { scale: 0.85, opacity: 0, x: isFlipped ? 20 : -20 }
         }
         key={flipKey}
         style={panelStyleResolved}
@@ -330,7 +316,7 @@ function TooltipBoxInner({
         <div className={TOOLTIP_PANEL_INNER_CLASS_NAME}>{children}</div>
       </motion.div>
     </motion.div>,
-    container
+    container,
   );
 }
 

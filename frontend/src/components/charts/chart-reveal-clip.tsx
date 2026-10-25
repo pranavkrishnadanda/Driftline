@@ -52,12 +52,7 @@ export function ChartRevealClip({
   if (!animating) {
     return (
       <clipPath id={clipPathId}>
-        <rect
-          height={paddedHeight}
-          width={paddedWidth}
-          x={-padding}
-          y={-paddingY}
-        />
+        <rect height={paddedHeight} width={paddedWidth} x={-padding} y={-paddingY} />
       </clipPath>
     );
   }

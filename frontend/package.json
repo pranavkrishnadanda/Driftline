@@ -2,21 +2,24 @@
   "name": "driftline-frontend",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "bun@1.4.4",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint --max-warnings=0",
+    "dev": "bun --bun next dev",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start",
+    "lint": "oxlint --deny-warnings",
+    "format": "biome format --write",
+    "format:check": "biome format",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "gen:api": "openapi-typescript ${DRIFTLINE_OPENAPI_URL:-http://localhost:8010/openapi.json} -o src/lib/api/schema.d.ts",
     "gen:api:file": "openapi-typescript ../contracts/openapi.json -o src/lib/api/schema.d.ts",
-    "gen:sse": "node scripts/gen-sse-types.mjs",
+    "gen:sse": "bun scripts/gen-sse-types.mjs",
     "test:e2e:stub": "playwright test -c playwright.stub.config.ts"
   },
   "dependencies": {
@@ -50,6 +53,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
+    "@biomejs/biome": "2.6.3",
     "@playwright/test": "1.64.1",
     "@tailwindcss/turbopack": "4.3.3",
     "@testing-library/dom": "10.4.2",
@@ -59,20 +63,18 @@
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@typescript/native": "npm:typescript@7.0.2",
     "@vitejs/plugin-react": "6.1.2",
     "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "9.39.5",
-    "eslint-config-next": "16.4.3",
     "jsdom": "30.1.3",
     "json-schema-to-typescript": "16.0.0",
     "openapi-typescript": "7.13.0",
+    "oxlint": "1.89.0",
     "tailwindcss": "4.3.3",
-    "typescript": "6.0.3",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "vitest": "5.0.5"
   },
   "overrides": {
-    "openapi-typescript": {
-      "typescript": "$typescript"
-    }
+    "typescript": "npm:@typescript/typescript6@6.0.2"
   }
 }

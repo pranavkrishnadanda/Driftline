@@ -137,10 +137,7 @@ function narrowSpan(span: number) {
   return span <= MIN_SPAN ? 1 : 2;
 }
 
-function normalizeLayout(
-  layout: WidgetLayoutItem[],
-  items: WidgetGridItem[]
-): WidgetLayoutItem[] {
+function normalizeLayout(layout: WidgetLayoutItem[], items: WidgetGridItem[]): WidgetLayoutItem[] {
   const known = new Set(items.map((item) => item.id));
   const seen = new Set<string>();
   const out: WidgetLayoutItem[] = [];
@@ -166,9 +163,7 @@ function moveItem<T>(list: T[], from: number, to: number): T[] {
 }
 
 function contains(rect: Rect, x: number, y: number) {
-  return (
-    x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h
-  );
+  return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -245,7 +240,7 @@ function integrate(
   v: number,
   target: number,
   cfg: SpringConfig,
-  dt: number
+  dt: number,
 ): [number, number] {
   const a = -cfg.k * (x - target) - cfg.c * v;
   const nv = v + a * dt;
@@ -362,14 +357,12 @@ class GridEngine {
     }
     const surface = el.firstElementChild as HTMLElement | null;
     const shadow = surface?.firstElementChild as HTMLElement | null;
-    const atRest =
-      b.ox === 0 && b.oy === 0 && b.lift === 0 && b.rx === 0 && b.ry === 0;
+    const atRest = b.ox === 0 && b.oy === 0 && b.lift === 0 && b.rx === 0 && b.ry === 0;
     el.style.transform = atRest
       ? ""
       : `translate3d(${r2(b.ox)}px, ${r2(b.oy)}px, ${r2(b.lift * LIFT_Z)}px) rotateX(${r2(b.rx)}deg) rotateY(${r2(b.ry)}deg)`;
     if (surface) {
-      surface.style.transform =
-        b.sx === 1 && b.sy === 1 ? "" : `scale(${r3(b.sx)}, ${r3(b.sy)})`;
+      surface.style.transform = b.sx === 1 && b.sy === 1 ? "" : `scale(${r3(b.sx)}, ${r3(b.sy)})`;
     }
     if (shadow) {
       shadow.style.opacity = String(r2(Math.max(0, Math.min(1, b.lift))));
@@ -477,7 +470,7 @@ function WidgetCell({
         "group/cell relative @xl/wg:col-span-(--span) col-span-(--span-n) select-none [-webkit-touch-callout:none]",
         "transition-opacity duration-200 ease-out",
         dimmed && "opacity-45",
-        lifted && "z-20"
+        lifted && "z-20",
       )}
       data-lifted={lifted || undefined}
       onBlur={handleBlur}
@@ -513,7 +506,7 @@ function WidgetCell({
               "transition-colors duration-150 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-200",
               "focus-visible:ring-(--wg-accent) focus-visible:ring-2",
               lifted &&
-                "cursor-grabbing bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+                "cursor-grabbing bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
             )}
             data-no-press
             onBlur={onGripBlur}
@@ -547,19 +540,14 @@ function WidgetCell({
         className={cn(
           "absolute right-0 bottom-0 flex size-7 cursor-ew-resize touch-none items-end justify-end rounded-br-2xl p-1.5 text-zinc-400 outline-none dark:text-zinc-500",
           "opacity-0 transition-opacity duration-150 focus-visible:opacity-100 group-hover/cell:opacity-100 [@media(hover:none)]:opacity-70",
-          "hover:text-zinc-700 focus-visible:text-(--wg-accent) dark:hover:text-zinc-200"
+          "hover:text-zinc-700 focus-visible:text-(--wg-accent) dark:hover:text-zinc-200",
         )}
         data-no-press
         onKeyDown={onResizeKeyDown}
         onPointerDown={onResizePointerDown}
         type="button"
       >
-        <svg
-          aria-hidden="true"
-          className="size-2.5"
-          fill="none"
-          viewBox="0 0 10 10"
-        >
+        <svg aria-hidden="true" className="size-2.5" fill="none" viewBox="0 0 10 10">
           <circle cx="8.5" cy="3.5" fill="currentColor" r="1.1" />
           <circle cx="6" cy="6" fill="currentColor" r="1.1" />
           <circle cx="3.5" cy="8.5" fill="currentColor" r="1.1" />
@@ -584,17 +572,14 @@ export default function WidgetGrid({
 }: WidgetGridProps) {
   const instructionsId = useId();
   const [innerLayout, setInnerLayout] = useState<WidgetLayoutItem[]>(() =>
-    normalizeLayout(defaultLayout ?? [], items)
+    normalizeLayout(defaultLayout ?? [], items),
   );
   const current = useMemo(
     () => normalizeLayout(layout ?? innerLayout, items),
-    [layout, innerLayout, items]
+    [layout, innerLayout, items],
   );
   const layoutKey = current.map((c) => `${c.id}:${c.span}`).join("|");
-  const itemsById = useMemo(
-    () => new Map(items.map((item) => [item.id, item])),
-    [items]
-  );
+  const itemsById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
 
   const [narrow, setNarrow] = useState(false);
   const [liftedId, setLiftedId] = useState<string | null>(null);
@@ -631,10 +616,7 @@ export default function WidgetGrid({
   const cancelPressRef = useRef<() => void>(() => undefined);
   const endDragRef = useRef<(cancel: boolean) => void>(() => undefined);
 
-  const titleOf = useCallback(
-    (id: string) => latest.current.itemsById.get(id)?.title ?? id,
-    []
-  );
+  const titleOf = useCallback((id: string) => latest.current.itemsById.get(id)?.title ?? id, []);
 
   const announce = useCallback((text: string) => {
     // A trailing space makes a repeated message read again.
@@ -699,16 +681,14 @@ export default function WidgetGrid({
       const origin = next.get(movedId);
       const cx = origin ? origin.x + origin.w / 2 : 0;
       const cy = origin ? origin.y + origin.h / 2 : 0;
-      const pinnedId =
-        dragRef.current?.mode === "pointer" ? dragRef.current.id : null;
+      const pinnedId = dragRef.current?.mode === "pointer" ? dragRef.current.id : null;
       for (const [id, n] of next) {
         const p = prev.get(id);
         if (!p || id === pinnedId) {
           continue;
         }
         const b = engine.body(id);
-        const moved =
-          Math.abs(p.x - n.x) > 0.5 || Math.abs(p.y - n.y) > 0.5 || p.w !== n.w;
+        const moved = Math.abs(p.x - n.x) > 0.5 || Math.abs(p.y - n.y) > 0.5 || p.w !== n.w;
         b.ox += p.x - n.x;
         b.oy += p.y - n.y;
         b.sx = (p.w * b.sx) / n.w;
@@ -722,7 +702,7 @@ export default function WidgetGrid({
       }
       engine.kick();
     },
-    [engine]
+    [engine],
   );
 
   // After every layout change: measure, FLIP neighbours, re-seat the held cell.
@@ -802,11 +782,9 @@ export default function WidgetGrid({
       }
       drag.skipId = list[to].id;
       commit(moveItem(list, from, to), drag.id);
-      announce(
-        `${titleOf(drag.id)} moved to position ${to + 1} of ${list.length}.`
-      );
+      announce(`${titleOf(drag.id)} moved to position ${to + 1} of ${list.length}.`);
     },
-    [announce, commit, titleOf]
+    [announce, commit, titleOf],
   );
 
   const onDragMove = useCallback(
@@ -827,7 +805,7 @@ export default function WidgetGrid({
       const p = toGrid(e.clientX, e.clientY);
       hitTest(p.x, p.y);
     },
-    [engine, hitTest, placeDragged, toGrid]
+    [engine, hitTest, placeDragged, toGrid],
   );
 
   const onDragUp = useCallback((e: globalThis.PointerEvent) => {
@@ -874,13 +852,13 @@ export default function WidgetGrid({
       if (cancel) {
         const index = drag.snapshot.findIndex((c) => c.id === drag.id);
         announce(
-          `Move cancelled. ${title} returned to position ${index + 1} of ${drag.snapshot.length}.`
+          `Move cancelled. ${title} returned to position ${index + 1} of ${drag.snapshot.length}.`,
         );
       } else {
         announce(`${title} dropped at ${positionText(drag.id)}.`);
       }
     },
-    [announce, commit, engine, positionText, removeDragListeners, titleOf]
+    [announce, commit, engine, positionText, removeDragListeners, titleOf],
   );
   useLayoutEffect(() => {
     endDragRef.current = endDrag;
@@ -917,16 +895,7 @@ export default function WidgetGrid({
       window.addEventListener("pointercancel", onDragUp);
       window.addEventListener("keydown", onDragKey);
     },
-    [
-      announce,
-      engine,
-      onDragKey,
-      onDragMove,
-      onDragUp,
-      positionText,
-      titleOf,
-      toGrid,
-    ]
+    [announce, engine, onDragKey, onDragMove, onDragUp, positionText, titleOf, toGrid],
   );
 
   /* ------------------------------ long press ------------------------------ */
@@ -939,10 +908,7 @@ export default function WidgetGrid({
     press.x = e.clientX;
     press.y = e.clientY;
     // Moving first means scrolling (touch) or selecting (mouse), not lifting.
-    if (
-      Math.hypot(e.clientX - press.startX, e.clientY - press.startY) >
-      PRESS_SLOP
-    ) {
+    if (Math.hypot(e.clientX - press.startX, e.clientY - press.startY) > PRESS_SLOP) {
       cancelPressRef.current();
     }
   }, []);
@@ -992,7 +958,7 @@ export default function WidgetGrid({
       window.addEventListener("pointerup", cancelPress);
       window.addEventListener("pointercancel", cancelPress);
     },
-    [cancelPress, liftPointer, onPressMove]
+    [cancelPress, liftPointer, onPressMove],
   );
 
   // A non-passive touchmove listener stops the page scrolling while a cell is
@@ -1029,11 +995,11 @@ export default function WidgetGrid({
       }
       commit(
         list.map((c) => (c.id === id ? { ...c, span } : c)),
-        id
+        id,
       );
       announce(`${titleOf(id)} resized to ${spanText(span)}.`);
     },
-    [announce, commit, spanText, titleOf]
+    [announce, commit, spanText, titleOf],
   );
 
   /**
@@ -1069,7 +1035,7 @@ export default function WidgetGrid({
         applySpan(id, span);
       }
     },
-    [applySpan, spanFromPointer]
+    [applySpan, spanFromPointer],
   );
 
   // The listeners a resize added, so the release removes exactly those.
@@ -1108,7 +1074,7 @@ export default function WidgetGrid({
       window.addEventListener("pointerup", onResizeUp);
       window.addEventListener("pointercancel", onResizeUp);
     },
-    [cancelPress, onResizeMove, onResizeUp]
+    [cancelPress, onResizeMove, onResizeUp],
   );
 
   const onResizeKeyDown = useCallback(
@@ -1130,7 +1096,7 @@ export default function WidgetGrid({
       }
       applySpan(id, span);
     },
-    [applySpan]
+    [applySpan],
   );
 
   /* ------------------------------- keyboard ------------------------------- */
@@ -1149,9 +1115,7 @@ export default function WidgetGrid({
     const cx = cur.x + cur.w / 2;
     for (const [i, c] of list.entries()) {
       const r = rects.get(c.id);
-      const inRow =
-        r !== undefined &&
-        (up ? r.y + r.h <= cur.y + 1 : r.y >= cur.y + cur.h - 1);
+      const inRow = r !== undefined && (up ? r.y + r.h <= cur.y + 1 : r.y >= cur.y + cur.h - 1);
       if (r && inRow) {
         const dy = Math.abs(r.y - cur.y);
         const dx = Math.abs(r.x + r.w / 2 - cx);
@@ -1181,7 +1145,7 @@ export default function WidgetGrid({
       }
       return null;
     },
-    [verticalNeighbor]
+    [verticalNeighbor],
   );
 
   const liftKeyboard = useCallback(
@@ -1202,10 +1166,10 @@ export default function WidgetGrid({
       engine.kick();
       setLiftedId(id);
       announce(
-        `${titleOf(id)} lifted, ${positionText(id)}. Arrow keys move it, Space drops it, Escape cancels.`
+        `${titleOf(id)} lifted, ${positionText(id)}. Arrow keys move it, Space drops it, Escape cancels.`,
       );
     },
-    [announce, engine, positionText, titleOf]
+    [announce, engine, positionText, titleOf],
   );
 
   const moveByKey = useCallback(
@@ -1225,7 +1189,7 @@ export default function WidgetGrid({
       announce(`${titleOf(id)} moved to position ${to + 1} of ${list.length}.`);
       return true;
     },
-    [announce, commit, neighborIndex, positionText, titleOf]
+    [announce, commit, neighborIndex, positionText, titleOf],
   );
 
   const onGripKeyDown = useCallback(
@@ -1253,21 +1217,17 @@ export default function WidgetGrid({
         e.preventDefault();
       }
     },
-    [endDrag, liftKeyboard, moveByKey]
+    [endDrag, liftKeyboard, moveByKey],
   );
 
   const onGripBlur = useCallback(
     (id: string) => {
       const drag = dragRef.current;
-      if (
-        drag?.mode === "keyboard" &&
-        drag.id === id &&
-        !reorderingRef.current
-      ) {
+      if (drag?.mode === "keyboard" && drag.id === id && !reorderingRef.current) {
         endDrag(false);
       }
     },
-    [endDrag]
+    [endDrag],
   );
 
   // Clean up timers, listeners and the loop on unmount.
@@ -1278,7 +1238,7 @@ export default function WidgetGrid({
       onResizeUp();
       engine.stop();
     },
-    [engine, onResizeUp, removeDragListeners]
+    [engine, onResizeUp, removeDragListeners],
   );
 
   const activeId = liftedId ?? resizingId ?? pointedId;
@@ -1294,9 +1254,7 @@ export default function WidgetGrid({
     if (!(showSlots && grid)) {
       return;
     }
-    setSlotRows(
-      Math.max(1, Math.round((grid.offsetHeight + GAP) / (rowHeight + GAP)))
-    );
+    setSlotRows(Math.max(1, Math.round((grid.offsetHeight + GAP) / (rowHeight + GAP))));
   }, [showSlots, layoutKey, narrow, rowHeight]);
   const slotDots: ReactNode[] = [];
   if (showSlots && slotRows > 0) {
@@ -1309,7 +1267,7 @@ export default function WidgetGrid({
             fill="currentColor"
             key={`${col}:${row}`}
             r={1.5}
-          />
+          />,
         );
       }
     }
@@ -1319,7 +1277,7 @@ export default function WidgetGrid({
     <div
       className={cn(
         "@container/wg w-full max-w-4xl [--wg-accent:var(--color-blue-600)] dark:[--wg-accent:var(--color-blue-400)]",
-        className
+        className,
       )}
       ref={wrapRef}
     >
@@ -1406,8 +1364,8 @@ export default function WidgetGrid({
         })}
       </div>
       <p className="sr-only" id={instructionsId}>
-        Press Space to pick up. Use the arrow keys to move, Space to drop and
-        Escape to cancel. With a pointer, press and hold a widget, then drag it.
+        Press Space to pick up. Use the arrow keys to move, Space to drop and Escape to cancel. With
+        a pointer, press and hold a widget, then drag it.
       </p>
       <p aria-live="assertive" className="sr-only">
         {message}

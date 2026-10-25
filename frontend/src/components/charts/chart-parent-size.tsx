@@ -14,12 +14,7 @@ export interface ChartParentSizeProps {
  * Drop-in for visx `<ParentSize>` without its `overflow: hidden` measuring
  * layer, so tooltips, markers, and strokes at the chart edge aren't clipped.
  */
-export function ParentSize({
-  children,
-  className,
-  debounceTime,
-  style,
-}: ChartParentSizeProps) {
+export function ParentSize({ children, className, debounceTime, style }: ChartParentSizeProps) {
   const { parentRef, width, height } = useParentSize({ debounceTime });
   return (
     <div

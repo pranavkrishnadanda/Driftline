@@ -9,7 +9,7 @@
  * @website: https://kokonutui.com
  * @github: https://github.com/kokonut-labs/kokonutui
  *
- * Installed with `npx shadcn add @kokonutui/ai-prompt` and edited in place for Driftline:
+ * Installed with `bunx shadcn add @kokonutui/ai-prompt` and edited in place for Driftline:
  * the model and effort menus, attachments, the slash-command menu and the promo header
  * are gone (the Ask view has no use for them), the toolbar takes the caller's controls,
  * and `responding` is controlled by the caller, which owns the request and its stream.
@@ -60,7 +60,7 @@ function SendButton({
         // "ready" before it is pressed. Stop keeps the same fill.
         responding || canSend
           ? "bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/85"
-          : "bg-black/5 text-black/30 dark:bg-white/10 dark:text-white/30"
+          : "bg-black/5 text-black/30 dark:bg-white/10 dark:text-white/30",
       )}
       disabled={!(responding || canSend)}
       onClick={responding ? onStop : onSend}
@@ -148,7 +148,7 @@ export default function AI_Prompt({
           className={cn(
             "relative flex flex-col rounded-[18px] bg-white ring-1 ring-black/[0.08] dark:bg-zinc-900 dark:ring-white/10",
             "shadow-[0_1px_2px_rgb(0_0_0/0.04),0_6px_20px_-10px_rgb(0_0_0/0.12)]",
-            "has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-ring"
+            "has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-ring",
           )}
         >
           <label className="sr-only" htmlFor={textareaId}>
@@ -162,9 +162,7 @@ export default function AI_Prompt({
               adjustHeight();
             }}
             onKeyDown={handleKeyDown}
-            placeholder={
-              responding ? "Answering… Esc to stop" : placeholder
-            }
+            placeholder={responding ? "Answering… Esc to stop" : placeholder}
             ref={textareaRef}
             value={value}
           />
@@ -172,12 +170,7 @@ export default function AI_Prompt({
           <div className="flex flex-wrap items-center gap-1 px-2.5 pt-1 pb-2.5">
             {toolbar}
             <div className="flex-1" />
-            <SendButton
-              canSend={canSend}
-              onSend={submit}
-              onStop={stop}
-              responding={responding}
-            />
+            <SendButton canSend={canSend} onSend={submit} onStop={stop} responding={responding} />
           </div>
         </div>
       </div>

@@ -1,15 +1,6 @@
-import {
-  Children,
-  Fragment,
-  isValidElement,
-  type ReactElement,
-  type ReactNode,
-} from "react";
+import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from "react";
 
-export const DEFAULT_ACTIVE_GRADIENT: readonly [string, string] = [
-  "#bef264",
-  "#10b981",
-];
+export const DEFAULT_ACTIVE_GRADIENT: readonly [string, string] = ["#bef264", "#10b981"];
 
 export const DEFAULT_ACTIVE_FILL_OPACITY = 1;
 export const DEFAULT_INACTIVE_FILL_OPACITY = 0.8;
@@ -60,11 +51,7 @@ export function collectGaugeDefsElements(nodes: ReactNode): ReactElement[] {
       return;
     }
     if (child.type === Fragment) {
-      out.push(
-        ...collectGaugeDefsElements(
-          (child.props as { children?: ReactNode }).children
-        )
-      );
+      out.push(...collectGaugeDefsElements((child.props as { children?: ReactNode }).children));
       return;
     }
     if (isDefsComponent(child)) {
@@ -74,11 +61,7 @@ export function collectGaugeDefsElements(nodes: ReactNode): ReactElement[] {
   return out;
 }
 
-export function interpolateGaugeHex(
-  color1: string,
-  color2: string,
-  factor: number
-): string {
+export function interpolateGaugeHex(color1: string, color2: string, factor: number): string {
   const hex = (c: string) => Number.parseInt(c, 16);
   const r1 = hex(color1.slice(1, 3));
   const g1 = hex(color1.slice(3, 5));
@@ -97,13 +80,12 @@ export function interpolateGaugeHex(
 export function createNotchPath(
   points: NotchPoint,
   cornerRadiusPx: number,
-  verticalDepth: number
+  verticalDepth: number,
 ): string {
   const { x1, y1, x2, y2, x3, y3, x4, y4 } = points;
 
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-  const dist = (ax: number, ay: number, bx: number, by: number) =>
-    Math.hypot(bx - ax, by - ay);
+  const dist = (ax: number, ay: number, bx: number, by: number) => Math.hypot(bx - ax, by - ay);
 
   const d12 = dist(x1, y1, x2, y2);
   const d23 = dist(x2, y2, x3, y3);
@@ -122,7 +104,7 @@ export function createNotchPath(
     d23 * 0.49,
     d34 * 0.49,
     d41 * 0.49,
-    minEdge * 0.49
+    minEdge * 0.49,
   );
 
   const r1 = Math.min(cr / d12, 0.49);
@@ -177,11 +159,7 @@ export function resolveGaugeBgFill(options: {
   }
   if (useGradient) {
     const denom = totalNotches > 1 ? totalNotches - 1 : 1;
-    return interpolateGaugeHex(
-      inactiveGrad0,
-      inactiveGrad1,
-      notchIndex / denom
-    );
+    return interpolateGaugeHex(inactiveGrad0, inactiveGrad1, notchIndex / denom);
   }
   return linearMode ? linearTrackFill : arcTrackFill;
 }

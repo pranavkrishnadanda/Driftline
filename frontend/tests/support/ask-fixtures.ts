@@ -11,8 +11,7 @@ import type { FixtureEvent } from "./sse-server";
 
 export const ANSWERED_EVENTS = answered.events as FixtureEvent[];
 
-export const ANSWERED_FINAL = ANSWERED_EVENTS.find((e) => e.event === "final")!
-  .data as FinalEvent;
+export const ANSWERED_FINAL = ANSWERED_EVENTS.find((e) => e.event === "final")!.data as FinalEvent;
 
 export const ANSWERED: AnswerSchema = ANSWERED_FINAL.answer as AnswerSchema;
 

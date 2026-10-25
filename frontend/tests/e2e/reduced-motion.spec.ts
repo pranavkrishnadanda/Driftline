@@ -2,7 +2,7 @@
  * `prefers-reduced-motion: reduce` (plan Review Focus 3): no Motion, anime.js or CSS
  * animation runs on any view, and all content is visible without waiting for one.
  *
- * Runs against the stub gateway (`npm run test:e2e:stub`) or the real stack. See
+ * Runs against the stub gateway (`bun run test:e2e:stub`) or the real stack. See
  * tests/e2e/views.ts.
  */
 import { expect, test } from "@playwright/test";
@@ -14,7 +14,9 @@ test.use({ reducedMotion: "reduce" });
 for (const view of VIEWS) {
   test(`${view.name} (${view.path}) is complete and still`, async ({ page }) => {
     await openView(page, view);
-    expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
+    expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(
+      true,
+    );
 
     const motion = await motionDuring(page, 1500);
     expect(motion.running, "animations running").toEqual([]);

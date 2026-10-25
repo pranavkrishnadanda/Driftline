@@ -140,9 +140,17 @@ function upsertBranch(
 ): BranchState[] {
   const next = [...branches];
   const at = next.findIndex((b) => b.branch === index);
-  const base: BranchState = at >= 0
-    ? next[at]!
-    : { branch: index, question: "", status: "pending", retrieved: null, kept: null, reranked: null };
+  const base: BranchState =
+    at >= 0
+      ? next[at]!
+      : {
+          branch: index,
+          question: "",
+          status: "pending",
+          retrieved: null,
+          kept: null,
+          reranked: null,
+        };
   const merged = { ...base, ...patch };
   if (at >= 0) next[at] = merged;
   else next.push(merged);
@@ -156,7 +164,8 @@ function onStep(state: TimelineState, event: StepEvent): TimelineState {
   const prev = state.nodes[name];
   let status = statusOf(event.status);
   const repair = event.status === "retry" && detail.reason === "repair";
-  const runs = prev.runs + (event.status === "started" || (event.status === "retry" && !repair) ? 1 : 0);
+  const runs =
+    prev.runs + (event.status === "started" || (event.status === "retry" && !repair) ? 1 : 0);
 
   let { branches, claims, iteration, cache, phase } = state;
 
@@ -197,10 +206,14 @@ function onStep(state: TimelineState, event: StepEvent): TimelineState {
   }
 
   if (name === "re_retrieve") {
-    iteration = Math.max(iteration, num(detail.attempt) ?? iteration + (event.status === "started" ? 1 : 0));
+    iteration = Math.max(
+      iteration,
+      num(detail.attempt) ?? iteration + (event.status === "started" ? 1 : 0),
+    );
   }
 
-  if (name === "cache") cache = event.status === "hit" ? "hit" : event.status === "skipped" ? "skipped" : "miss";
+  if (name === "cache")
+    cache = event.status === "hit" ? "hit" : event.status === "skipped" ? "skipped" : "miss";
 
   if (status === "waiting") phase = "waiting";
   else if (phase !== "failed" || state.error?.retryable) phase = "running";
@@ -311,9 +324,10 @@ export function summarizeTimeline(state: TimelineState): string {
       const current = [...state.lit].reverse().find((n) => state.nodes[n].status === "active");
       const name = current ?? state.lit.at(-1);
       if (!name) return "Starting…";
-      const pass = state.iteration > 0 && (name === "draft" || name === "verify")
-        ? ` (pass ${state.iteration + 1})`
-        : "";
+      const pass =
+        state.iteration > 0 && (name === "draft" || name === "verify")
+          ? ` (pass ${state.iteration + 1})`
+          : "";
       let progress = "";
       if (name === "subagent" && state.branches.length) {
         const done = state.branches.filter((b) => b.status === "done").length;

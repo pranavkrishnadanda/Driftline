@@ -561,7 +561,9 @@ describe("api client: API key auth", () => {
     server = await startApiServer({
       "GET /v1/review": { status: 404, json: { detail: { code: "unknown_tenant" } } },
     });
-    const error = await rejection(createApiClient({ baseUrl: server.url }).review({ tenant: "nope" }));
+    const error = await rejection(
+      createApiClient({ baseUrl: server.url }).review({ tenant: "nope" }),
+    );
 
     expect(error.status).toBe(404);
     expect(error.code).toBe("unknown_tenant");

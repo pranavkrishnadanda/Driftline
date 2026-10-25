@@ -10,13 +10,9 @@ import { cn } from "@/lib/utils";
  * spans breaks glyph joining and reverses the visual order, so they shimmer
  * as a single run instead.
  */
-const WHOLE_TEXT_SCRIPT_PATTERN =
-  /[\u0590-\u07ff\u0860-\u08ff\ufb1d-\ufdff\ufe70-\ufeff]/u;
+const WHOLE_TEXT_SCRIPT_PATTERN = /[\u0590-\u07ff\u0860-\u08ff\ufb1d-\ufdff\ufe70-\ufeff]/u;
 
-export type ShimmeringTextProps = Omit<
-  ComponentProps<typeof motion.span>,
-  "children"
-> & {
+export type ShimmeringTextProps = Omit<ComponentProps<typeof motion.span>, "children"> & {
   /** The text to render with the shimmering effect. */
   text: string;
   /**
@@ -68,7 +64,7 @@ export function ShimmeringText({
         },
       },
     }),
-    [duration, text.length]
+    [duration, text.length],
   );
 
   if (WHOLE_TEXT_SCRIPT_PATTERN.test(text)) {
@@ -78,17 +74,13 @@ export function ShimmeringText({
           stopped
             ? { color: "var(--color)" }
             : {
-                color: [
-                  "var(--color)",
-                  "var(--shimmering-color)",
-                  "var(--color)",
-                ],
+                color: ["var(--color)", "var(--shimmering-color)", "var(--color)"],
               }
         }
         className={cn(
           "inline-block select-none whitespace-nowrap leading-none",
           "[--color:var(--muted-foreground)] [--shimmering-color:var(--foreground)]",
-          className
+          className,
         )}
         transition={{
           duration,
@@ -107,7 +99,7 @@ export function ShimmeringText({
       className={cn(
         "inline-flex select-none items-center leading-none",
         "[--color:var(--muted-foreground)] [--shimmering-color:var(--foreground)]",
-        className
+        className,
       )}
       {...props}
     >

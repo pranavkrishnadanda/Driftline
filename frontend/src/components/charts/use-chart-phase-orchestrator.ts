@@ -1,11 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  type ChartPhase,
-  type ChartStatus,
-  resolveRestingChartPhase,
-} from "./chart-phase";
+import { type ChartPhase, type ChartStatus, resolveRestingChartPhase } from "./chart-phase";
 
 export interface UseChartPhaseOrchestratorOptions {
   chartStatus: ChartStatus;
@@ -20,10 +16,7 @@ export interface UseChartPhaseOrchestratorOptions {
 }
 
 /** Phase the reveal starts from on mount (or the resting phase when skipped). */
-function resolveInitialChartPhase(
-  chartStatus: ChartStatus,
-  skipEnterReveal: boolean
-): ChartPhase {
+function resolveInitialChartPhase(chartStatus: ChartStatus, skipEnterReveal: boolean): ChartPhase {
   if (chartStatus === "ready" && !skipEnterReveal) {
     return "revealing";
   }
@@ -35,7 +28,7 @@ function resolvePlotData<T>(
   chartPhase: ChartPhase,
   chartStatus: ChartStatus,
   skeletonData: T,
-  targetData: T
+  targetData: T,
 ): T {
   if (chartPhase === "exiting") {
     return skeletonData;
@@ -76,7 +69,7 @@ function resolveStatusTransition(
   prevStatus: ChartStatus,
   chartStatus: ChartStatus,
   animationDuration: number,
-  yDomainTweenDuration: number
+  yDomainTweenDuration: number,
 ): { phase: ChartPhase; conceal: boolean } | null {
   if (chartStatus === "ready" && prevStatus === "loading") {
     if (animationDuration > 0) {
@@ -121,7 +114,7 @@ function shouldReplayReveal(prev: PhaseInputs, next: PhaseInputs): boolean {
 function resolvePhaseTransition(
   prev: PhaseInputs,
   next: PhaseInputs,
-  yDomainTweenDuration: number
+  yDomainTweenDuration: number,
 ): PhaseTransition {
   let nextPhase = next.chartPhase;
   let resetLoaded = false;
@@ -137,7 +130,7 @@ function resolvePhaseTransition(
       prev.chartStatus,
       next.chartStatus,
       next.animationDuration,
-      yDomainTweenDuration
+      yDomainTweenDuration,
     );
     if (status) {
       nextPhase = status.phase;
@@ -177,15 +170,13 @@ export function useChartPhaseOrchestrator({
   skipEnterReveal = false,
 }: UseChartPhaseOrchestratorOptions) {
   const [chartPhase, setChartPhase] = useState<ChartPhase>(() =>
-    resolveInitialChartPhase(chartStatus, skipEnterReveal)
+    resolveInitialChartPhase(chartStatus, skipEnterReveal),
   );
   const [revealEpoch, setRevealEpoch] = useState(() =>
-    chartStatus === "ready" && !skipEnterReveal ? 1 : 0
+    chartStatus === "ready" && !skipEnterReveal ? 1 : 0,
   );
   const [concealEpoch, setConcealEpoch] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(
-    () => chartStatus === "ready" && skipEnterReveal
-  );
+  const [isLoaded, setIsLoaded] = useState(() => chartStatus === "ready" && skipEnterReveal);
 
   // Previous inputs — compared during render to derive transitions.
   const [prev, setPrev] = useState<PhaseInputs>({
@@ -204,11 +195,7 @@ export function useChartPhaseOrchestrator({
     skipEnterReveal,
   };
   if (!phaseInputsEqual(prev, current)) {
-    const transition = resolvePhaseTransition(
-      prev,
-      current,
-      yDomainTweenDuration
-    );
+    const transition = resolvePhaseTransition(prev, current, yDomainTweenDuration);
     if (transition.resetLoaded) {
       setIsLoaded(false);
     }
@@ -224,12 +211,7 @@ export function useChartPhaseOrchestrator({
     setPrev({ ...current, chartPhase: transition.nextPhase });
   }
 
-  const plotData = resolvePlotData(
-    chartPhase,
-    chartStatus,
-    skeletonData,
-    targetData
-  );
+  const plotData = resolvePlotData(chartPhase, chartStatus, skeletonData, targetData);
 
   /** Loading pulse exit finished — tween grid to ready spacing next. */
   const notifyLoadingPulseComplete = useCallback(() => {
@@ -238,9 +220,7 @@ export function useChartPhaseOrchestrator({
 
   /** Ready series conceal finished — tween grid to loading spacing next. */
   const notifyRevealConcealComplete = useCallback(() => {
-    setChartPhase((phase) =>
-      phase === "exitingReady" ? "gridTweenLoading" : phase
-    );
+    setChartPhase((phase) => (phase === "exitingReady" ? "gridTweenLoading" : phase));
   }, []);
 
   /** Grid tween finished — enter the next resting phase. */
@@ -266,7 +246,7 @@ export function useChartPhaseOrchestrator({
         setChartPhase("ready");
         setIsLoaded(true);
       },
-      Math.max(0, animationDuration)
+      Math.max(0, animationDuration),
     );
     return () => window.clearTimeout(timer);
   }, [animationDuration, chartPhase]);

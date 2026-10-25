@@ -35,7 +35,7 @@ export function formatBandRange(
   point: Record<string, unknown>,
   upperKey: string,
   lowerKey: string,
-  format: (value: number) => string = intFmt
+  format: (value: number) => string = intFmt,
 ): string | number | null {
   const upper = point[upperKey];
   const lower = point[lowerKey];

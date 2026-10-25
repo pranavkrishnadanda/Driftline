@@ -5,19 +5,12 @@ import type { Transition } from "motion/react";
 import { motion } from "motion/react";
 import { memo, useId, useMemo } from "react";
 import { computeSquareColumn } from "./bar-squares-layout";
-import {
-  chartCssVars,
-  useChart,
-  useChartStable,
-  useYScale,
-} from "./chart-context";
+import { chartCssVars, useChart, useChartStable, useYScale } from "./chart-context";
 import { useChartLegendHover } from "./chart-legend-hover";
 import { transitionWithDelay } from "./motion-utils";
 import { type PatternPresetId, renderPatternPreset } from "./pattern-preset";
 
-type ScaleBand<Domain extends { toString(): string }> = ReturnType<
-  typeof scaleBand<Domain>
->;
+type ScaleBand<Domain extends { toString(): string }> = ReturnType<typeof scaleBand<Domain>>;
 
 export interface GradientStop {
   offset: number;
@@ -101,14 +94,13 @@ function isPatternFill(fill: string): boolean {
 function squareCascadeStepSeconds(
   enterTransition: Transition | undefined,
   animationDurationMs: number,
-  squareCount: number
+  squareCount: number,
 ): number {
   if (squareCount <= 1) {
     return 0;
   }
   const durationMs =
-    enterTransition?.type === "tween" &&
-    typeof enterTransition.duration === "number"
+    enterTransition?.type === "tween" && typeof enterTransition.duration === "number"
       ? enterTransition.duration * 1000
       : animationDurationMs;
   const cascadeSpreadMs = durationMs * 0.4;
@@ -120,24 +112,15 @@ function cascadeColumnTransition(
   animationDurationMs: number,
   columnIndex: number,
   columnStaggerDelay: number,
-  squareCount: number
+  squareCount: number,
 ): Transition {
-  const cascadeStep = squareCascadeStepSeconds(
-    enterTransition,
-    animationDurationMs,
-    squareCount
-  );
-  const base = transitionWithDelay(
-    enterTransition,
-    columnIndex * columnStaggerDelay
-  );
+  const cascadeStep = squareCascadeStepSeconds(enterTransition, animationDurationMs, squareCount);
+  const base = transitionWithDelay(enterTransition, columnIndex * columnStaggerDelay);
   if (squareCount <= 1 || base.type !== "tween") {
     return base;
   }
   const baseDuration =
-    typeof base.duration === "number"
-      ? base.duration
-      : animationDurationMs / 1000;
+    typeof base.duration === "number" ? base.duration : animationDurationMs / 1000;
   return {
     ...base,
     duration: baseDuration + cascadeStep * (squareCount - 1),
@@ -173,7 +156,7 @@ function SquareColumn({
         gap: squareGap,
         fit: squareFit,
       }),
-    [barLengthPx, squareSize, squareGap, squareFit]
+    [barLengthPx, squareSize, squareGap, squareFit],
   );
 
   const rx = squareSize * squareRadius;
@@ -192,11 +175,7 @@ function SquareColumn({
     return fill;
   }, [useGradient, patternFill, patternPreset, fill, gradientId, patternId]);
 
-  const cascadeStep = squareCascadeStepSeconds(
-    enterTransition,
-    animationDuration,
-    layout.count
-  );
+  const cascadeStep = squareCascadeStepSeconds(enterTransition, animationDuration, layout.count);
   const squareOpacity = isFaded ? fadedOpacity : 1;
 
   const gradientPatternNode =
@@ -259,10 +238,7 @@ function SquareColumn({
         rx={rx}
         ry={rx}
         transition={{
-          ...transitionWithDelay(
-            enterTransition,
-            index * staggerDelay + squareIndex * cascadeStep
-          ),
+          ...transitionWithDelay(enterTransition, index * staggerDelay + squareIndex * cascadeStep),
           opacity: { duration: 0.15 },
         }}
         width={squareSize}
@@ -324,8 +300,7 @@ const BarSquaresInner = memo(function BarSquaresInner({
   const seriesConfig = lines[seriesIndex];
   const valueScale = useYScale(yAxisId ?? seriesConfig?.yAxisId);
 
-  const isLegendDimmed =
-    legendHoveredIndex !== null && legendHoveredIndex !== seriesIndex;
+  const isLegendDimmed = legendHoveredIndex !== null && legendHoveredIndex !== seriesIndex;
 
   const seriesCount = lines.length;
   const squareSize = useMemo(() => {
@@ -370,8 +345,7 @@ const BarSquaresInner = memo(function BarSquaresInner({
         const valuePos = valueScale(value) ?? 0;
         const barLengthPx = baselineY - valuePos;
 
-        const isFaded =
-          (hoveredBarIndex !== null && hoveredBarIndex !== i) || isLegendDimmed;
+        const isFaded = (hoveredBarIndex !== null && hoveredBarIndex !== i) || isLegendDimmed;
 
         const columnColor = colorKey ? d[colorKey] : undefined;
         const hasColumnColor = typeof columnColor === "string";
@@ -581,7 +555,7 @@ function TrackColumn({
     chartAnimationDuration || 1100,
     index,
     staggerDelay,
-    layout.count
+    layout.count,
   );
   const animatedHeight = trackHeight > 0 ? trackHeight : 0;
 

@@ -142,7 +142,11 @@ export function SupersessionGraph({ timeline, tenant, reducedMotion }: Supersess
             </div>
           ) : null}
           <div className="grid gap-4 sm:grid-cols-2">
-            <RelationList label="Declared by other documents" relations={incoming} tenant={tenant} />
+            <RelationList
+              label="Declared by other documents"
+              relations={incoming}
+              tenant={tenant}
+            />
             <RelationList
               label="Declared by this document"
               relations={outgoing}

@@ -35,13 +35,7 @@ export interface DisplayedBand {
 
 type LatestBandInputs = Pick<
   UseAnimatedBandOptions,
-  | "renderData"
-  | "xAccessor"
-  | "xScale"
-  | "yScale"
-  | "upperKey"
-  | "lowerKey"
-  | "curve"
+  "renderData" | "xAccessor" | "xScale" | "yScale" | "upperKey" | "lowerKey" | "curve"
 >;
 
 function segmentsFor(inputs: LatestBandInputs): BandSegment[] {
@@ -51,7 +45,7 @@ function segmentsFor(inputs: LatestBandInputs): BandSegment[] {
     inputs.xScale,
     inputs.yScale,
     inputs.upperKey,
-    inputs.lowerKey
+    inputs.lowerKey,
   );
 }
 
@@ -85,7 +79,7 @@ export function useAnimatedBand({
 
   const dataSignature = useMemo(
     () => bandDataSignature(renderData, xAccessor, upperKey, lowerKey),
-    [renderData, xAccessor, upperKey, lowerKey]
+    [renderData, xAccessor, upperKey, lowerKey],
   );
 
   const transitionSignature = `${innerWidth}|${xScaleDomain[0]?.getTime?.() ?? 0}|${xScaleDomain[1]?.getTime?.() ?? 0}|${dataSignature}`;
@@ -101,7 +95,7 @@ export function useAnimatedBand({
         xScale,
         yScale,
       }),
-    [renderData, xAccessor, xScale, yScale, upperKey, lowerKey, curve]
+    [renderData, xAccessor, xScale, yScale, upperKey, lowerKey, curve],
   );
 
   const prevTransitionSignatureRef = useRef(transitionSignature);
@@ -134,11 +128,7 @@ export function useAnimatedBand({
   });
 
   const shouldAnimate =
-    enabled &&
-    !reducedMotion &&
-    chartPhase === "ready" &&
-    durationMs > 0 &&
-    renderData.length > 0;
+    enabled && !reducedMotion && chartPhase === "ready" && durationMs > 0 && renderData.length > 0;
 
   // Drop a stale tween frame as soon as animation is no longer allowed —
   // adjusted during render rather than via setState in the effect below.
@@ -195,16 +185,12 @@ export function useAnimatedBand({
               fromPolylines,
               currentTarget,
               latestRef.current.curve,
-              progress
+              progress,
             ),
             polyline: true,
           }
         : {
-            segments: interpolateBandSegments(
-              from.segments,
-              currentTarget,
-              progress
-            ),
+            segments: interpolateBandSegments(from.segments, currentTarget, progress),
             polyline: false,
           };
       displayedRef.current = next;

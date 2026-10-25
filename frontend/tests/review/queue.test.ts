@@ -10,7 +10,13 @@ import {
   type QueueState,
 } from "@/lib/review/queue";
 
-import { BROKEN, LEGACY_ANSWER, LOW_CONFIDENCE, RELATION, reviewItem } from "../support/drift-fixtures";
+import {
+  BROKEN,
+  LEGACY_ANSWER,
+  LOW_CONFIDENCE,
+  RELATION,
+  reviewItem,
+} from "../support/drift-fixtures";
 
 const loaded = (items = [LOW_CONFIDENCE, BROKEN, RELATION]): QueueState =>
   queueReducer(INITIAL_QUEUE, { type: "load", items });
@@ -72,7 +78,9 @@ describe("describeItem", () => {
   });
 
   it("never throws on an unexpected payload", () => {
-    const view = describeItem(reviewItem({ id: "x", kind: "low_confidence_answer", payload: { answer: 3 } }));
+    const view = describeItem(
+      reviewItem({ id: "x", kind: "low_confidence_answer", payload: { answer: 3 } }),
+    );
     expect(view.title).toBe("Low-confidence answer");
     expect(view.body).toBeNull();
   });

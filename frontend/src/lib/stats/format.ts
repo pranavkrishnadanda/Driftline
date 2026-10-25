@@ -64,7 +64,11 @@ export function metricLabel(name: string): string {
 export const REVIEW_KIND_LABEL: Record<ReviewKind, { one: string; many: string; short: string }> = {
   relation: { one: "relation", many: "Relations", short: "Relations" },
   broken_answer: { one: "broken answer", many: "Broken answers", short: "Broken" },
-  low_confidence_answer: { one: "low-confidence answer", many: "Low-confidence answers", short: "Low conf." },
+  low_confidence_answer: {
+    one: "low-confidence answer",
+    many: "Low-confidence answers",
+    short: "Low conf.",
+  },
   answer: { one: "answer", many: "Answers", short: "Answers" },
 };
 
@@ -217,8 +221,7 @@ export function kpiTiles(stats: Stats): KpiTile[] {
 export function describeDrift(stats: Stats): string {
   const days = stats.drift.per_day;
   if (stats.drift.total === 0) return `No drift events in the last ${stats.window_days} days.`;
-  const sum = (key: "still_valid" | "changed" | "broken") =>
-    days.reduce((n, d) => n + d[key], 0);
+  const sum = (key: "still_valid" | "changed" | "broken") => days.reduce((n, d) => n + d[key], 0);
   const busiest = days.reduce((best, d) => (d.total > best.total ? d : best));
   return (
     `${plural(stats.drift.total, "drift event")} in the last ${stats.window_days} days: ` +

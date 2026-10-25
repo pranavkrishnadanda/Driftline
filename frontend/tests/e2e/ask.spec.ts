@@ -106,7 +106,17 @@ test.describe("Ask view (real backend)", () => {
         .map((item) => item.node),
     );
     // The answer graph's order. A cache hit goes straight from cache to respond.
-    const graph = ["classify", "cache", "plan", "subagent", "merge", "draft", "verify", "re_retrieve", "respond"];
+    const graph = [
+      "classify",
+      "cache",
+      "plan",
+      "subagent",
+      "merge",
+      "draft",
+      "verify",
+      "re_retrieve",
+      "respond",
+    ];
     expect(lit[0]).toBe("classify");
     expect(lit).toContain("respond");
     const positions = lit.filter((n) => n !== "re_retrieve").map((n) => graph.indexOf(n));

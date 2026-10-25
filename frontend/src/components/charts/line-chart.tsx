@@ -83,15 +83,10 @@ const LINE_DOMAIN_EXCLUDED_NAMES = new Set([
 
 function getChildComponentName(child: ReactElement) {
   const childType = child.type as { displayName?: string; name?: string };
-  return typeof child.type === "function"
-    ? childType.displayName || childType.name || ""
-    : "";
+  return typeof child.type === "function" ? childType.displayName || childType.name || "" : "";
 }
 
-function registersLineDomain(
-  child: ReactElement,
-  props: LineProps | undefined
-) {
+function registersLineDomain(child: ReactElement, props: LineProps | undefined) {
   if (!props?.dataKey) {
     return false;
   }
@@ -235,15 +230,13 @@ export function LineChart({
 }: LineChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const margin = { ...DEFAULT_MARGIN, ...marginProp };
-  const [chartPhase, setChartPhase] = useState<ChartPhase>(() =>
-    resolveRestingChartPhase(status)
-  );
+  const [chartPhase, setChartPhase] = useState<ChartPhase>(() => resolveRestingChartPhase(status));
   const handlePhaseChange = useCallback(
     (phase: ChartPhase) => {
       setChartPhase(phase);
       onPhaseChange?.(phase);
     },
-    [onPhaseChange]
+    [onPhaseChange],
   );
 
   const showLoadingLabel = Boolean(
@@ -251,7 +244,7 @@ export function LineChart({
       (chartPhase === "loading" ||
         chartPhase === "exiting" ||
         chartPhase === "gridTweenReady" ||
-        chartPhase === "revealingLoading")
+        chartPhase === "revealingLoading"),
   );
 
   return (
@@ -291,10 +284,7 @@ export function LineChart({
         )}
       </ParentSize>
       {showLoadingLabel ? (
-        <ChartLoadingLabel
-          exiting={chartPhase !== "loading"}
-          text={loadingLabel}
-        />
+        <ChartLoadingLabel exiting={chartPhase !== "loading"} text={loadingLabel} />
       ) : null}
     </div>
   );

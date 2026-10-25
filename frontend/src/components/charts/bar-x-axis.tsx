@@ -4,11 +4,7 @@ import { motion } from "motion/react";
 import { memo, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import {
-  useChart,
-  useChartPortalContainer,
-  useChartStable,
-} from "./chart-context";
+import { useChart, useChartPortalContainer, useChartStable } from "./chart-context";
 import {
   type ChartLabelCount,
   resolveResponsiveChartLabelCount,
@@ -31,13 +27,7 @@ interface BarXAxisLabelProps {
   tickerHalfWidth: number;
 }
 
-function BarXAxisLabel({
-  label,
-  x,
-  crosshairX,
-  isHovering,
-  tickerHalfWidth,
-}: BarXAxisLabelProps) {
+function BarXAxisLabel({ label, x, crosshairX, isHovering, tickerHalfWidth }: BarXAxisLabelProps) {
   const fadeBuffer = 20;
   const fadeRadius = tickerHalfWidth + fadeBuffer;
 
@@ -95,19 +85,11 @@ const BarXAxisInner = memo(function BarXAxisInner({
   maxLabels = 12,
   container,
 }: BarXAxisProps & { container: HTMLDivElement }) {
-  const {
-    margin,
-    tooltipData,
-    barScale,
-    bandWidth,
-    barXAccessor,
-    data,
-    width,
-  } = useChart();
+  const { margin, tooltipData, barScale, bandWidth, barXAccessor, data, width } = useChart();
 
   const resolvedMaxLabels = useMemo(
     () => resolveResponsiveChartLabelCount(maxLabels, width, 12),
-    [maxLabels, width]
+    [maxLabels, width],
   );
 
   // Generate labels for each bar
@@ -132,15 +114,7 @@ const BarXAxisInner = memo(function BarXAxisInner({
     // Otherwise, skip some labels to avoid crowding
     const step = Math.ceil(allLabels.length / Math.max(1, resolvedMaxLabels));
     return allLabels.filter((_, i) => i % step === 0);
-  }, [
-    barScale,
-    bandWidth,
-    barXAccessor,
-    data,
-    margin.left,
-    showAllLabels,
-    resolvedMaxLabels,
-  ]);
+  }, [barScale, bandWidth, barXAccessor, data, margin.left, showAllLabels, resolvedMaxLabels]);
 
   const isHovering = tooltipData !== null;
   const crosshairX = tooltipData ? tooltipData.x + margin.left : null;
@@ -158,7 +132,7 @@ const BarXAxisInner = memo(function BarXAxisInner({
         />
       ))}
     </div>,
-    container
+    container,
   );
 });
 

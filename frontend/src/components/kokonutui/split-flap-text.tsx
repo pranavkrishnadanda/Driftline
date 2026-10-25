@@ -10,14 +10,7 @@
  * @github: https://github.com/kokonut-labs/kokonutui
  */
 
-import {
-  type CSSProperties,
-  type Ref,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { type CSSProperties, type Ref, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
 
@@ -62,10 +55,8 @@ function Half({
     <span
       className={cn(
         "backface-hidden absolute inset-x-0 h-1/2 overflow-hidden bg-inherit",
-        half === "top"
-          ? "top-0 rounded-t-[0.12em]"
-          : "bottom-0 rounded-b-[0.12em]",
-        className
+        half === "top" ? "top-0 rounded-t-[0.12em]" : "bottom-0 rounded-b-[0.12em]",
+        className,
       )}
       ref={ref}
       style={style}
@@ -73,7 +64,7 @@ function Half({
       <span
         className={cn(
           "absolute inset-x-0 flex h-[200%] items-center justify-center",
-          half === "top" ? "top-0" : "bottom-0"
+          half === "top" ? "top-0" : "bottom-0",
         )}
       >
         {char}
@@ -142,30 +133,21 @@ function Tile({
       return;
     }
     const half = FLIP / 2;
-    topRef.current?.animate(
-      [{ transform: "rotateX(0deg)" }, { transform: "rotateX(-90deg)" }],
-      {
-        duration: half,
-        easing: "cubic-bezier(0.5, 0, 0.9, 0.6)",
-        fill: "forwards",
-      }
-    );
-    bottomRef.current?.animate(
-      [{ transform: "rotateX(90deg)" }, { transform: "rotateX(0deg)" }],
-      {
-        duration: half,
-        delay: half,
-        easing: "cubic-bezier(0.2, 0.6, 0.3, 1)",
-        fill: "both",
-      }
-    );
-    shadeRef.current?.animate(
-      [{ opacity: 0 }, { opacity: 1 }, { opacity: 0 }],
-      {
-        duration: FLIP,
-        easing: "linear",
-      }
-    );
+    topRef.current?.animate([{ transform: "rotateX(0deg)" }, { transform: "rotateX(-90deg)" }], {
+      duration: half,
+      easing: "cubic-bezier(0.5, 0, 0.9, 0.6)",
+      fill: "forwards",
+    });
+    bottomRef.current?.animate([{ transform: "rotateX(90deg)" }, { transform: "rotateX(0deg)" }], {
+      duration: half,
+      delay: half,
+      easing: "cubic-bezier(0.2, 0.6, 0.3, 1)",
+      fill: "both",
+    });
+    shadeRef.current?.animate([{ opacity: 0 }, { opacity: 1 }, { opacity: 0 }], {
+      duration: FLIP,
+      easing: "linear",
+    });
   }, [flip]);
 
   const still = reduceMotion ? target : shown;
@@ -177,7 +159,7 @@ function Tile({
       aria-hidden="true"
       className={cn(
         "relative inline-block h-[1.15em] w-[0.72em] rounded-[0.12em] bg-zinc-900 text-zinc-50 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.06)] [perspective:5em]",
-        className
+        className,
       )}
     >
       {/* Still halves: the next letter's top, the old letter's bottom. */}
@@ -232,35 +214,25 @@ export default function SplitFlapText({
     if (text !== undefined || words.length < 2) {
       return;
     }
-    const id = window.setInterval(
-      () => setIndex((i) => (i + 1) % words.length),
-      interval
-    );
+    const id = window.setInterval(() => setIndex((i) => (i + 1) % words.length), interval);
     return () => window.clearInterval(id);
   }, [text, words.length, interval]);
 
   const value = clean(text ?? words[index] ?? "");
   const size =
-    length ??
-    Math.max(
-      value.length,
-      ...(text === undefined ? words.map((w) => w.length) : [0])
-    );
+    length ?? Math.max(value.length, ...(text === undefined ? words.map((w) => w.length) : [0]));
   const padded = value.padEnd(size, " ");
 
   return (
     <span
       className={cn(
         "inline-flex gap-[0.08em] font-semibold text-3xl tabular-nums leading-none sm:text-5xl",
-        className
+        className,
       )}
     >
       {/* Only announce text the app sets; a board cycling on its own would
           talk over the reader every few seconds. */}
-      <span
-        aria-live={text === undefined ? "off" : "polite"}
-        className="sr-only"
-      >
+      <span aria-live={text === undefined ? "off" : "polite"} className="sr-only">
         {value}
       </span>
       {[...padded].map((char, i) => (

@@ -1,7 +1,7 @@
 /**
  * axe on every view: no serious or critical accessibility violations.
  *
- * Runs against the stub gateway (`npm run test:e2e:stub`) or the real stack (`npm run
+ * Runs against the stub gateway (`bun run test:e2e:stub`) or the real stack (`bun run
  * test:e2e` with NEXT_PUBLIC_DRIFTLINE_API pointing at it). See tests/e2e/views.ts.
  */
 import AxeBuilder from "@axe-core/playwright";
@@ -19,12 +19,16 @@ async function seriousViolations(page: Page) {
       id: v.id,
       impact: v.impact,
       help: v.help,
-      nodes: v.nodes.map((n) => `${n.target.join(" ")}: ${n.failureSummary?.split("\n").slice(1).join(" ")}`),
+      nodes: v.nodes.map(
+        (n) => `${n.target.join(" ")}: ${n.failureSummary?.split("\n").slice(1).join(" ")}`,
+      ),
     }));
 }
 
 for (const view of VIEWS) {
-  test(`${view.name} (${view.path}) has no serious or critical axe violations`, async ({ page }) => {
+  test(`${view.name} (${view.path}) has no serious or critical axe violations`, async ({
+    page,
+  }) => {
     await openView(page, view);
     const violations = await seriousViolations(page);
     expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
@@ -55,7 +59,15 @@ test("every interactive element on the landing page is reachable by keyboard", a
     });
     reached.add(name);
   }
-  for (const name of ["Try Ask", "View drift inbox", "As-of answers with verified citations", "MCP for agents"]) {
-    expect([...reached].some((r) => r.startsWith(name)), `${name} not reached; got ${[...reached].join(" | ")}`).toBe(true);
+  for (const name of [
+    "Try Ask",
+    "View drift inbox",
+    "As-of answers with verified citations",
+    "MCP for agents",
+  ]) {
+    expect(
+      [...reached].some((r) => r.startsWith(name)),
+      `${name} not reached; got ${[...reached].join(" | ")}`,
+    ).toBe(true);
   }
 });

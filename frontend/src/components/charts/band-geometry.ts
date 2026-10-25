@@ -31,7 +31,7 @@ export function computeBandSegments(
   xScale: (value: Date) => number | undefined,
   yScale: (value: number) => number | undefined,
   upperKey: string,
-  lowerKey: string
+  lowerKey: string,
 ): BandSegment[] {
   const segments: BandSegment[] = [];
   let current: BandSegment = [];
@@ -61,10 +61,7 @@ export function computeBandSegments(
   return segments;
 }
 
-function edgePoints(
-  segment: BandSegment,
-  edge: "upper" | "lower"
-): SeriesPathPoint[] {
+function edgePoints(segment: BandSegment, edge: "upper" | "lower"): SeriesPathPoint[] {
   return segment.map((point) => ({
     x: point.x,
     y: point[edge],
@@ -73,10 +70,7 @@ function edgePoints(
 }
 
 /** Closed area path between the edges, one sub-path per segment. */
-export function bandAreaPath(
-  segments: BandSegment[],
-  curve: CurveFactory
-): string {
+export function bandAreaPath(segments: BandSegment[], curve: CurveFactory): string {
   const generator = d3Area<BandPoint>()
     .x((point) => point.x)
     .y0((point) => point.lower)
@@ -92,7 +86,7 @@ export function bandAreaPath(
 export function bandEdgePath(
   segments: BandSegment[],
   edge: "upper" | "lower",
-  curve: CurveFactory
+  curve: CurveFactory,
 ): string {
   const generator = d3Line<BandPoint>()
     .x((point) => point.x)
@@ -105,9 +99,7 @@ export function bandEdgePath(
 }
 
 /** Vertical pixel extent covered by both edges (top < bottom in SVG space). */
-export function bandPixelExtent(
-  segments: BandSegment[]
-): { top: number; bottom: number } | null {
+export function bandPixelExtent(segments: BandSegment[]): { top: number; bottom: number } | null {
   let top = Number.POSITIVE_INFINITY;
   let bottom = Number.NEGATIVE_INFINITY;
   for (const segment of segments) {
@@ -128,7 +120,7 @@ export interface BandEdgePolylines {
 export function flattenBandEdges(
   segments: BandSegment[],
   curve: CurveFactory,
-  alreadyPolyline: boolean
+  alreadyPolyline: boolean,
 ): BandEdgePolylines {
   const flatten = (edge: "upper" | "lower") =>
     segments
@@ -151,7 +143,7 @@ export function morphBandSegments(
   targets: BandSegment[],
   curve: CurveFactory,
   progress: number,
-  sampleSpacingPx = 2
+  sampleSpacingPx = 2,
 ): BandSegment[] {
   if (from.upper.length === 0 || from.lower.length === 0) {
     return targets;
@@ -189,7 +181,7 @@ export function morphBandSegments(
 export function interpolateBandSegments(
   from: BandSegment[],
   targets: BandSegment[],
-  progress: number
+  progress: number,
 ): BandSegment[] {
   if (progress >= 1 || from.length === 0) {
     return targets;
@@ -197,16 +189,8 @@ export function interpolateBandSegments(
   const fromUpper = from.flatMap((segment) => edgePoints(segment, "upper"));
   const fromLower = from.flatMap((segment) => edgePoints(segment, "lower"));
   return targets.map((segment) => {
-    const upper = interpolateSeriesPathPoints(
-      fromUpper,
-      edgePoints(segment, "upper"),
-      progress
-    );
-    const lower = interpolateSeriesPathPoints(
-      fromLower,
-      edgePoints(segment, "lower"),
-      progress
-    );
+    const upper = interpolateSeriesPathPoints(fromUpper, edgePoints(segment, "upper"), progress);
+    const lower = interpolateSeriesPathPoints(fromLower, edgePoints(segment, "lower"), progress);
     return upper.map((point, index) => ({
       x: point.x,
       upper: point.y,
@@ -221,7 +205,7 @@ export function bandDataSignature(
   renderData: Record<string, unknown>[],
   xAccessor: (datum: Record<string, unknown>) => Date,
   upperKey: string,
-  lowerKey: string
+  lowerKey: string,
 ): string {
   return renderData
     .map((datum) => {
@@ -247,9 +231,7 @@ export interface BandFadeSides {
   vertical: boolean;
 }
 
-export function resolveBandFadeSides(
-  fade: BandFadeEdges | undefined
-): BandFadeSides {
+export function resolveBandFadeSides(fade: BandFadeEdges | undefined): BandFadeSides {
   let sides = { top: false, right: false, bottom: false, left: false };
   if (fade === true) {
     sides = { top: true, right: true, bottom: true, left: true };
@@ -284,7 +266,7 @@ export interface BandFadeStop {
 export function bandFadeStops(
   startFaded: boolean,
   endFaded: boolean,
-  size: number
+  size: number,
 ): BandFadeStop[] {
   const span = Math.min(0.5, Math.max(0, size));
   return [

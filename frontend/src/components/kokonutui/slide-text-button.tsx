@@ -13,8 +13,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-interface SlideTextButtonProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+interface SlideTextButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   text?: string;
   hoverText?: string;
   href?: string;
@@ -49,7 +48,7 @@ export default function SlideTextButton({
         animateIn &&
           "starting:translate-x-2 starting:opacity-0 motion-reduce:starting:translate-x-0 motion-reduce:starting:opacity-100",
         variantStyles,
-        className
+        className,
       )}
       href={href}
       {...props}

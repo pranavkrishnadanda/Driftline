@@ -4,14 +4,7 @@ import { AsOfBoard } from "@/components/landing/as-of-board";
 import { DriftHero } from "@/components/landing/drift-hero";
 import { FeatureCards } from "@/components/landing/feature-cards";
 
-const STACK = [
-  "FastAPI",
-  "Postgres + pgvector",
-  "Redis Streams",
-  "LangGraph",
-  "Claude",
-  "Next.js",
-];
+const STACK = ["FastAPI", "Postgres + pgvector", "Redis Streams", "LangGraph", "Claude", "Next.js"];
 
 export default function Home() {
   return (
@@ -29,9 +22,9 @@ export default function Home() {
             <Mark type="underline">then</Mark>.
           </MarkerText>
           <p className="max-w-xl text-lg text-muted-foreground">
-            Driftline keeps every version of your documents. It answers a question from the
-            versions that were in force on the date you ask about, cites the exact quotes, and
-            alerts you when a newer version changes the answer.
+            Driftline keeps every version of your documents. It answers a question from the versions
+            that were in force on the date you ask about, cites the exact quotes, and alerts you
+            when a newer version changes the answer.
           </p>
           <AsOfBoard />
           <div className="flex flex-wrap gap-3">
@@ -53,8 +46,8 @@ export default function Home() {
             What it does
           </h2>
           <p className="max-w-2xl text-muted-foreground">
-            Four parts, all built and running in this repository. Turn a card over (click it, or focus it and
-            press Enter) to see how it is built.
+            Four parts, all built and running in this repository. Turn a card over (click it, or
+            focus it and press Enter) to see how it is built.
           </p>
         </div>
         <FeatureCards />

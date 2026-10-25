@@ -180,19 +180,12 @@ export function VersionAxis({ layout, selectedIndex, onSelect, reducedMotion }: 
         onKeyDown={onKeyDown}
       >
         <defs>
-          <linearGradient id={gradientId}x1="0" x2="1" y1="0" y2="0">
+          <linearGradient id={gradientId} x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="currentColor" stopOpacity="0.35" />
             <stop offset="100%" stopColor="currentColor" stopOpacity="0.05" />
           </linearGradient>
         </defs>
-        <rect
-          x={0}
-          y={TRACK_Y}
-          width={AXIS_WIDTH}
-          height={TRACK_H}
-          rx={3}
-          className="fill-muted"
-        />
+        <rect x={0} y={TRACK_Y} width={AXIS_WIDTH} height={TRACK_H} rx={3} className="fill-muted" />
         {items.map((item, i) => (
           <rect
             key={item.versionId}
@@ -247,9 +240,7 @@ export function VersionAxis({ layout, selectedIndex, onSelect, reducedMotion }: 
       </svg>
       <div className="flex justify-between text-xs text-muted-foreground tabular-nums">
         <span>{formatDay(layout.start)}</span>
-        <span>
-          {items[items.length - 1]?.openEnded ? "now" : formatDay(layout.end)}
-        </span>
+        <span>{items[items.length - 1]?.openEnded ? "now" : formatDay(layout.end)}</span>
       </div>
     </div>
   );

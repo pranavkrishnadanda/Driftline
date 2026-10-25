@@ -16,7 +16,13 @@ import { BarChart } from "@/components/charts/bar-chart";
 import { BarXAxis } from "@/components/charts/bar-x-axis";
 import { Gauge } from "@/components/charts/gauge";
 import { Grid } from "@/components/charts/grid";
-import { Legend, LegendItem, LegendLabel, LegendMarker, LegendValue } from "@/components/charts/legend";
+import {
+  Legend,
+  LegendItem,
+  LegendLabel,
+  LegendMarker,
+  LegendValue,
+} from "@/components/charts/legend";
 import { Line, LineChart } from "@/components/charts/line-chart";
 import { ChartTooltip } from "@/components/charts/tooltip";
 import { XAxis } from "@/components/charts/x-axis";
@@ -82,7 +88,13 @@ export function DriftChart({ stats, reduceMotion }: ChartProps) {
         >
           <Grid horizontal />
           {VERDICTS.map((v) => (
-            <Bar key={v.key} animate={!reduceMotion} dataKey={v.key} fill={v.color} stroke={v.color} />
+            <Bar
+              key={v.key}
+              animate={!reduceMotion}
+              dataKey={v.key}
+              fill={v.color}
+              stroke={v.color}
+            />
           ))}
           <BarXAxis maxLabels={6} />
           <ChartTooltip
@@ -212,7 +224,12 @@ export function EvalChart({ stats, reduceMotion }: ChartProps) {
         {...motionProps(reduceMotion)}
       >
         <Grid horizontal />
-        <Bar animate={!reduceMotion} dataKey="score" fill="var(--chart-5)" stroke="var(--chart-5)" />
+        <Bar
+          animate={!reduceMotion}
+          dataKey="score"
+          fill="var(--chart-5)"
+          stroke="var(--chart-5)"
+        />
         <BarXAxis showAllLabels />
         <ChartTooltip
           rows={(point) => [

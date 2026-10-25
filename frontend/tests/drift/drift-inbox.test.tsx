@@ -6,13 +6,7 @@ import { DriftInbox } from "@/components/drift/drift-inbox";
 import { createApiClient } from "@/lib/api/client";
 
 import { startApiServer, type ApiServer, type FixtureResponse } from "../support/api-server";
-import {
-  BROKEN,
-  EXPIRED_FRAME,
-  alert,
-  alertFrame,
-  driftEvent,
-} from "../support/drift-fixtures";
+import { BROKEN, EXPIRED_FRAME, alert, alertFrame, driftEvent } from "../support/drift-fixtures";
 import { startSseServer, type SseServer, type SseServerOptions } from "../support/sse-server";
 
 const FAST = { initialRetryMs: 10, maxRetryMs: 50, maxAttempts: 3 };
@@ -86,8 +80,22 @@ describe("DriftInbox", () => {
       {
         events: [
           // A replay of the history row, then a new alert.
-          alertFrame(1, alert({ drift_event_id: "e1", document_title: "Storage policy", t: "2026-10-19T09:00:00Z" })),
-          alertFrame(2, alert({ drift_event_id: "e2", document_title: "Dosing guideline", t: "2026-10-21T09:00:00Z" })),
+          alertFrame(
+            1,
+            alert({
+              drift_event_id: "e1",
+              document_title: "Storage policy",
+              t: "2026-10-19T09:00:00Z",
+            }),
+          ),
+          alertFrame(
+            2,
+            alert({
+              drift_event_id: "e2",
+              document_title: "Dosing guideline",
+              t: "2026-10-21T09:00:00Z",
+            }),
+          ),
         ],
         connections: [{ hold: true }],
       },
@@ -138,7 +146,11 @@ describe("DriftInbox", () => {
           status: 200,
           json: {
             events: [
-              driftEvent({ id: "e1", answer_id: BROKEN.ref_id, document_title: "Dosing guideline" }),
+              driftEvent({
+                id: "e1",
+                answer_id: BROKEN.ref_id,
+                document_title: "Dosing guideline",
+              }),
               driftEvent({
                 id: "e2",
                 answer_id: OTHER_ANSWER,
@@ -197,7 +209,10 @@ describe("DriftInbox", () => {
     await setup(
       {
         "GET /v1/drift/events": [
-          { status: 200, json: { events: [driftEvent({ id: "e1", document_title: "Storage policy" })] } },
+          {
+            status: 200,
+            json: { events: [driftEvent({ id: "e1", document_title: "Storage policy" })] },
+          },
           {
             status: 200,
             json: {
@@ -222,7 +237,11 @@ describe("DriftInbox", () => {
             events: [
               alertFrame(
                 7,
-                alert({ drift_event_id: "e3", document_title: "Live after resync", t: "2026-10-22T00:00:00Z" }),
+                alert({
+                  drift_event_id: "e3",
+                  document_title: "Live after resync",
+                  t: "2026-10-22T00:00:00Z",
+                }),
               ),
             ],
           },
@@ -243,7 +262,10 @@ describe("DriftInbox", () => {
       {
         "GET /v1/drift/events": [
           { status: 500, json: { detail: "boom" } },
-          { status: 200, json: { events: [driftEvent({ id: "e1", document_title: "Storage policy" })] } },
+          {
+            status: 200,
+            json: { events: [driftEvent({ id: "e1", document_title: "Storage policy" })] },
+          },
         ],
       },
       { events: [], connections: [{ hold: true }] },

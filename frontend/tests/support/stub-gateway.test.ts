@@ -28,10 +28,12 @@ describe("stub gateway", () => {
     const client = createApiClient({ baseUrl: gateway.url });
     expect((await client.driftEvents({ tenant: "demo" })).events).toEqual(STUB_DRIFT_EVENTS);
     expect(await client.timeline(DOC_ID, "demo")).toEqual(TIMELINE);
-    expect((await client.review({ tenant: "demo", kind: "broken_answer" })).items.map((i) => i.kind)).toEqual([
-      "broken_answer",
-    ]);
-    await expect(client.timeline("00000000-0000-4000-8000-000000000000")).rejects.toBeInstanceOf(ApiError);
+    expect(
+      (await client.review({ tenant: "demo", kind: "broken_answer" })).items.map((i) => i.kind),
+    ).toEqual(["broken_answer"]);
+    await expect(client.timeline("00000000-0000-4000-8000-000000000000")).rejects.toBeInstanceOf(
+      ApiError,
+    );
   });
 
   it("answers CORS preflights for the frontend's origin", async () => {

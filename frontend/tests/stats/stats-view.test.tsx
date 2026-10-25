@@ -52,7 +52,9 @@ describe("StatsView", () => {
     );
     expect(figure("Ask latency")).toHaveAccessibleDescription(/p50 1\.8 s, p95 5\.24 s/);
     expect(figure("Cost per answer")).toHaveAccessibleDescription(/\$0\.0045 per answer/);
-    expect(figure("Cache hit rate")).toHaveAccessibleDescription("Cache hit rate 25%: 1 hit and 3 misses.");
+    expect(figure("Cache hit rate")).toHaveAccessibleDescription(
+      "Cache hit rate 25%: 1 hit and 3 misses.",
+    );
     expect(figure("Review backlog")).toHaveAccessibleDescription(/3 open review items/);
     expect(figure("Eval scores")).toHaveAccessibleDescription(
       "Latest eval run bbbbbbb on corpus pharma: Citation precision 0.88, Faithfulness 0.91.",
@@ -71,7 +73,9 @@ describe("StatsView", () => {
     expect(within(figure("Eval scores")).getByText("No eval runs yet.")).toBeInTheDocument();
     expect(within(figure("Ask latency")).getByText(/No finished asks/)).toBeInTheDocument();
     expect(within(figure("Drift events per day")).getByText(/No drift events/)).toBeInTheDocument();
-    expect(within(figure("Review backlog")).getByText("The review queue is empty.")).toBeInTheDocument();
+    expect(
+      within(figure("Review backlog")).getByText("The review queue is empty."),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/0\.88|Faithfulness/)).not.toBeInTheDocument();
   });
 

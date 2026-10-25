@@ -73,7 +73,9 @@ const resolveRequests = () => api!.requests.filter((r) => r.url.includes("/resol
 describe("ReviewQueue", () => {
   it("groups items by kind", async () => {
     await setup({});
-    const groups = screen.getAllByRole("region").map((r) => within(r).getByRole("heading", { level: 2 }).textContent);
+    const groups = screen
+      .getAllByRole("region")
+      .map((r) => within(r).getByRole("heading", { level: 2 }).textContent);
     expect(groups).toEqual(["Low-confidence answers", "Broken answers", "Relations", "Answers"]);
     expect(screen.getByRole("region", { name: "Relations" })).toHaveTextContent("1 item");
     expect(api!.requests[0].url).toContain("tenant=demo");
@@ -88,7 +90,10 @@ describe("ReviewQueue", () => {
 
     expect(screen.queryByRole("article", { name: /What is the maximum daily dose/ })).toBeNull();
     await waitFor(() => expect(resolveRequests()).toHaveLength(1));
-    expect(JSON.parse(resolveRequests()[0].body)).toEqual({ action: "approve", by: "driftline-web" });
+    expect(JSON.parse(resolveRequests()[0].body)).toEqual({
+      action: "approve",
+      by: "driftline-web",
+    });
     expect(resolveRequests()[0].url).toContain("tenant=demo");
     await screen.findByText(/Approved/);
   });
@@ -99,7 +104,10 @@ describe("ReviewQueue", () => {
     });
     await user.click(within(itemCard(/Amends SOP-12/)).getByRole("button", { name: "Reject" }));
     await waitFor(() => expect(resolveRequests()).toHaveLength(1));
-    expect(JSON.parse(resolveRequests()[0].body)).toEqual({ action: "reject", by: "driftline-web" });
+    expect(JSON.parse(resolveRequests()[0].body)).toEqual({
+      action: "reject",
+      by: "driftline-web",
+    });
     await screen.findByText(/Rejected/);
     expect(screen.queryByRole("article", { name: /Amends SOP-12/ })).toBeNull();
   });
@@ -128,7 +136,9 @@ describe("ReviewQueue", () => {
 
   it("edits a relation's kind with a select, and Escape cancels an edit", async () => {
     const { user } = await setup({
-      [`POST /v1/review/${RELATION.id}/resolve`]: resolved(RELATION, "edit", { kind: "supersedes" }),
+      [`POST /v1/review/${RELATION.id}/resolve`]: resolved(RELATION, "edit", {
+        kind: "supersedes",
+      }),
     });
     const card = itemCard(/Amends SOP-12/);
     await user.click(within(card).getByRole("button", { name: "Edit" }));
@@ -137,7 +147,10 @@ describe("ReviewQueue", () => {
     expect(within(card).getByRole("button", { name: "Edit" })).toHaveFocus();
 
     await user.click(within(card).getByRole("button", { name: "Edit" }));
-    await user.selectOptions(within(card).getByRole("combobox", { name: "Relation kind" }), "supersedes");
+    await user.selectOptions(
+      within(card).getByRole("combobox", { name: "Relation kind" }),
+      "supersedes",
+    );
     await user.click(within(card).getByRole("button", { name: "Save edit" }));
     await waitFor(() => expect(resolveRequests()).toHaveLength(1));
     expect(JSON.parse(resolveRequests()[0].body)).toEqual({
@@ -169,9 +182,7 @@ describe("ReviewQueue", () => {
 
     const notice = await screen.findByRole("alert");
     expect(notice).toHaveTextContent(/already resolved/i);
-    await waitFor(() =>
-      expect(api!.requests.filter((r) => r.method === "GET")).toHaveLength(2),
-    );
+    await waitFor(() => expect(api!.requests.filter((r) => r.method === "GET")).toHaveLength(2));
     expect(document.querySelector(`[data-item-id="${BROKEN.id}"]`)).toBeNull();
     expect(screen.queryByRole("region", { name: /Broken answers/ })).toBeNull();
   });

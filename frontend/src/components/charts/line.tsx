@@ -5,14 +5,7 @@ import { LinePath } from "@visx/shape";
 
 import type { CurveFactory } from "d3-shape";
 
-import {
-  type RefObject,
-  useCallback,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { type RefObject, useCallback, useId, useMemo, useRef, useState } from "react";
 import { chartCssVars, useChartStable, useYScale } from "./chart-context";
 import type { LoadingStyle } from "./chart-phase";
 import {
@@ -28,10 +21,7 @@ import {
 } from "./line-loading-pulse";
 import { LINE_LOADING_LOOP_PAUSE_MS } from "./line-loading-timing";
 import { LineLoadingSweep } from "./loading-sweep";
-import {
-  resolveDashTailBounds,
-  usePathStrokeMetrics,
-} from "./path-stroke-utils";
+import { resolveDashTailBounds, usePathStrokeMetrics } from "./path-stroke-utils";
 import { SeriesDashTailOverlay } from "./series-dash-tail-overlay";
 import { SeriesHighlightLayer } from "./series-highlight-layer";
 import { SeriesHoverDim } from "./series-hover-dim";
@@ -168,8 +158,7 @@ function LineLoadingOverlays({
   showLoadingPulse: boolean;
   strokeWidth: number;
 }) {
-  const sweepLoading =
-    showLoadingPulse && innerWidth > 0 && loadingStyle === "sweep";
+  const sweepLoading = showLoadingPulse && innerWidth > 0 && loadingStyle === "sweep";
   const pulseLoading = showLoadingPulse && innerWidth > 0 && !sweepLoading;
 
   return (
@@ -256,9 +245,7 @@ export function Line({
 
   const phasePulseMode = resolveLineLoadingPulseMode(chartPhase);
   const pulseMode =
-    loading === false
-      ? null
-      : (loadingPulseMode ?? (loading === true ? "loop" : phasePulseMode));
+    loading === false ? null : (loadingPulseMode ?? (loading === true ? "loop" : phasePulseMode));
   const showLoadingPulse = pulseMode != null;
   const [pulseEpoch, setPulseEpoch] = useState(0);
   const effectiveShowHighlight = showHighlight && !showLoadingPulse;
@@ -296,7 +283,7 @@ export function Line({
       const value = d[dataKey];
       return typeof value === "number" ? (yScale(value) ?? 0) : 0;
     },
-    [dataKey, yScale]
+    [dataKey, yScale],
   );
 
   const hasDashTail = resolveDashTailBounds(dashFromIndex, data.length);
@@ -304,9 +291,7 @@ export function Line({
   const lineStroke = fadeSides.any ? `url(#${gradientId})` : stroke;
   const fadeStops = fadeSides.any ? fadeGradientStops(fadeSides) : null;
   const showSeriesStroke =
-    chartPhase === "revealing" ||
-    chartPhase === "ready" ||
-    chartPhase === "exitingReady";
+    chartPhase === "revealing" || chartPhase === "ready" || chartPhase === "exitingReady";
   let visibleStroke = "transparent";
   if (showSeriesStroke && !hasDashTail) {
     visibleStroke = lineStroke;
@@ -316,10 +301,7 @@ export function Line({
     <>
       {fadeStops ? (
         <defs>
-          <linearGradient
-            id={gradientId}
-            {...viewportFadeGradientAttrs(innerWidth)}
-          >
+          <linearGradient id={gradientId} {...viewportFadeGradientAttrs(innerWidth)}>
             {fadeStops.map((stop) => (
               <stop
                 key={stop.offset}
@@ -331,11 +313,7 @@ export function Line({
         </defs>
       ) : null}
 
-      <SeriesHoverDim
-        dimOpacity={0.3}
-        enabled={effectiveShowHighlight}
-        seriesIndex={seriesIndex}
-      >
+      <SeriesHoverDim dimOpacity={0.3} enabled={effectiveShowHighlight} seriesIndex={seriesIndex}>
         <LineSeriesStroke
           animatedPathD={animatedPathD}
           curve={curve}

@@ -128,7 +128,10 @@ describe("inboxReducer", () => {
 
     state = inboxReducer(state, {
       type: "history",
-      events: [driftEvent({ id: "e1" }), driftEvent({ id: "e2", created_at: "2026-10-21T00:00:00Z" })],
+      events: [
+        driftEvent({ id: "e1" }),
+        driftEvent({ id: "e2", created_at: "2026-10-21T00:00:00Z" }),
+      ],
     });
     expect(state.historyLoaded).toBe(true);
     expect(ids(state)).toEqual(["e2", "e1"]);

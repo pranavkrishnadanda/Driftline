@@ -2,7 +2,7 @@
  * Typed fetch wrapper for the Driftline gateway.
  *
  * Route types come from `schema.d.ts`, generated from `contracts/openapi.json`
- * (`npm run gen:api:file`). Routes the gateway does not serve yet are typed by hand
+ * (`bun run gen:api:file`). Routes the gateway does not serve yet are typed by hand
  * in the "pending backend" block below and nowhere else.
  */
 import type { paths } from "./schema";

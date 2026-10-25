@@ -2,12 +2,7 @@
 
 import { type ReactNode, useCallback, useMemo } from "react";
 import { clipRevealTransition } from "./animation";
-import {
-  defaultScatterColors,
-  useChartHover,
-  useChartStable,
-  useYScale,
-} from "./chart-context";
+import { defaultScatterColors, useChartHover, useChartStable, useYScale } from "./chart-context";
 import { useChartLegendHover } from "./chart-legend-hover";
 import {
   getSeriesMarkerVisualExtent,
@@ -26,10 +21,7 @@ export interface SeriesMarkersProps extends SeriesPointMarkerStyle {
    * Optional per-point pixel offset (e.g. scatter jitter). Must be
    * deterministic for a given `(index, seriesIndex)` pair.
    */
-  getPointOffset?: (
-    index: number,
-    seriesIndex: number
-  ) => { x: number; y: number };
+  getPointOffset?: (index: number, seriesIndex: number) => { x: number; y: number };
 }
 
 interface PointAt {
@@ -89,8 +81,7 @@ export function SeriesMarkers({
   const seriesConfig = lines[seriesIndex];
   const yScale = useYScale(seriesConfig?.yAxisId);
   const seriesColor =
-    defaultScatterColors[seriesIndex % defaultScatterColors.length] ??
-    defaultScatterColors[0];
+    defaultScatterColors[seriesIndex % defaultScatterColors.length] ?? defaultScatterColors[0];
 
   const resolvedFill = fill ?? seriesConfig?.stroke ?? seriesColor;
   const resolvedStroke = stroke ?? resolvedFill;
@@ -104,7 +95,7 @@ export function SeriesMarkers({
         outlineWidth,
         showActiveHighlight,
       }),
-    [radius, strokeWidth, ringGap, outlineWidth, showActiveHighlight]
+    [radius, strokeWidth, ringGap, outlineWidth, showActiveHighlight],
   );
 
   const revealDurationSec =
@@ -117,7 +108,7 @@ export function SeriesMarkers({
       const value = d[dataKey];
       return typeof value === "number" ? (yScale(value) ?? 0) : null;
     },
-    [dataKey, yScale]
+    [dataKey, yScale],
   );
 
   const points = useMemo<PointAt[]>(
@@ -131,9 +122,7 @@ export function SeriesMarkers({
         const cx = (xScale(xAccessor(d)) ?? 0) + (offset?.x ?? 0);
         const leadingEdge = Math.max(0, cx - visualExtent);
         const revealDelay =
-          innerWidth > 0 && isRevealing
-            ? (leadingEdge / innerWidth) * revealDurationSec
-            : 0;
+          innerWidth > 0 && isRevealing ? (leadingEdge / innerWidth) * revealDurationSec : 0;
 
         return [{ index, cx, cy: cy + (offset?.y ?? 0), revealDelay }];
       }),
@@ -148,7 +137,7 @@ export function SeriesMarkers({
       visualExtent,
       getPointOffset,
       seriesIndex,
-    ]
+    ],
   );
 
   // Memo so the inner <SeriesMarkersActiveHighlight> sees a stable prop and
@@ -163,15 +152,7 @@ export function SeriesMarkers({
       outlineColor,
       radius,
     }),
-    [
-      resolvedFill,
-      resolvedStroke,
-      strokeWidth,
-      ringGap,
-      outlineWidth,
-      outlineColor,
-      radius,
-    ]
+    [resolvedFill, resolvedStroke, strokeWidth, ringGap, outlineWidth, outlineColor, radius],
   );
 
   if (isRevealing) {
@@ -252,16 +233,14 @@ function SeriesMarkersDimWrapper({
 }: SeriesMarkersDimWrapperProps) {
   const { tooltipData } = useChartHover();
   const { hoveredIndex: legendHoveredIndex } = useChartLegendHover();
-  const isLegendDimmed =
-    legendHoveredIndex !== null && legendHoveredIndex !== seriesIndex;
+  const isLegendDimmed = legendHoveredIndex !== null && legendHoveredIndex !== seriesIndex;
   const dimBase = enabled && (tooltipData !== null || isLegendDimmed);
   return (
     <g
       opacity={dimBase ? inactiveOpacity : 1}
       style={{
         transition: "opacity 0.15s ease-in-out, filter 0.15s ease-in-out",
-        filter:
-          dimBase && inactiveBlur > 0 ? `blur(${inactiveBlur}px)` : "none",
+        filter: dimBase && inactiveBlur > 0 ? `blur(${inactiveBlur}px)` : "none",
       }}
     >
       {children}
@@ -293,10 +272,7 @@ function SeriesMarkersActiveHighlight({
     return null;
   }
   // Nearest-point hover (jittered scatter): only the hovered series' point.
-  if (
-    tooltipData.activeDataKey !== undefined &&
-    tooltipData.activeDataKey !== dataKey
-  ) {
+  if (tooltipData.activeDataKey !== undefined && tooltipData.activeDataKey !== dataKey) {
     return null;
   }
   const activePoint = points.find((point) => point.index === tooltipData.index);

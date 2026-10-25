@@ -38,7 +38,8 @@ const CHANGED_LINE = HERO_VERSIONS[CHANGED].changed!;
 const ADDED_LINE = FINAL_LINES.findIndex((l) => l.state === "added");
 
 /** Width in px of section `line` in version `version`. */
-const widthAt = (version: number, line: number) => documentLines(HERO_VERSIONS, version)[line].width * TEXT_W;
+const widthAt = (version: number, line: number) =>
+  documentLines(HERO_VERSIONS, version)[line].width * TEXT_W;
 
 function Lines({ lines, ghost = false }: { lines: DocumentLine[]; ghost?: boolean }) {
   return lines.map((line, i) => (
@@ -61,7 +62,13 @@ function Lines({ lines, ghost = false }: { lines: DocumentLine[]; ghost?: boolea
 function Page({ className }: { className?: string }) {
   return (
     <>
-      <rect width={DOC_W} height={DOC_H} rx={10} className={cn("fill-card stroke-border", className)} strokeWidth={1.5} />
+      <rect
+        width={DOC_W}
+        height={DOC_H}
+        rx={10}
+        className={cn("fill-card stroke-border", className)}
+        strokeWidth={1.5}
+      />
       <rect x={TEXT_X} y={18} width={70} height={9} rx={2} className="fill-foreground/80" />
     </>
   );
@@ -101,8 +108,11 @@ export function DriftHero({ reducedMotion: reducedProp, className }: DriftHeroPr
         .set("[data-hero=marker]", { opacity: 0 })
         .set("[data-hero=label]", { opacity: 0 });
       if (axis) tl.add(axis, { draw: ["0 0", "0 1"], duration: 800 }, 0);
-      tl.add("[data-hero=marker]", { opacity: 1, duration: 260, delay: stagger(140) }, 150)
-        .add("[data-hero=label]", { opacity: 1, duration: 260, delay: stagger(140) }, 250);
+      tl.add("[data-hero=marker]", { opacity: 1, duration: 260, delay: stagger(140) }, 150).add(
+        "[data-hero=label]",
+        { opacity: 1, duration: 260, delay: stagger(140) },
+        250,
+      );
       if (check) tl.add(check, drawIn, 800);
 
       // v1 -> v2: the document drifts right, leaving v1 behind; a section is rewritten.
@@ -110,9 +120,17 @@ export function DriftHero({ reducedMotion: reducedProp, className }: DriftHeroPr
         .add("[data-hero=ghost][data-version='0']", { opacity: 0.4, duration: 500 }, 2000)
         .add("[data-hero=doc]", { translateX: docX(1), duration: 1100 }, 2000)
         .add("[data-hero=cursor]", { translateX: STOPS[1], duration: 1100 }, 2000)
-        .add("[data-hero=changed]", { width: widthAt(1, CHANGED_LINE), opacity: 1, duration: 450 }, 3100)
+        .add(
+          "[data-hero=changed]",
+          { width: widthAt(1, CHANGED_LINE), opacity: 1, duration: 450 },
+          3100,
+        )
         .add("[data-hero=changed-base]", { opacity: 0, duration: 450 }, 3100)
-        .add("[data-hero=pulse]", { r: [4, 20], opacity: [0.8, 0], duration: 800, ease: "outQuad" }, 3100)
+        .add(
+          "[data-hero=pulse]",
+          { r: [4, 20], opacity: [0.8, 0], duration: 800, ease: "outQuad" },
+          3100,
+        )
         .add("[data-hero=alert]", { opacity: 1, duration: 300 }, 3250)
         .add("[data-hero=check]", { opacity: 1, duration: 1 }, 3500);
       if (check) tl.add(check, drawIn, 3500);
@@ -122,7 +140,11 @@ export function DriftHero({ reducedMotion: reducedProp, className }: DriftHeroPr
         .add("[data-hero=ghost][data-version='1']", { opacity: 0.4, duration: 500 }, 4700)
         .add("[data-hero=doc]", { translateX: docX(2), duration: 1100 }, 4700)
         .add("[data-hero=cursor]", { translateX: STOPS[2], duration: 1100 }, 4700)
-        .add("[data-hero=added]", { width: FINAL_LINES[ADDED_LINE].width * TEXT_W, duration: 500 }, 5800)
+        .add(
+          "[data-hero=added]",
+          { width: FINAL_LINES[ADDED_LINE].width * TEXT_W, duration: 500 },
+          5800,
+        )
         .add("[data-hero=check]", { opacity: 1, duration: 1 }, 6200);
       if (check) tl.add(check, drawIn, 6200);
       timeline.current = tl;
@@ -181,7 +203,14 @@ export function DriftHero({ reducedMotion: reducedProp, className }: DriftHeroPr
         />
         {HERO_VERSIONS.map((v, i) => (
           <g key={v.label}>
-            <circle data-hero="marker" cx={STOPS[i]} cy={AXIS_Y} r={6} className="fill-background stroke-foreground" strokeWidth={2} />
+            <circle
+              data-hero="marker"
+              cx={STOPS[i]}
+              cy={AXIS_Y}
+              r={6}
+              className="fill-background stroke-foreground"
+              strokeWidth={2}
+            />
             <text
               data-hero="label"
               x={STOPS[i]}
@@ -194,7 +223,13 @@ export function DriftHero({ reducedMotion: reducedProp, className }: DriftHeroPr
           </g>
         ))}
         <g data-hero="cursor" style={{ transform: `translateX(${STOPS[LAST]}px)` }}>
-          <path d={`M0 ${DOC_TOP - 14} V${AXIS_Y - 8}`} className="stroke-primary/50" strokeWidth={1.5} strokeDasharray="3 4" fill="none" />
+          <path
+            d={`M0 ${DOC_TOP - 14} V${AXIS_Y - 8}`}
+            className="stroke-primary/50"
+            strokeWidth={1.5}
+            strokeDasharray="3 4"
+            fill="none"
+          />
           <path d={`M-6 ${DOC_TOP - 22} H6 L0 ${DOC_TOP - 14} Z`} className="fill-primary" />
         </g>
 
@@ -241,11 +276,30 @@ export function DriftHero({ reducedMotion: reducedProp, className }: DriftHeroPr
             {/* A verified citation: the answer's quote is still in this version. */}
             <g data-hero="check" transform={`translate(${DOC_W - 14} -10)`}>
               <circle r={13} className="fill-emerald-600" />
-              <path data-hero="check-mark" d="M-5.5 0.5 L-1.5 4.5 L6 -4" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                data-hero="check-mark"
+                d="M-5.5 0.5 L-1.5 4.5 L6 -4"
+                fill="none"
+                stroke="white"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </g>
             <g data-hero="alert" transform={`translate(0 ${DOC_H + 10})`}>
-              <rect width={DOC_W} height={22} rx={11} className="fill-amber-100 stroke-amber-600" strokeWidth={1} />
-              <text x={DOC_W / 2} y={15} textAnchor="middle" className="fill-amber-950 text-[11px] font-medium">
+              <rect
+                width={DOC_W}
+                height={22}
+                rx={11}
+                className="fill-amber-100 stroke-amber-600"
+                strokeWidth={1}
+              />
+              <text
+                x={DOC_W / 2}
+                y={15}
+                textAnchor="middle"
+                className="fill-amber-950 text-[11px] font-medium"
+              >
                 drift alert · {HERO_VERSIONS[CHANGED].label}
               </text>
             </g>
@@ -264,7 +318,11 @@ export function DriftHero({ reducedMotion: reducedProp, className }: DriftHeroPr
             aria-pressed={paused}
             className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {paused ? <Play aria-hidden className="size-4" /> : <Pause aria-hidden className="size-4" />}
+            {paused ? (
+              <Play aria-hidden className="size-4" />
+            ) : (
+              <Pause aria-hidden className="size-4" />
+            )}
             <span className="sr-only">Pause animation</span>
           </button>
         )}

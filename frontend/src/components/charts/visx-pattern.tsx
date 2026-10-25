@@ -13,9 +13,7 @@ export function PatternLines(props: ComponentProps<typeof VisxPatternLines>) {
 }
 PatternLines.displayName = "PatternLines";
 
-export function PatternCircles(
-  props: ComponentProps<typeof VisxPatternCircles>
-) {
+export function PatternCircles(props: ComponentProps<typeof VisxPatternCircles>) {
   return <VisxPatternCircles {...props} />;
 }
 PatternCircles.displayName = "PatternCircles";
@@ -25,9 +23,7 @@ export function PatternWaves(props: ComponentProps<typeof VisxPatternWaves>) {
 }
 PatternWaves.displayName = "PatternWaves";
 
-export function PatternHexagons(
-  props: ComponentProps<typeof VisxPatternHexagons>
-) {
+export function PatternHexagons(props: ComponentProps<typeof VisxPatternHexagons>) {
   return <VisxPatternHexagons {...props} />;
 }
 PatternHexagons.displayName = "PatternHexagons";

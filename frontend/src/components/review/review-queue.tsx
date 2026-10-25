@@ -34,7 +34,12 @@ export interface ReviewQueueProps {
   focusItem?: string | null;
 }
 
-export function ReviewQueue({ tenants, client: clientProp, reviewer, focusItem }: ReviewQueueProps) {
+export function ReviewQueue({
+  tenants,
+  client: clientProp,
+  reviewer,
+  focusItem,
+}: ReviewQueueProps) {
   const [client] = useState(() => clientProp ?? createApiClient());
   const [tenant, setTenant] = useState(tenants[0] ?? "demo");
 
@@ -44,8 +49,8 @@ export function ReviewQueue({ tenants, client: clientProp, reviewer, focusItem }
         <div>
           <SectionHeading>Review</SectionHeading>
           <p className="text-sm text-muted-foreground">
-            Low-confidence answers, broken answers and proposed relations waiting for a
-            person to decide.
+            Low-confidence answers, broken answers and proposed relations waiting for a person to
+            decide.
           </p>
         </div>
         {tenants.length > 1 ? (
@@ -173,11 +178,16 @@ function Queue({
         </div>
       ) : null}
 
-      <div ref={listRef} tabIndex={-1} aria-label="Review items" className="flex flex-col gap-6 outline-none">
+      <div
+        ref={listRef}
+        tabIndex={-1}
+        aria-label="Review items"
+        className="flex flex-col gap-6 outline-none"
+      >
         {loaded && groups.length === 0 ? (
           <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-            Nothing to review. New items appear here when an answer or relation needs a
-            person to decide.
+            Nothing to review. New items appear here when an answer or relation needs a person to
+            decide.
           </p>
         ) : null}
         {groups.map((group) => (

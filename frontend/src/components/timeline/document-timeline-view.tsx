@@ -65,7 +65,10 @@ export function DocumentTimelineView({
     const notFound = state.error instanceof ApiError && state.error.status === 404;
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-8">
-        <div role="alert" className="flex flex-col items-start gap-3 rounded-md border border-border p-4">
+        <div
+          role="alert"
+          className="flex flex-col items-start gap-3 rounded-md border border-border p-4"
+        >
           {notFound ? (
             <>
               <p className="font-medium">This document was not found in tenant {tenant}.</p>

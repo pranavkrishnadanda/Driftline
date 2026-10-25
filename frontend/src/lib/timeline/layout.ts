@@ -75,7 +75,11 @@ export function layoutTimeline(
     let x2: number;
     if (i < n - 1) x2 = xs[i + 1];
     else if (openEnded) x2 = width;
-    else x2 = Math.min(width, Math.max(scale(s.to!.getTime()), xs[i] + Math.min(minGap, width - xs[i])));
+    else
+      x2 = Math.min(
+        width,
+        Math.max(scale(s.to!.getTime()), xs[i] + Math.min(minGap, width - xs[i])),
+      );
     return {
       versionId: s.v.version_id,
       versionNo: s.v.version_no,

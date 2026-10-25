@@ -18,10 +18,16 @@ describe("landing page", () => {
     render(<Home />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: /Answers as of any date, from the version in force then/ }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: /Answers as of any date, from the version in force then/,
+      }),
     ).toBeVisible();
     expect(screen.getByRole("link", { name: "Try Ask" })).toHaveAttribute("href", "/ask");
-    expect(screen.getByRole("link", { name: "View drift inbox" })).toHaveAttribute("href", "/drift");
+    expect(screen.getByRole("link", { name: "View drift inbox" })).toHaveAttribute(
+      "href",
+      "/drift",
+    );
     expect(
       screen.getByRole("img", { name: "A document drifting through three versions" }),
     ).toBeInTheDocument();
@@ -48,7 +54,9 @@ describe("landing page", () => {
 
   it("only makes claims about what is built: MCP lists the gateway's five tools", () => {
     const mcp = FEATURES.find((f) => f.title === "MCP for agents")!;
-    expect(mcp.details.join(" ")).toMatch(/ask, list_sources, diff_versions, get_timeline and watch_answer/);
+    expect(mcp.details.join(" ")).toMatch(
+      /ask, list_sources, diff_versions, get_timeline and watch_answer/,
+    );
   });
 });
 

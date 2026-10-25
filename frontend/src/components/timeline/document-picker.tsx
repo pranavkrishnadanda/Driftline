@@ -30,9 +30,15 @@ const RECENT_LIMIT = 200;
  * The Timeline entry point. The gateway has no route that lists documents, so it offers
  * the documents recent drift events touched, plus a form to paste any document id.
  */
-export function DocumentPicker({ tenants, initialTenant, invalidId, client: clientProp }: DocumentPickerProps) {
+export function DocumentPicker({
+  tenants,
+  initialTenant,
+  invalidId,
+  client: clientProp,
+}: DocumentPickerProps) {
   const [client] = useState(() => clientProp ?? createApiClient());
-  const options = initialTenant && !tenants.includes(initialTenant) ? [initialTenant, ...tenants] : tenants;
+  const options =
+    initialTenant && !tenants.includes(initialTenant) ? [initialTenant, ...tenants] : tenants;
   const [tenant, setTenant] = useState(initialTenant ?? options[0] ?? "demo");
   const [recent, setRecent] = useState<Recent>({ kind: "loading" });
   const inputId = useId();
@@ -44,7 +50,10 @@ export function DocumentPicker({ tenants, initialTenant, invalidId, client: clie
       (list) => setRecent({ kind: "loaded", documents: recentDocuments(list.events) }),
       (error: unknown) => {
         if (controller.signal.aborted) return;
-        setRecent({ kind: "failed", message: error instanceof Error ? error.message : String(error) });
+        setRecent({
+          kind: "failed",
+          message: error instanceof Error ? error.message : String(error),
+        });
       },
     );
     return () => controller.abort();
@@ -119,9 +128,15 @@ export function DocumentPicker({ tenants, initialTenant, invalidId, client: clie
             No drift events yet for tenant {tenant}. Paste a document id above to open its timeline.
           </p>
         ) : (
-          <ul aria-label="Recently drifted documents" className="flex flex-col divide-y divide-border rounded-md border border-border">
+          <ul
+            aria-label="Recently drifted documents"
+            className="flex flex-col divide-y divide-border rounded-md border border-border"
+          >
             {recent.documents.map((doc) => (
-              <li key={doc.documentId} className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2">
+              <li
+                key={doc.documentId}
+                className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2"
+              >
                 <Link
                   href={timelineHref(doc.documentId, tenant)}
                   className="font-medium underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

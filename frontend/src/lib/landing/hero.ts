@@ -33,7 +33,10 @@ export interface DocumentLine {
 }
 
 /** `count` x positions spread evenly from `inset` to `width - inset` (centred if one). */
-export function versionStops(count: number, { width, inset }: { width: number; inset: number }): number[] {
+export function versionStops(
+  count: number,
+  { width, inset }: { width: number; inset: number },
+): number[] {
   if (count <= 0) return [];
   if (count === 1) return [width / 2];
   const step = (width - 2 * inset) / (count - 1);

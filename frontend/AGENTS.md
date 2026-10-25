@@ -17,7 +17,7 @@ The registry is set in components.json as "@kokonutui".
   Kokonut UI: https://kokonutui.com/llms.txt lists every component with a
   one-line description.
 - Install with the shadcn CLI, never by pasting code:
-  npx shadcn@latest add @kokonutui/<name>
+  bunx shadcn@latest add @kokonutui/<name>
   It writes components/kokonutui/<name>.tsx and installs its dependencies.
 - Installed components are project code. Edit them in place rather than
   wrapping them.
@@ -26,5 +26,5 @@ The registry is set in components.json as "@kokonutui".
 
 # Bklit UI
 
-Every `/stats` chart comes from the "@bklit" registry (`npx shadcn@latest add @bklit/<name>`).
+Every `/stats` chart comes from the "@bklit" registry (`bunx shadcn@latest add @bklit/<name>`).
 The project-level Bklit skills live in `.claude/skills/` (bklit-ui, bklit-ui-design, bklit-ui-migrate).
