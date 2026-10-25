@@ -68,13 +68,15 @@ GitHub Actions: nightly drift watch · eval CI gate · k6 load test → GitHub P
 Every model call goes through this module.
 
 - **Provider adapters** behind one interface (`complete`, `stream`, `embed`, `structured`):
-  - **Gemini**: live; the primary provider.
-  - **OpenAI** and **Anthropic**: implemented and contract-tested against recorded responses, and enabled by config when a key is present.
-- **Model tiers** are set in config, not code:
-  - `extract`: Flash-class Gemini model.
-  - `answer` and `judge`: Pro-class Gemini model.
-  - `embed`: Gemini embedding model.
-- **Fallback chain** per tier, e.g. Pro → Flash → Flash-Lite → another provider if configured.
+  - **Anthropic (Claude)**: live; the primary LLM provider.
+  - **Open-source embeddings**: `BAAI/bge-base-en-v1.5` (768-dim, MIT), served by Hugging Face Text Embeddings Inference (TEI) as the `embedder` Compose service. This is the primary embedding provider.
+  - **Gemini**: optional LLM and embedding fallback, enabled when a key with credits is present.
+  - **OpenAI**: adapter planned, enabled by config.
+- **Model tiers** are set in config, not code (defaults):
+  - `extract`: `claude-haiku-5-5`.
+  - `answer` and `judge`: `claude-sonnet-5-5`.
+  - `embed`: `bge-base-en-v1.5` via TEI.
+- **Fallback chain** per tier, e.g. Claude Sonnet → Claude Haiku → Gemini if configured.
 - **Circuit breaker** per (provider, model): opens after 5 consecutive failures or a 50% error rate over 30 s. Half-open retry after 30 s.
 - **Retries**: exponential backoff with jitter. Up to 3 attempts for retryable errors (429, 5xx, timeouts).
 - **Quota-aware rate limiting**: a Redis token bucket (requests/min and tokens/min) per model, shared by all workers. Callers wait in the queue rather than fail.
