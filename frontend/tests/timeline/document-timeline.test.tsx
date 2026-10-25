@@ -53,12 +53,15 @@ describe("DocumentTimelineView", () => {
     expect(slider).toHaveAttribute("aria-valuenow", "3");
     expect(slider).toHaveAttribute("aria-valuetext", "v3: from 31 Jan 2026, in force now");
 
-    expect(screen.getByRole("heading", { level: 2, name: "Changes in v3 since v2" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Changes in v3 since v2" }),
+    ).toBeInTheDocument();
     const table = within(diffSection()).getByRole("table");
-    expect(within(table).getAllByRole("columnheader").map((h) => h.textContent)).toEqual([
-      "v2 (before)",
-      "v3 (after)",
-    ]);
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((h) => h.textContent),
+    ).toEqual(["v2 (before)", "v3 (after)"]);
     const removed = within(table).getByRole("row", { name: /B > Renal/ });
     expect(within(removed).getAllByRole("cell")[0]).toHaveTextContent("B > Renal");
     expect(within(removed).getAllByRole("cell")[0]).toHaveTextContent("removed");
@@ -74,7 +77,9 @@ describe("DocumentTimelineView", () => {
     await user.keyboard("{ArrowLeft}");
     expect(slider).toHaveAttribute("aria-valuenow", "2");
     expect(slider).toHaveAttribute("aria-valuetext", "v2: 11 Jan 2026 – 31 Jan 2026");
-    expect(screen.getByRole("heading", { level: 2, name: "Changes in v2 since v1" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Changes in v2 since v1" }),
+    ).toBeInTheDocument();
     const added = within(diffSection()).getByRole("row", { name: /B > Renal/ });
     expect(within(added).getAllByRole("cell")[0]).toHaveTextContent("not present");
     expect(within(added).getAllByRole("cell")[1]).toHaveTextContent("added");
@@ -82,7 +87,9 @@ describe("DocumentTimelineView", () => {
 
     await user.keyboard("{Home}");
     expect(slider).toHaveAttribute("aria-valuenow", "1");
-    expect(screen.getByRole("heading", { level: 2, name: "v1 is the first version" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "v1 is the first version" }),
+    ).toBeInTheDocument();
     expect(within(diffSection()).queryByRole("table")).not.toBeInTheDocument();
 
     await user.keyboard("{End}");
@@ -100,9 +107,14 @@ describe("DocumentTimelineView", () => {
     expect(v2).toHaveTextContent("11 Jan 2026 – 31 Jan 2026");
     await user.click(v2);
     expect(v2).toHaveAttribute("aria-pressed", "true");
-    expect(within(list).getByRole("button", { name: /^v3/ })).toHaveAttribute("aria-pressed", "false");
+    expect(within(list).getByRole("button", { name: /^v3/ })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
     expect(screen.getByRole("slider", { name: "Version" })).toHaveAttribute("aria-valuenow", "2");
-    expect(screen.getByRole("heading", { level: 2, name: "Changes in v2 since v1" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Changes in v2 since v1" }),
+    ).toBeInTheDocument();
   });
 
   it("lists incoming and outgoing relations with links to their timelines", async () => {

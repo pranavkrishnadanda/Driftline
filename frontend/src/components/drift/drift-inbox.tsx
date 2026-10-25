@@ -39,7 +39,12 @@ export interface DriftInboxProps {
   streamOptions?: UseEventStreamOptions;
 }
 
-export function DriftInbox({ tenants, client: clientProp, streamBaseUrl, streamOptions }: DriftInboxProps) {
+export function DriftInbox({
+  tenants,
+  client: clientProp,
+  streamBaseUrl,
+  streamOptions,
+}: DriftInboxProps) {
   const [client] = useState(() => clientProp ?? createApiClient());
   const [tenant, setTenant] = useState(tenants[0] ?? "demo");
 
@@ -122,7 +127,9 @@ function Inbox({
       (list) =>
         setReviewItems(
           new Map(
-            list.items.filter((item) => item.status === "open").map((item) => [item.ref_id, item.id]),
+            list.items
+              .filter((item) => item.status === "open")
+              .map((item) => [item.ref_id, item.id]),
           ),
         ),
       // Without the queue the inbox still works; it just cannot link to review items.
@@ -177,8 +184,7 @@ function Inbox({
 
         {state.alerts.length === 0 && state.historyLoaded ? (
           <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-            No drift yet. Watch an answer and alerts appear here when a document it cites
-            changes.
+            No drift yet. Watch an answer and alerts appear here when a document it cites changes.
           </p>
         ) : null}
 

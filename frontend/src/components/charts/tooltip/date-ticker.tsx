@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  type MotionValue,
-  motion,
-  useReducedMotion,
-  useSpring,
-} from "motion/react";
+import { type MotionValue, motion, useReducedMotion, useSpring } from "motion/react";
 import { memo, type RefObject, useLayoutEffect, useMemo, useRef } from "react";
 
 const TICKER_ITEM_HEIGHT = 24;
@@ -14,11 +9,7 @@ const TICKER_SPRING = { stiffness: 400, damping: 35 };
 const COMPACT_TICKER_THRESHOLD = 60;
 
 /** Retarget a spring, or snap it when motion should be instant. */
-function driveSpring(
-  value: MotionValue<number>,
-  target: number,
-  instant: boolean
-) {
+function driveSpring(value: MotionValue<number>, target: number, instant: boolean) {
   if (instant) {
     value.jump(target);
   } else {
@@ -44,11 +35,7 @@ function toSegments(values: readonly string[]): TickerSegment[] {
 }
 
 /** Index of the segment containing label `index` (0 when out of range). */
-function segmentIndexAt(
-  segments: readonly TickerSegment[],
-  index: number,
-  total: number
-) {
+function segmentIndexAt(segments: readonly TickerSegment[], index: number, total: number) {
   if (index < 0 || index >= total) {
     return 0;
   }
@@ -72,7 +59,7 @@ function useActiveItemWidth(
   items: readonly unknown[],
   activeIndex: number,
   width: MotionValue<number>,
-  reduceMotion: boolean
+  reduceMotion: boolean,
 ) {
   const widthsRef = useRef<number[]>([]);
   const activeIndexRef = useRef(activeIndex);
@@ -91,7 +78,7 @@ function useActiveItemWidth(
       }
       widthsRef.current = Array.from(
         stack.querySelectorAll<HTMLElement>("[data-ticker-item]"),
-        (node) => node.getBoundingClientRect().width
+        (node) => node.getBoundingClientRect().width,
       );
       const next = widthsRef.current[activeIndexRef.current];
       if (next === undefined) {
@@ -142,10 +129,7 @@ const DateTickerCompact = memo(function DateTickerCompact({
           ref={stackRef}
           style={{ x: "-50%" }}
         >
-          <span
-            className="whitespace-nowrap font-medium text-sm"
-            data-ticker-item
-          >
+          <span className="whitespace-nowrap font-medium text-sm" data-ticker-item>
             {label}
           </span>
         </motion.div>
@@ -173,23 +157,15 @@ const DateTickerInner = memo(function DateTickerInner({
   // still until it actually changes instead of scrolling through repeats.
   const monthSegments = useMemo(
     () => toSegments(parsedLabels.map((label) => label.month)),
-    [parsedLabels]
+    [parsedLabels],
   );
   const daySegments = useMemo(
     () => toSegments(parsedLabels.map((label) => label.day)),
-    [parsedLabels]
+    [parsedLabels],
   );
 
-  const currentMonthIndex = segmentIndexAt(
-    monthSegments,
-    currentIndex,
-    parsedLabels.length
-  );
-  const currentDayIndex = segmentIndexAt(
-    daySegments,
-    currentIndex,
-    parsedLabels.length
-  );
+  const currentMonthIndex = segmentIndexAt(monthSegments, currentIndex, parsedLabels.length);
+  const currentDayIndex = segmentIndexAt(daySegments, currentIndex, parsedLabels.length);
 
   // Animated Y offsets
   const dayY = useSpring(0, TICKER_SPRING);
@@ -200,20 +176,8 @@ const DateTickerInner = memo(function DateTickerInner({
   const dayStackRef = useRef<HTMLDivElement>(null);
   const monthWidth = useSpring(0, TICKER_SPRING);
   const dayWidth = useSpring(0, TICKER_SPRING);
-  useActiveItemWidth(
-    monthStackRef,
-    monthSegments,
-    currentMonthIndex,
-    monthWidth,
-    reduceMotion
-  );
-  useActiveItemWidth(
-    dayStackRef,
-    daySegments,
-    currentDayIndex,
-    dayWidth,
-    reduceMotion
-  );
+  useActiveItemWidth(monthStackRef, monthSegments, currentMonthIndex, monthWidth, reduceMotion);
+  useActiveItemWidth(dayStackRef, daySegments, currentDayIndex, dayWidth, reduceMotion);
 
   // Scroll the stacks to the active day / month before paint.
   useLayoutEffect(() => {
@@ -229,10 +193,7 @@ const DateTickerInner = memo(function DateTickerInner({
       <div className="relative h-6 overflow-hidden">
         <div className="flex items-center justify-center gap-1">
           {/* Month stack */}
-          <motion.div
-            className="relative h-6 overflow-hidden"
-            style={{ width: monthWidth }}
-          >
+          <motion.div className="relative h-6 overflow-hidden" style={{ width: monthWidth }}>
             <motion.div
               className="absolute top-0 left-1/2 flex flex-col items-center"
               ref={monthStackRef}
@@ -244,19 +205,14 @@ const DateTickerInner = memo(function DateTickerInner({
                   data-ticker-item
                   key={segment.key}
                 >
-                  <span className="whitespace-nowrap font-medium text-sm">
-                    {segment.value}
-                  </span>
+                  <span className="whitespace-nowrap font-medium text-sm">{segment.value}</span>
                 </div>
               ))}
             </motion.div>
           </motion.div>
 
           {/* Second-part stack (day or year) */}
-          <motion.div
-            className="relative h-6 overflow-hidden"
-            style={{ width: dayWidth }}
-          >
+          <motion.div className="relative h-6 overflow-hidden" style={{ width: dayWidth }}>
             <motion.div
               className="absolute top-0 left-1/2 flex flex-col items-center"
               ref={dayStackRef}
@@ -268,9 +224,7 @@ const DateTickerInner = memo(function DateTickerInner({
                   data-ticker-item
                   key={segment.key}
                 >
-                  <span className="whitespace-nowrap font-medium text-sm">
-                    {segment.value}
-                  </span>
+                  <span className="whitespace-nowrap font-medium text-sm">{segment.value}</span>
                 </div>
               ))}
             </motion.div>

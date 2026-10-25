@@ -34,7 +34,9 @@ function nodeItem(name: string): HTMLElement {
 describe("AgentTimeline", () => {
   it("shows the graph's nodes lit in order for an answered run", () => {
     show(ANSWERED_RUN);
-    const items = within(steps()).getAllByRole("listitem").filter((li) => li.dataset.node);
+    const items = within(steps())
+      .getAllByRole("listitem")
+      .filter((li) => li.dataset.node);
     expect(items.map((li) => li.dataset.node)).toEqual([
       "classify",
       "cache",
@@ -46,7 +48,16 @@ describe("AgentTimeline", () => {
       "respond",
     ]);
     expect(items.map((li) => li.dataset.status)).toEqual(Array(8).fill("done"));
-    expect(items.map((li) => li.dataset.litOrder)).toEqual(["0", "1", "2", "3", "4", "5", "6", "7"]);
+    expect(items.map((li) => li.dataset.litOrder)).toEqual([
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+    ]);
     expect(within(nodeItem("verify")).getByRole("button")).toHaveAccessibleName(
       /Verifying claims: done/,
     );
@@ -73,10 +84,11 @@ describe("AgentTimeline", () => {
   it("flips each claim to verified or not as the claim events arrive", () => {
     show(RE_RETRIEVE_RUN);
     const checks = within(nodeItem("verify")).getByRole("list", { name: "Claim checks" });
-    expect(within(checks).getAllByRole("img").map((i) => i.getAttribute("aria-label"))).toEqual([
-      "Claim 1 verified",
-      "Claim 2 being checked",
-    ]);
+    expect(
+      within(checks)
+        .getAllByRole("img")
+        .map((i) => i.getAttribute("aria-label")),
+    ).toEqual(["Claim 1 verified", "Claim 2 being checked"]);
   });
 
   it("shows a rejected claim with its reason", () => {
@@ -117,10 +129,15 @@ describe("AgentTimeline", () => {
 
   it("shows an explicit refusal and the nearest sources for insufficient evidence", () => {
     const region = show(INSUFFICIENT_RUN);
-    expect(within(region).getByRole("heading", { name: "Refused: not enough evidence" }),
+    expect(
+      within(region).getByRole("heading", { name: "Refused: not enough evidence" }),
     ).toBeInTheDocument();
     const sources = within(region).getByRole("list", { name: "Sources the agent considered" });
-    expect(within(sources).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+    expect(
+      within(sources)
+        .getAllByRole("listitem")
+        .map((li) => li.textContent),
+    ).toEqual([
       expect.stringContaining("Acme tablets label"),
       expect.stringContaining("Acme tablets label (2019)"),
     ]);
@@ -178,7 +195,9 @@ describe("AgentTimeline with reduced motion", () => {
     ]) {
       expect(nodeItem(name)).toBeVisible();
     }
-    expect(within(region).getByRole("list", { name: "Parallel searches" }).children).toHaveLength(3);
+    expect(within(region).getByRole("list", { name: "Parallel searches" }).children).toHaveLength(
+      3,
+    );
     expect(within(region).getAllByRole("img", { name: /^Claim \d verified$/ })).toHaveLength(2);
     expect(region.querySelector('[aria-live="polite"]')).toHaveTextContent(
       "Done: 2 of 2 claims verified.",
@@ -187,7 +206,10 @@ describe("AgentTimeline with reduced motion", () => {
     // Nothing starts hidden, shifted or scaled for an entrance animation.
     for (const el of region.querySelectorAll<HTMLElement>("*")) {
       expect(el.style.opacity === "" || el.style.opacity === "1").toBe(true);
-      expect(el.style.transform === "" || el.style.transform === "none", `${el.outerHTML.slice(0, 160)}`).toBe(true);
+      expect(
+        el.style.transform === "" || el.style.transform === "none",
+        `${el.outerHTML.slice(0, 160)}`,
+      ).toBe(true);
     }
   });
 });

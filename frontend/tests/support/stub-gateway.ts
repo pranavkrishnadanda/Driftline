@@ -4,7 +4,7 @@
  * on the gateway's routes, with CORS for the frontend's origin. It replays the answered
  * ask stream and holds the alert stream open with heartbeats, like the gateway does.
  *
- * Playwright starts it from `tests/e2e/stub/global-setup.ts` (`npm run test:e2e:stub`).
+ * Playwright starts it from `tests/e2e/stub/global-setup.ts` (`bun run test:e2e:stub`).
  */
 import { randomUUID } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
@@ -82,13 +82,25 @@ function afterId(req: IncomingMessage): number {
 function replay(req: IncomingMessage, res: ServerResponse, events: FixtureEvent[]): void {
   sse(res);
   const after = afterId(req);
-  res.end(": ping\n\n" + events.filter((e) => e.id === null || e.id > after).map(frame).join(""));
+  res.end(
+    ": ping\n\n" +
+      events
+        .filter((e) => e.id === null || e.id > after)
+        .map(frame)
+        .join(""),
+  );
 }
 
 function alertStream(req: IncomingMessage, res: ServerResponse): void {
   sse(res);
   const after = afterId(req);
-  res.write(": ping\n\n" + [alertFrame(1, STUB_ALERT)].filter((e) => e.id! > after).map(frame).join(""));
+  res.write(
+    ": ping\n\n" +
+      [alertFrame(1, STUB_ALERT)]
+        .filter((e) => e.id! > after)
+        .map(frame)
+        .join(""),
+  );
   const timer = setInterval(() => res.write(": ping\n\n"), HEARTBEAT_MS);
   res.on("close", () => clearInterval(timer));
 }
@@ -105,7 +117,8 @@ function route(req: IncomingMessage, res: ServerResponse, body: string): void {
     return;
   }
   if (method === "GET" && path === "/healthz") return json(res, 200, { status: "ok" });
-  if (method === "GET" && path === "/v1/drift/events") return json(res, 200, { events: STUB_DRIFT_EVENTS });
+  if (method === "GET" && path === "/v1/drift/events")
+    return json(res, 200, { events: STUB_DRIFT_EVENTS });
   if (method === "GET" && path === "/v1/alerts/stream") return alertStream(req, res);
   if (method === "GET" && path === "/v1/review") {
     const kind = url.searchParams.get("kind");
@@ -124,7 +137,9 @@ function route(req: IncomingMessage, res: ServerResponse, body: string): void {
     });
   }
   if (method === "GET" && (m = path.match(/^\/v1\/documents\/([^/]+)\/timeline$/))) {
-    return m[1] === DOC_ID ? json(res, 200, TIMELINE) : json(res, 404, { detail: { code: "not_found" } });
+    return m[1] === DOC_ID
+      ? json(res, 200, TIMELINE)
+      : json(res, 404, { detail: { code: "not_found" } });
   }
   if (method === "POST" && path === "/v1/ask") {
     const job = randomUUID();
@@ -134,15 +149,22 @@ function route(req: IncomingMessage, res: ServerResponse, body: string): void {
       status_url: `/v1/jobs/${job}`,
     });
   }
-  if (method === "GET" && /^\/v1\/ask\/[^/]+\/events$/.test(path)) return replay(req, res, ANSWERED_EVENTS);
-  if ((m = path.match(/^\/v1\/answers\/([^/]+)\/watch$/)) && (method === "POST" || method === "DELETE")) {
+  if (method === "GET" && /^\/v1\/ask\/[^/]+\/events$/.test(path))
+    return replay(req, res, ANSWERED_EVENTS);
+  if (
+    (m = path.match(/^\/v1\/answers\/([^/]+)\/watch$/)) &&
+    (method === "POST" || method === "DELETE")
+  ) {
     return json(res, 200, { answer_id: m[1], watched: method === "POST" });
   }
   if (method === "GET" && path === "/v1/stats") return json(res, 200, STUB_STATS);
   json(res, 404, { detail: "Not Found" });
 }
 
-export async function startStubGateway({ port = 0, host = "127.0.0.1" } = {}): Promise<StubGateway> {
+export async function startStubGateway({
+  port = 0,
+  host = "127.0.0.1",
+} = {}): Promise<StubGateway> {
   const server = createServer((req, res) => {
     const chunks: Buffer[] = [];
     req.on("data", (chunk: Buffer) => chunks.push(chunk));

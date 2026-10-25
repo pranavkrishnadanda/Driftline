@@ -1,7 +1,7 @@
 /**
  * Every view of the app, for checks that visit them all (a11y.spec.ts,
  * reduced-motion.spec.ts). Data-agnostic: they work against the stub gateway
- * (`npm run test:e2e:stub`) and the real stack alike.
+ * (`bun run test:e2e:stub`) and the real stack alike.
  *
  *   DRIFTLINE_E2E_DOCUMENT_ID  the document for /documents/[id]; defaults to the stub's.
  */
@@ -47,16 +47,24 @@ export async function settle(page: Page): Promise<void> {
   await page.waitForFunction(
     () =>
       new Promise<boolean>((resolve) => {
-        const ambient = (n: unknown) => n instanceof Element && n.closest("[data-ambient]") !== null;
+        const ambient = (n: unknown) =>
+          n instanceof Element && n.closest("[data-ambient]") !== null;
         const busy = () =>
           document
             .getAnimations()
-            .some((a) => a.playState === "running" && !ambient((a.effect as KeyframeEffect | null)?.target));
+            .some(
+              (a) =>
+                a.playState === "running" && !ambient((a.effect as KeyframeEffect | null)?.target),
+            );
         let moved = false;
         const observer = new MutationObserver((records) => {
           if (records.some((r) => !ambient(r.target))) moved = true;
         });
-        observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["style"] });
+        observer.observe(document.body, {
+          subtree: true,
+          attributes: true,
+          attributeFilter: ["style"],
+        });
         const before = busy();
         setTimeout(() => {
           observer.disconnect();
@@ -84,13 +92,15 @@ export function invisibleText(page: Page): Promise<string[]> {
       const text = walker.currentNode.textContent?.trim();
       const el = walker.currentNode.parentElement;
       if (!text || !el) continue;
-      if (el.closest("[aria-hidden=true], [inert], .sr-only, svg, script, style, noscript")) continue;
+      if (el.closest("[aria-hidden=true], [inert], .sr-only, svg, script, style, noscript"))
+        continue;
       if (!el.checkVisibility()) continue;
       let opacity = 1;
       for (let e: Element | null = el; e; e = e.parentElement) {
         opacity *= Number(getComputedStyle(e).opacity);
       }
-      if (opacity < 0.05 || getComputedStyle(el).visibility === "hidden") out.push(text.slice(0, 80));
+      if (opacity < 0.05 || getComputedStyle(el).visibility === "hidden")
+        out.push(text.slice(0, 80));
     }
     return out;
   });
@@ -100,7 +110,10 @@ export function invisibleText(page: Page): Promise<string[]> {
  * Watch the page for `ms`: every running CSS/Web Animation, and every inline style or
  * animated SVG attribute that changes (anime.js and Motion's frame loop write these).
  */
-export function motionDuring(page: Page, ms: number): Promise<{ running: string[]; mutations: string[] }> {
+export function motionDuring(
+  page: Page,
+  ms: number,
+): Promise<{ running: string[]; mutations: string[] }> {
   return page.evaluate(async (ms) => {
     const describe = (n: Node | null): string => {
       if (!(n instanceof Element)) return String(n);
@@ -115,7 +128,16 @@ export function motionDuring(page: Page, ms: number): Promise<{ running: string[
     observer.observe(document.body, {
       subtree: true,
       attributes: true,
-      attributeFilter: ["style", "transform", "opacity", "r", "width", "d", "points", "stroke-dashoffset"],
+      attributeFilter: [
+        "style",
+        "transform",
+        "opacity",
+        "r",
+        "width",
+        "d",
+        "points",
+        "stroke-dashoffset",
+      ],
     });
     const running = new Set<string>();
     const sample = () => {

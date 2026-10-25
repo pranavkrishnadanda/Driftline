@@ -7,7 +7,12 @@ import { useEventStream } from "@/lib/sse/useEventStream";
 import answered from "../fixtures/sse/ask-answered.json";
 import expired from "../fixtures/sse/ask-expired.json";
 import { EXPIRED_FRAME, alert, alertFrame } from "../support/drift-fixtures";
-import { startSseServer, tokenBurst, type FixtureEvent, type SseServer } from "../support/sse-server";
+import {
+  startSseServer,
+  tokenBurst,
+  type FixtureEvent,
+  type SseServer,
+} from "../support/sse-server";
 
 const ANSWERED = answered.events as FixtureEvent[];
 const EXPIRED = expired.events as FixtureEvent[];
@@ -115,7 +120,11 @@ describe("useEventStream", () => {
     const { result } = renderHook(() => useEventStream(server!.url, FAST));
 
     await waitFor(() => expect(result.current.status).toBe("expired"));
-    expect(result.current.error).toMatchObject({ type: "error", code: "events_expired", retryable: false });
+    expect(result.current.error).toMatchObject({
+      type: "error",
+      code: "events_expired",
+      retryable: false,
+    });
     await sleep(200);
     expect(server.connections).toHaveLength(1);
   });

@@ -56,7 +56,10 @@ describe("ReviewPending", () => {
 
   it("explains a regenerated watched answer and works before any token", () => {
     render(
-      <ReviewPending text="" step={{ ...REVIEW_WAITING_STEP, detail: { reason: "watched_answer" } }} />,
+      <ReviewPending
+        text=""
+        step={{ ...REVIEW_WAITING_STEP, detail: { reason: "watched_answer" } }}
+      />,
     );
     const pending = screen.getByRole("region", { name: "Waiting for human review" });
     expect(pending).toHaveTextContent("regenerated after its sources changed");
@@ -188,7 +191,9 @@ describe("FinalAnswer: insufficient evidence", () => {
     renderFinal(
       insufficientAnswer({ status: "refused", answer: "That question is out of scope." }),
     );
-    expect(screen.getByRole("heading", { name: "Driftline declined to answer" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Driftline declined to answer" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("That question is out of scope.")).toBeInTheDocument();
   });
 });

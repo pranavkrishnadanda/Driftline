@@ -31,14 +31,11 @@ export function LegendProgress({
         className={cn(
           "w-full overflow-hidden rounded-full bg-legend-track",
           height,
-          trackClassName
+          trackClassName,
         )}
       >
         <Progress.Indicator
-          className={cn(
-            "h-full rounded-full transition-all duration-500",
-            indicatorClassName
-          )}
+          className={cn("h-full rounded-full transition-all duration-500", indicatorClassName)}
           style={{ backgroundColor: item.color }}
         />
       </Progress.Track>

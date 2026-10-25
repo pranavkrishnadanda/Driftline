@@ -98,7 +98,7 @@ interface ResolvedBandStroke {
 
 function resolveEdgeStroke(
   override: BandStrokeProps | false | undefined,
-  base: ResolvedBandStroke
+  base: ResolvedBandStroke,
 ): ResolvedBandStroke | null {
   if (override === false) {
     return null;
@@ -207,15 +207,7 @@ export function Band({
       scale: patternScale,
       strokeWidth: patternStrokeWidth,
     });
-  }, [
-    usesPattern,
-    pattern,
-    patternId,
-    patternColor,
-    fill,
-    patternScale,
-    patternStrokeWidth,
-  ]);
+  }, [usesPattern, pattern, patternId, patternColor, fill, patternScale, patternStrokeWidth]);
 
   if (!isBandVisiblePhase(chartPhase) || paths.area === "") {
     return null;
@@ -293,11 +285,7 @@ export function Band({
 
   return (
     // biome-ignore lint/a11y/noAriaHiddenOnFocusable: decorative band
-    <g
-      aria-hidden="true"
-      className={className ?? "chart-band"}
-      pointerEvents="none"
-    >
+    <g aria-hidden="true" className={className ?? "chart-band"} pointerEvents="none">
       <defs>
         {usesGradient && extent ? (
           <linearGradient
@@ -308,14 +296,8 @@ export function Band({
             y1={extent.top}
             y2={extent.bottom}
           >
-            <stop
-              offset={0}
-              style={{ stopColor: fill, stopOpacity: fillOpacity }}
-            />
-            <stop
-              offset={1}
-              style={{ stopColor: fill, stopOpacity: gradientToOpacity }}
-            />
+            <stop offset={0} style={{ stopColor: fill, stopOpacity: fillOpacity }} />
+            <stop offset={1} style={{ stopColor: fill, stopOpacity: gradientToOpacity }} />
           </linearGradient>
         ) : null}
         {patternNode}
@@ -329,9 +311,7 @@ export function Band({
               y1={0}
               y2={0}
             >
-              <FadeMaskStops
-                stops={bandFadeStops(fadeSides.left, fadeSides.right, fadeSize)}
-              />
+              <FadeMaskStops stops={bandFadeStops(fadeSides.left, fadeSides.right, fadeSize)} />
             </linearGradient>
             <mask id={hMaskId} {...maskRegion}>
               <rect fill={`url(#${hMaskId}-gradient)`} {...maskRect} />
@@ -348,9 +328,7 @@ export function Band({
               y1={extent.top}
               y2={extent.bottom}
             >
-              <FadeMaskStops
-                stops={bandFadeStops(fadeSides.top, fadeSides.bottom, fadeSize)}
-              />
+              <FadeMaskStops stops={bandFadeStops(fadeSides.top, fadeSides.bottom, fadeSize)} />
             </linearGradient>
             <mask id={vMaskId} {...maskRegion}>
               <rect fill={`url(#${vMaskId}-gradient)`} {...maskRect} />

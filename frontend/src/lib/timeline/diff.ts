@@ -36,7 +36,9 @@ function paths(value: unknown): string[] {
 function adjustment(value: unknown): DiffRows["adjusted"] {
   if (!value || typeof value !== "object") return null;
   const { requested, applied } = value as { requested?: unknown; applied?: unknown };
-  return typeof requested === "string" && typeof applied === "string" ? { requested, applied } : null;
+  return typeof requested === "string" && typeof applied === "string"
+    ? { requested, applied }
+    : null;
 }
 
 export function diffToRows(diff: TimelineVersion["diff_from_prev"]): DiffRows {

@@ -28,26 +28,35 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v7
+      # Node still runs the Node-shebang tools (Vitest, openapi-typescript); Bun installs and runs scripts.
       - uses: actions/setup-node@v7
         with:
           node-version-file: frontend/.nvmrc
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: frontend/package.json
+      - uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('frontend/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run format:check
+      - run: bun run typecheck
+      - run: bun run test
+      - run: bun run build
       # Lighthouse, report only: scores never fail the job. The report is an artifact.
       - name: Lighthouse (report only)
         continue-on-error: true
         run: >-
-          npx -y @lhci/cli@0.15.1 collect
-          --start-server-command="npm run start"
+          bunx @lhci/cli@0.15.1 collect
+          --start-server-command="bun run start"
           --url=http://localhost:3000/
           --url=http://localhost:3000/ask
           --number-of-runs=1
-          && npx -y @lhci/cli@0.15.1 upload --target=filesystem --outputDir=lhci-report
+          && bunx @lhci/cli@0.15.1 upload --target=filesystem --outputDir=lhci-report
       - uses: actions/upload-artifact@v7
         if: always()
         with:

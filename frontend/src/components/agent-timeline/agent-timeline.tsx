@@ -77,20 +77,26 @@ function describeNode(node: NodeState, state: TimelineState): string[] {
   switch (node.name) {
     case "classify": {
       const asOf = s("as_of");
-      if (asOf) lines.push(`As of ${formatDate(asOf)} (from the ${words(s("source") ?? "request")})`);
+      if (asOf)
+        lines.push(`As of ${formatDate(asOf)} (from the ${words(s("source") ?? "request")})`);
       if (s("refused")) lines.push(`Refused: ${words(s("refused")!)}`);
       if (d.empty_corpus === true) lines.push("No documents are in force yet");
       break;
     }
     case "cache":
       if (state.cache === "hit") {
-        lines.push(`Cache hit${n("similarity") !== null ? ` (similarity ${n("similarity")!.toFixed(2)})` : ""}`);
+        lines.push(
+          `Cache hit${n("similarity") !== null ? ` (similarity ${n("similarity")!.toFixed(2)})` : ""}`,
+        );
       } else if (state.cache === "miss") lines.push("No cached answer for this question and date");
       else if (state.cache === "skipped") lines.push("The answer cache is off");
       break;
     case "plan": {
       const subs = Array.isArray(d.sub_questions) ? d.sub_questions.length : null;
-      if (s("mode")) lines.push(`${s("mode")} plan${subs !== null ? `, ${subs} sub-question${subs === 1 ? "" : "s"}` : ""}`);
+      if (s("mode"))
+        lines.push(
+          `${s("mode")} plan${subs !== null ? `, ${subs} sub-question${subs === 1 ? "" : "s"}` : ""}`,
+        );
       if (s("error")) lines.push("The plan was malformed, so the question is asked as is");
       break;
     }
@@ -132,7 +138,8 @@ function describeNode(node: NodeState, state: TimelineState): string[] {
 
 export function AgentTimeline({ state, reducedMotion = "user", className }: AgentTimelineProps) {
   const prefersReduced = useReducedMotion();
-  const reduce = reducedMotion === "always" || (reducedMotion === "user" && prefersReduced === true);
+  const reduce =
+    reducedMotion === "always" || (reducedMotion === "user" && prefersReduced === true);
   const [expanded, setExpanded] = useState(true);
   const [open, setOpen] = useState<NodeName[]>([]);
   const listId = useId();
@@ -152,7 +159,10 @@ export function AgentTimeline({ state, reducedMotion = "user", className }: Agen
     >
       <section
         aria-label="Agent timeline"
-        className={cn("rounded-2xl border border-border bg-card px-4 py-3 text-card-foreground", className)}
+        className={cn(
+          "rounded-2xl border border-border bg-card px-4 py-3 text-card-foreground",
+          className,
+        )}
       >
         <header className="flex flex-wrap items-center gap-2">
           <h2 className="font-heading text-sm font-semibold">Agent timeline</h2>
@@ -210,7 +220,9 @@ export function AgentTimeline({ state, reducedMotion = "user", className }: Agen
         {answer && answer.status !== "answered" ? (
           <div className="mt-3 rounded-lg border border-amber-500/40 px-3 py-2">
             <h3 className="text-sm font-semibold">
-              {answer.status === "refused" ? "Refused: declined to answer" : "Refused: not enough evidence"}
+              {answer.status === "refused"
+                ? "Refused: declined to answer"
+                : "Refused: not enough evidence"}
             </h3>
             <p className="mb-2 text-xs text-muted-foreground">
               No claim could be verified against sources in force on {formatDate(answer.as_of)}, so
@@ -254,7 +266,8 @@ function NodeRow({
   const order = state.lit.indexOf(node.name);
   const label = stepLabel(node.name);
   const statusText = nodeStatusText(node, state);
-  const showRuns = node.name === "re_retrieve" ? node.runs > 0 : node.name !== "subagent" && node.runs > 1;
+  const showRuns =
+    node.name === "re_retrieve" ? node.runs > 0 : node.name !== "subagent" && node.runs > 1;
 
   return (
     <motion.li
@@ -273,7 +286,11 @@ function NodeRow({
         aria-hidden="true"
         initial={false}
         // The pulse is decoration: the colour and the status text carry the state.
-        animate={reduce ? undefined : { scale: node.status === "active" || node.status === "waiting" ? 1.3 : 1 }}
+        animate={
+          reduce
+            ? undefined
+            : { scale: node.status === "active" || node.status === "waiting" ? 1.3 : 1 }
+        }
         className={cn("absolute top-1.5 left-0.5 size-3 rounded-full border-2", DOT[node.status])}
       />
       <button
@@ -293,7 +310,9 @@ function NodeRow({
           <span className="rounded bg-muted px-1 text-[11px] tabular-nums">×{node.runs}</span>
         ) : null}
         {node.tMs !== null ? (
-          <span className="ml-auto text-[11px] tabular-nums text-muted-foreground">{seconds(node.tMs)}</span>
+          <span className="ml-auto text-[11px] tabular-nums text-muted-foreground">
+            {seconds(node.tMs)}
+          </span>
         ) : null}
       </button>
 
@@ -362,7 +381,8 @@ function ClaimChecks({ claims, reduce }: { claims: ClaimCheck[]; reduce: boolean
     <ul aria-label="Claim checks" className="mt-1.5 flex flex-col gap-1">
       {claims.map((claim) => {
         const n = claim.idx + 1;
-        const Icon = claim.verified === null ? CircleDashed : claim.verified ? CircleCheck : CircleX;
+        const Icon =
+          claim.verified === null ? CircleDashed : claim.verified ? CircleCheck : CircleX;
         const name =
           claim.verified === null
             ? `Claim ${n} being checked`

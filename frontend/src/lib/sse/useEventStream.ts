@@ -185,7 +185,10 @@ async function runEventStream<E extends StreamEvent>(
         if (!RETRYABLE_STATUS.has(response.status)) {
           sink.terminal({
             status: "failed",
-            error: clientError(`http_${response.status}`, `the event stream returned ${response.status}`),
+            error: clientError(
+              `http_${response.status}`,
+              `the event stream returned ${response.status}`,
+            ),
           });
           return;
         }
@@ -258,7 +261,12 @@ export function useEventStream<E extends StreamEvent = AskEvent>(
   options: UseEventStreamOptions = {},
 ): EventStreamState<E> {
   const [state, setState] = useState<EventStreamState<E>>(IDLE);
-  const { initialRetryMs = 1000, maxRetryMs = 30_000, maxAttempts = 8, lastEventId = null } = options;
+  const {
+    initialRetryMs = 1000,
+    maxRetryMs = 30_000,
+    maxAttempts = 8,
+    lastEventId = null,
+  } = options;
   // Options are read when a stream starts; only a new `url` restarts it.
   const optionsRef = useRef({ initialRetryMs, maxRetryMs, maxAttempts, lastEventId });
   useEffect(() => {

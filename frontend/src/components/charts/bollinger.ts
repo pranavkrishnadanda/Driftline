@@ -30,7 +30,7 @@ export interface BollingerBandsOptions {
  */
 export function withBollingerBands<T extends Record<string, unknown>>(
   data: T[],
-  options: BollingerBandsOptions
+  options: BollingerBandsOptions,
 ): (T & Record<string, number | null>)[] {
   const {
     dataKey,
@@ -44,10 +44,7 @@ export function withBollingerBands<T extends Record<string, unknown>>(
   const windowSize = Math.max(1, Math.floor(period));
   const requiredCount = Math.min(
     windowSize,
-    Math.max(
-      1,
-      Number.isFinite(minPeriods) ? Math.floor(minPeriods) : windowSize
-    )
+    Math.max(1, Number.isFinite(minPeriods) ? Math.floor(minPeriods) : windowSize),
   );
 
   return data.map((row, index) => {
@@ -56,11 +53,7 @@ export function withBollingerBands<T extends Record<string, unknown>>(
     let middle: number | null = null;
 
     const values: number[] = [];
-    for (
-      let offset = Math.max(0, index - windowSize + 1);
-      offset <= index;
-      offset++
-    ) {
+    for (let offset = Math.max(0, index - windowSize + 1); offset <= index; offset++) {
       const value = data[offset]?.[dataKey];
       if (typeof value === "number" && Number.isFinite(value)) {
         values.push(value);
@@ -69,8 +62,7 @@ export function withBollingerBands<T extends Record<string, unknown>>(
     if (values.length >= requiredCount) {
       const count = values.length;
       const mean = values.reduce((sum, value) => sum + value, 0) / count;
-      const variance =
-        values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / count;
+      const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / count;
       const spread = multiplier * Math.sqrt(variance);
       middle = mean;
       upper = mean + spread;

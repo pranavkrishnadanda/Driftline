@@ -129,18 +129,13 @@ function hash(text: string) {
 const r1 = (n: number) => Math.round(n * 10) / 10;
 
 function polyline(points: Pt[]) {
-  return points
-    .map(([x, y], i) => `${i === 0 ? "M" : "L"}${r1(x)} ${r1(y)}`)
-    .join("");
+  return points.map(([x, y], i) => `${i === 0 ? "M" : "L"}${r1(x)} ${r1(y)}`).join("");
 }
 
 function lengthOf(points: Pt[]) {
   let total = 0;
   for (let i = 1; i < points.length; i++) {
-    total += Math.hypot(
-      points[i][0] - points[i - 1][0],
-      points[i][1] - points[i - 1][1]
-    );
+    total += Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]);
   }
   return total;
 }
@@ -170,9 +165,9 @@ function outline(points: Pt[], widths: number[]) {
   const startCap = r1(widths[0] / 2);
   const back = right.reverse();
   return `${polyline(left)}A${endCap} ${endCap} 0 0 0 ${r1(back[0][0])} ${r1(
-    back[0][1]
+    back[0][1],
   )}${polyline(back).replace("M", "L")}A${startCap} ${startCap} 0 0 0 ${r1(
-    left[0][0]
+    left[0][0],
   )} ${r1(left[0][1])}Z`;
 }
 
@@ -180,9 +175,7 @@ function outline(points: Pt[], widths: number[]) {
 function pressure(t: number, base: number) {
   const land = Math.min(1, t / 0.1);
   const lift = Math.min(1, (1 - t) / 0.18);
-  return (
-    base * (0.45 + 0.55 * Math.sin((land * Math.PI) / 2)) * (0.55 + 0.45 * lift)
-  );
+  return base * (0.45 + 0.55 * Math.sin((land * Math.PI) / 2)) * (0.55 + 0.45 * lift);
 }
 
 /** A slow, uneven wave for edges that should look hand drawn. */
@@ -192,9 +185,7 @@ function wobble(rand: () => number, amp: number) {
   const f1 = 1 + rand() * 1.5;
   const f2 = 3 + rand() * 3;
   return (t: number) =>
-    amp *
-    (0.7 * Math.sin(t * f1 * Math.PI + p1) +
-      0.3 * Math.sin(t * f2 * Math.PI + p2));
+    amp * (0.7 * Math.sin(t * f1 * Math.PI + p1) + 0.3 * Math.sin(t * f2 * Math.PI + p2));
 }
 
 function sample(count: number, at: (t: number) => Pt) {
@@ -209,7 +200,7 @@ function penStroke(
   points: Pt[],
   width: number,
   key: string,
-  color: string
+  color: string,
 ): Omit<Stroke, "delay" | "duration"> {
   const widths = points.map((_, i) => pressure(i / (points.length - 1), width));
   return {
@@ -228,13 +219,12 @@ function strokesFor(
   entry: Entry,
   lines: Rect[],
   seed: number,
-  index: number
+  index: number,
 ): Omit<Stroke, "delay" | "duration">[] {
   const rand = random(seed);
   const color = entry.color ?? DEFAULT_COLOR[entry.type];
   const lineHeight = lines[0].bottom - lines[0].top;
-  const width =
-    entry.strokeWidth ?? Math.min(4.5, Math.max(1.6, lineHeight * 0.085));
+  const width = entry.strokeWidth ?? Math.min(4.5, Math.max(1.6, lineHeight * 0.085));
 
   if (entry.type === "highlight") {
     return lines.map((line, i) => {
@@ -251,10 +241,7 @@ function strokesFor(
       const y1 = line.bottom - h * 0.02;
       const steps = Math.max(6, Math.round((x1 - x0) / 14));
       const edge = (y: number, wave: (t: number) => number, dx: number) =>
-        sample(steps, (t) => [
-          x0 + dx + (x1 - x0) * t,
-          y + wave(t) + tilt * (t - 0.5),
-        ]);
+        sample(steps, (t) => [x0 + dx + (x1 - x0) * t, y + wave(t) + tilt * (t - 0.5)]);
       const upper = edge(y0, top, chisel * 0.5);
       const lower = edge(y1, bottom, -chisel * 0.5).reverse();
       const mid = (y0 + y1) / 2;
@@ -283,10 +270,7 @@ function strokesFor(
       const wave = wobble(rand, 0.5);
       const x0 = line.left - 2 - rand() * 3;
       const x1 = line.right + 2 + rand() * 4;
-      const y =
-        entry.type === "strike"
-          ? line.top + h * 0.56
-          : line.bottom + Math.max(1, h * 0.04);
+      const y = entry.type === "strike" ? line.top + h * 0.56 : line.bottom + Math.max(1, h * 0.04);
       const steps = Math.max(8, Math.round((x1 - x0) / 6));
       const points = sample(steps, (t) => [
         x0 + (x1 - x0) * t,
@@ -301,17 +285,11 @@ function strokesFor(
   return lines.map((line, i) =>
     entry.type === "circle"
       ? circleStroke(line, rand, width, `${index}-${i}`, color)
-      : boxStroke(line, rand, width, `${index}-${i}`, color)
+      : boxStroke(line, rand, width, `${index}-${i}`, color),
   );
 }
 
-function circleStroke(
-  box: Rect,
-  rand: () => number,
-  width: number,
-  key: string,
-  color: string
-) {
+function circleStroke(box: Rect, rand: () => number, width: number, key: string, color: string) {
   const cx = (box.left + box.right) / 2;
   const cy = (box.top + box.bottom) / 2;
   const rx = (box.right - box.left) / 2 + 8;
@@ -341,13 +319,7 @@ function circleStroke(
  * One continuous stroke round four slightly bowed sides, overshooting the
  * first corner at the end.
  */
-function boxStroke(
-  box: Rect,
-  rand: () => number,
-  width: number,
-  key: string,
-  color: string
-) {
+function boxStroke(box: Rect, rand: () => number, width: number, key: string, color: string) {
   const padX = 5;
   const padY = 3;
   const corners: Pt[] = [
@@ -368,10 +340,7 @@ function boxStroke(
     for (let s = side === 0 ? 0 : 1; s <= steps; s++) {
       const t = s / steps;
       const lift = Math.sin(t * Math.PI) * bow;
-      points.push([
-        a[0] + (b[0] - a[0]) * t + nx * lift,
-        a[1] + (b[1] - a[1]) * t + ny * lift,
-      ]);
+      points.push([a[0] + (b[0] - a[0]) * t + nx * lift, a[1] + (b[1] - a[1]) * t + ny * lift]);
     }
   }
   const first = corners[0];
@@ -395,13 +364,7 @@ const MarkerContext = createContext<Registry | null>(null);
  * reading order. Highlights render as `<mark>` and strikes as `<s>`, so the
  * meaning survives without the drawing.
  */
-export function Mark({
-  children,
-  type = "highlight",
-  color,
-  strokeWidth,
-  className,
-}: MarkProps) {
+export function Mark({ children, type = "highlight", color, strokeWidth, className }: MarkProps) {
   const registry = useContext(MarkerContext);
   const ref = useRef<HTMLElement>(null);
   const id = useId();
@@ -428,7 +391,7 @@ export function Mark({
       className={cn(
         "bg-transparent text-inherit no-underline",
         (type === "circle" || type === "box") && "whitespace-nowrap",
-        className
+        className,
       )}
       data-mark={type}
       ref={ref}
@@ -464,8 +427,7 @@ export function MarkerText({
 
   // Driftline: without the observers (jsdom, old browsers) the marks draw at once.
   const canObserve =
-    typeof ResizeObserver !== "undefined" &&
-    typeof IntersectionObserver !== "undefined";
+    typeof ResizeObserver !== "undefined" && typeof IntersectionObserver !== "undefined";
   // Under reduced motion the marks are simply there: no wait for the viewport, no draw.
   const visible = show ?? (seen || !canObserve || reduced);
   const armed = visible && (armedState || reduced);
@@ -479,7 +441,7 @@ export function MarkerText({
     // Reading order is document order, whatever order the marks mounted in.
     const order = Array.from(root.querySelectorAll("[data-mark]"));
     const ordered = [...entries.current.values()].sort(
-      (a, b) => order.indexOf(a.el) - order.indexOf(b.el)
+      (a, b) => order.indexOf(a.el) - order.indexOf(b.el),
     );
     const next: Stroke[] = [];
     let clock = 0;
@@ -499,10 +461,7 @@ export function MarkerText({
       const speed = entry.type === "highlight" ? HIGHLIGHT_SPEED : PEN_SPEED;
       const made = strokesFor(entry, lines, seed, index);
       made.forEach((stroke, i) => {
-        const duration = Math.min(
-          MAX_MS,
-          Math.max(MIN_MS, stroke.length / speed)
-        );
+        const duration = Math.min(MAX_MS, Math.max(MIN_MS, stroke.length / speed));
         next.push({ ...stroke, delay: clock, duration });
         clock += duration + (i < made.length - 1 ? LINE_GAP : 0);
       });
@@ -546,7 +505,7 @@ export function MarkerText({
           view.disconnect();
         }
       },
-      { threshold: 0.6 }
+      { threshold: 0.6 },
     );
     view.observe(root);
     return () => {
@@ -574,10 +533,7 @@ export function MarkerText({
     };
   }, [visible]);
 
-  const total = strokes.reduce(
-    (end, s) => Math.max(end, s.delay + s.duration),
-    0
-  );
+  const total = strokes.reduce((end, s) => Math.max(end, s.delay + s.duration), 0);
   const totalRef = useRef(total);
   useLayoutEffect(() => {
     totalRef.current = total;
@@ -590,10 +546,7 @@ export function MarkerText({
     if (!(armed && hasStrokes)) {
       return;
     }
-    const timer = window.setTimeout(
-      () => onDrawnRef.current?.(),
-      reduced ? 0 : totalRef.current
-    );
+    const timer = window.setTimeout(() => onDrawnRef.current?.(), reduced ? 0 : totalRef.current);
     return () => window.clearTimeout(timer);
   }, [armed, hasStrokes, reduced]);
 
@@ -602,7 +555,7 @@ export function MarkerText({
       aria-hidden="true"
       className={cn(
         "pointer-events-none absolute top-0 left-0 overflow-visible",
-        under ? "-z-10" : "z-10"
+        under ? "-z-10" : "z-10",
       )}
       height="1"
       width="1"
@@ -638,12 +591,7 @@ export function MarkerText({
                   }}
                 />
               </mask>
-              <path
-                d={s.shape}
-                fill={s.color}
-                fillOpacity={s.alpha}
-                mask={`url(#${id})`}
-              />
+              <path d={s.shape} fill={s.color} fillOpacity={s.alpha} mask={`url(#${id})`} />
             </g>
           );
         })}
@@ -682,9 +630,8 @@ export default function MarkerTextDemo({ className }: { className?: string }) {
           Notes that keep up with <Mark>how fast you think</Mark>.
         </h2>
         <p className="mt-6 text-[17px] text-zinc-600 leading-8 dark:text-zinc-400">
-          Every edit syncs{" "}
-          <Mark type="underline">the moment you stop typing</Mark>, search opens
-          in <Mark type="circle">under a second</Mark>, and your notes live in a{" "}
+          Every edit syncs <Mark type="underline">the moment you stop typing</Mark>, search opens in{" "}
+          <Mark type="circle">under a second</Mark>, and your notes live in a{" "}
           <Mark type="box">plain folder</Mark> you own. No accounts, no{" "}
           <Mark type="strike">monthly fee</Mark> lock-in.
         </p>
@@ -692,7 +639,7 @@ export default function MarkerTextDemo({ className }: { className?: string }) {
       <button
         className={cn(
           "mt-8 inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-[13px] text-zinc-500 transition-[color,opacity] duration-200 hover:text-zinc-900 dark:hover:text-zinc-100",
-          done ? "opacity-100" : "pointer-events-none opacity-0"
+          done ? "opacity-100" : "pointer-events-none opacity-0",
         )}
         disabled={!done}
         onClick={replay}

@@ -46,7 +46,11 @@ export function buildSupersessionGraph(timeline: DocumentTimeline): {
         id,
         type: "doc",
         position: { x: COLUMN_X[role], y: 0 },
-        data: { label: shortLabel(r.document_title, r.document_id), documentId: r.document_id, role },
+        data: {
+          label: shortLabel(r.document_title, r.document_id),
+          documentId: r.document_id,
+          role,
+        },
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
       });
@@ -92,7 +96,12 @@ export function buildSupersessionGraph(timeline: DocumentTimeline): {
     ...timeline.relations.incoming.map((r) => edge(r, `in:${r.document_id}`, "self", r.kind)),
     ...timeline.relations.outgoing.map((r) => {
       const no = versionNo.get(r.src_version_id);
-      return edge(r, "self", `out:${r.document_id}`, no === undefined ? r.kind : `${r.kind} · v${no}`);
+      return edge(
+        r,
+        "self",
+        `out:${r.document_id}`,
+        no === undefined ? r.kind : `${r.kind} · v${no}`,
+      );
     }),
   ];
 

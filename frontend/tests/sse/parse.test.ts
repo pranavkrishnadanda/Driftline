@@ -33,7 +33,8 @@ describe("createSseParser", () => {
   });
 
   it("yields identical events however the bytes are chunked", () => {
-    const stream = 'id: 1\nevent: step\ndata: {"a":1}\n\n: ping\n\nid: 2\r\nevent: token\r\ndata: x\r\n\r\n';
+    const stream =
+      'id: 1\nevent: step\ndata: {"a":1}\n\n: ping\n\nid: 2\r\nevent: token\r\ndata: x\r\n\r\n';
     const expected = collect([stream]);
     expect(expected.messages).toHaveLength(2);
     for (const chunks of splits(stream)) {

@@ -8,16 +8,10 @@ export interface LegendLabelProps {
   className?: string;
 }
 
-export function LegendLabel({
-  className = "text-sm font-medium",
-}: LegendLabelProps) {
+export function LegendLabel({ className = "text-sm font-medium" }: LegendLabelProps) {
   const { item } = useLegendItem();
 
-  return (
-    <span className={cn("text-legend-foreground", className)}>
-      {item.label}
-    </span>
-  );
+  return <span className={cn("text-legend-foreground", className)}>{item.label}</span>;
 }
 
 LegendLabel.displayName = "LegendLabel";

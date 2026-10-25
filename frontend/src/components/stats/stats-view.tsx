@@ -13,7 +13,10 @@ import {
 import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 
 import { TenantSelect } from "@/components/ask/ask-controls";
-import WidgetGrid, { type WidgetGridItem, type WidgetSize } from "@/components/kokonutui/bento-grid";
+import WidgetGrid, {
+  type WidgetGridItem,
+  type WidgetSize,
+} from "@/components/kokonutui/bento-grid";
 import {
   BacklogChart,
   CacheGauge,
@@ -54,8 +57,8 @@ export function StatsView({ tenants, client: clientProp }: StatsViewProps) {
         <div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight">Stats</h1>
           <p className="text-sm text-muted-foreground">
-            Corpus size, drift over time, ask latency, cost per answer, cache hit rate,
-            review backlog and eval scores. Daily figures cover the last 30 UTC days.
+            Corpus size, drift over time, ask latency, cost per answer, cache hit rate, review
+            backlog and eval scores. Daily figures cover the last 30 UTC days.
           </p>
         </div>
         {tenants.length > 1 ? (
@@ -139,7 +142,15 @@ const TILE_ICONS: Record<KpiTile["id"], LucideIcon> = {
   backlog: Inbox,
 };
 
-function TileBody({ tile, size, showTitle }: { tile: KpiTile; size: WidgetSize; showTitle: boolean }) {
+function TileBody({
+  tile,
+  size,
+  showTitle,
+}: {
+  tile: KpiTile;
+  size: WidgetSize;
+  showTitle: boolean;
+}) {
   return (
     <div role="group" aria-label={tile.title} className="flex h-full flex-col justify-end gap-1">
       {showTitle ? <p className="text-sm font-medium text-muted-foreground">{tile.title}</p> : null}
@@ -241,7 +252,11 @@ function StatsReady({ stats }: { stats: Stats }) {
     <div className="flex flex-col gap-6">
       <KpiTiles stats={stats} />
       <div className="grid gap-4 md:grid-cols-2">
-        <Panel title="Drift events per day" description={describeDrift(stats)} className="md:col-span-2">
+        <Panel
+          title="Drift events per day"
+          description={describeDrift(stats)}
+          className="md:col-span-2"
+        >
           <ChartSlot show={stats.drift.total > 0}>
             <DriftChart {...charts} />
           </ChartSlot>

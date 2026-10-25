@@ -255,6 +255,8 @@ describe("summarizeTimeline", () => {
     expect(summarizeTimeline(buildTimeline(REVIEW_WAITING_RUN))).toBe(
       "Paused: waiting for human review.",
     );
-    expect(summarizeTimeline(buildTimeline(ERROR_RUN))).toBe("Stopped: Drafting failed (internal).");
+    expect(summarizeTimeline(buildTimeline(ERROR_RUN))).toBe(
+      "Stopped: Drafting failed (internal).",
+    );
   });
 });

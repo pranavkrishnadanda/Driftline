@@ -161,7 +161,11 @@ export function ReviewItemCard({ item, highlighted = false, onResolve }: ReviewI
               Edit
             </Button>
           ) : null}
-          <Button variant="destructive" size="sm" onClick={() => onResolve(item, { action: "reject" })}>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => onResolve(item, { action: "reject" })}
+          >
             Reject
           </Button>
         </div>

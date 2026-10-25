@@ -24,7 +24,10 @@ describe("app shell navigation", () => {
     const nav = screen.getByRole("navigation", { name: "Views" });
     const links = within(nav).getAllByRole("link");
     expect(links).toHaveLength(5);
-    expect(within(nav).getByRole("link", { name: "Drift" })).toHaveAttribute("aria-current", "page");
+    expect(within(nav).getByRole("link", { name: "Drift" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     expect(within(nav).getByRole("link", { name: "Ask" })).not.toHaveAttribute("aria-current");
   });
 

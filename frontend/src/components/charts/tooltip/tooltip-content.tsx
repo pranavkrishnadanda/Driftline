@@ -31,7 +31,7 @@ export function TooltipHeader({ children, className }: TooltipHeaderProps) {
     <div
       className={cn(
         "border-b px-3.5 py-2.5 text-left font-medium text-chart-tooltip-foreground text-sm",
-        className
+        className,
       )}
     >
       {children}
@@ -60,14 +60,10 @@ export function TooltipContent({ title, rows, children }: TooltipContentProps) {
                       className="size-2 shrink-0 rounded-full"
                       style={{ backgroundColor: row.color }}
                     />
-                    <span className="truncate text-chart-tooltip-muted text-sm">
-                      {row.label}
-                    </span>
+                    <span className="truncate text-chart-tooltip-muted text-sm">{row.label}</span>
                   </div>
                   <span className="text-right font-medium text-chart-tooltip-foreground text-sm tabular-nums">
-                    {typeof row.value === "number"
-                      ? intFmt(row.value)
-                      : row.value}
+                    {typeof row.value === "number" ? intFmt(row.value) : row.value}
                   </span>
                 </div>
               ))}
@@ -76,10 +72,7 @@ export function TooltipContent({ title, rows, children }: TooltipContentProps) {
 
           {children && (
             <div
-              className={cn(
-                "transition-opacity duration-200 ease-out",
-                rows.length > 0 && "mt-2"
-              )}
+              className={cn("transition-opacity duration-200 ease-out", rows.length > 0 && "mt-2")}
             >
               {children}
             </div>

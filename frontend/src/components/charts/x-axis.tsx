@@ -3,11 +3,7 @@
 import { memo, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import {
-  useChart,
-  useChartPortalContainer,
-  useChartStable,
-} from "./chart-context";
+import { useChart, useChartPortalContainer, useChartStable } from "./chart-context";
 import { shortDateFmt } from "./chart-formatters";
 import { DEFAULT_Y_DOMAIN_TWEEN_MS } from "./chart-phase";
 import { LINE_LOADING_PULSE_EASE } from "./line-loading-timing";
@@ -144,7 +140,7 @@ function indicesForTickCount(length: number, tickCount: number): number[] {
   }
 
   const rawIndices = Array.from({ length: tickCount }, (_, index) =>
-    Math.round((index / (tickCount - 1)) * span)
+    Math.round((index / (tickCount - 1)) * span),
   );
 
   const indices = [...new Set(rawIndices)].sort((a, b) => a - b);
@@ -181,7 +177,7 @@ function dedupeIndicesByLabel(
   indices: number[],
   data: Record<string, unknown>[],
   dateLabels: string[],
-  xAccessor: (d: Record<string, unknown>) => Date
+  xAccessor: (d: Record<string, unknown>) => Date,
 ): number[] {
   const seenLabels = new Set<string>();
   const deduped: number[] = [];
@@ -239,7 +235,7 @@ function smallestGapEdgePreference(indices: number[]): number {
 function scoreTickLayout(
   indices: number[],
   resolveXPx: (index: number) => number,
-  targetCount: number
+  targetCount: number,
 ): TickLayoutScore {
   if (indices.length < 2) {
     return {
@@ -262,17 +258,14 @@ function scoreTickLayout(
 
   const minGap = Math.min(...pixelGaps);
   const maxGap = Math.max(...pixelGaps);
-  const meanGap =
-    pixelGaps.reduce((sum, gap) => sum + gap, 0) / pixelGaps.length;
-  const spreadRatio =
-    meanGap > 0 ? (maxGap - minGap) / meanGap : maxGap - minGap;
+  const meanGap = pixelGaps.reduce((sum, gap) => sum + gap, 0) / pixelGaps.length;
+  const spreadRatio = meanGap > 0 ? (maxGap - minGap) / meanGap : maxGap - minGap;
   const countDistance = Math.abs(indices.length - targetCount);
 
   const gaps = indexGaps(indices);
   const smallestGap = Math.min(...gaps);
   const smallestGapIndex = gaps.indexOf(smallestGap);
-  const interiorPenalty =
-    smallestGapIndex > 0 && smallestGapIndex < gaps.length - 1 ? 0.08 : 0;
+  const interiorPenalty = smallestGapIndex > 0 && smallestGapIndex < gaps.length - 1 ? 0.08 : 0;
 
   const symmetryPenalty =
     gaps.reduce((penalty, gap, index) => {
@@ -280,11 +273,7 @@ function scoreTickLayout(
     }, 0) / gaps.length;
 
   return {
-    score:
-      spreadRatio +
-      0.1 * countDistance +
-      interiorPenalty +
-      symmetryPenalty * 0.02,
+    score: spreadRatio + 0.1 * countDistance + interiorPenalty + symmetryPenalty * 0.02,
     symmetryPenalty,
     countDistance,
     edgePreference: smallestGapEdgePreference(indices),
@@ -295,7 +284,7 @@ function isBetterTickLayout(
   next: TickLayoutScore,
   best: TickLayoutScore,
   nextCountDistance: number,
-  bestCountDistance: number
+  bestCountDistance: number,
 ): boolean {
   if (next.score < best.score - 1e-6) {
     return true;
@@ -330,7 +319,7 @@ export function selectEvenlySpacedIndices(
     dateLabels?: string[];
     xAccessor?: (d: Record<string, unknown>) => Date;
     resolveXPx?: (index: number) => number;
-  }
+  },
 ): number[] {
   if (length <= 0) {
     return [];
@@ -355,12 +344,7 @@ export function selectEvenlySpacedIndices(
     for (const rawIndices of allIndexLayouts(length, tickCount)) {
       const indices =
         options?.data && options.dateLabels && options.xAccessor
-          ? dedupeIndicesByLabel(
-              rawIndices,
-              options.data,
-              options.dateLabels,
-              options.xAccessor
-            )
+          ? dedupeIndicesByLabel(rawIndices, options.data, options.dateLabels, options.xAccessor)
           : rawIndices;
 
       if (indices.length < 2) {
@@ -370,14 +354,7 @@ export function selectEvenlySpacedIndices(
       const layoutScore = scoreTickLayout(indices, resolveXPx, targetCount);
       const countDistance = Math.abs(indices.length - targetCount);
 
-      if (
-        isBetterTickLayout(
-          layoutScore,
-          bestScore,
-          countDistance,
-          bestCountDistance
-        )
-      ) {
+      if (isBetterTickLayout(layoutScore, bestScore, countDistance, bestCountDistance)) {
         bestIndices = indices;
         bestScore = layoutScore;
         bestCountDistance = countDistance;
@@ -488,7 +465,7 @@ function buildDomainTicks({
 function domainExtendsPastData(
   data: Record<string, unknown>[],
   xAccessor: (d: Record<string, unknown>) => Date,
-  xScale: { domain: () => Date[] }
+  xScale: { domain: () => Date[] },
 ): boolean {
   if (data.length === 0) {
     return false;
@@ -511,7 +488,7 @@ function appendProjectionTailTicks(
     (date: Date): number | undefined;
   },
   marginLeft: number,
-  maxExtraTicks: number
+  maxExtraTicks: number,
 ): AxisTick[] {
   if (data.length === 0 || maxExtraTicks <= 0) {
     return ticks;
@@ -535,9 +512,7 @@ function appendProjectionTailTicks(
   const extraCount = Math.min(maxExtraTicks, 3);
 
   for (let i = 1; i <= extraCount; i++) {
-    const date = new Date(
-      startTime + (i / (extraCount + 1)) * (endTime - startTime)
-    );
+    const date = new Date(startTime + (i / (extraCount + 1)) * (endTime - startTime));
     const label = shortDateFmt.format(date);
     if (seenLabels.has(label)) {
       continue;
@@ -597,7 +572,7 @@ const XAxisInner = memo(function XAxisInner({
   const dateLabels = labelsProp ?? contextDateLabels;
   const resolvedNumTicks = useMemo(
     () => resolveResponsiveChartLabelCount(numTicks, width, 5),
-    [numTicks, width]
+    [numTicks, width],
   );
 
   const labelsToShow = useMemo(() => {
@@ -638,28 +613,18 @@ const XAxisInner = memo(function XAxisInner({
         xAccessor,
         xScale,
         margin.left,
-        Math.max(1, resolvedNumTicks - dataTicks.length + 1)
+        Math.max(1, resolvedNumTicks - dataTicks.length + 1),
       );
     }
 
     return dataTicks;
-  }, [
-    tickMode,
-    xDomain,
-    data,
-    dateLabels,
-    xAccessor,
-    xScale,
-    margin.left,
-    resolvedNumTicks,
-  ]);
+  }, [tickMode, xDomain, data, dateLabels, xAccessor, xScale, margin.left, resolvedNumTicks]);
 
   const isHovering = tooltipData !== null;
   const crosshairX = tooltipData ? tooltipData.x + margin.left : null;
   const hoveredLabel =
     isHovering && tooltipData
-      ? (dateLabels[tooltipData.index] ??
-        shortDateFmt.format(xAccessor(tooltipData.point)))
+      ? (dateLabels[tooltipData.index] ?? shortDateFmt.format(xAccessor(tooltipData.point)))
       : null;
 
   return createPortal(
@@ -677,7 +642,7 @@ const XAxisInner = memo(function XAxisInner({
         />
       ))}
     </div>,
-    container
+    container,
   );
 });
 

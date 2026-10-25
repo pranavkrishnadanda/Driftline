@@ -37,7 +37,11 @@ describe("buildSupersessionGraph", () => {
         incoming: [],
         outgoing: [
           TIMELINE.relations.outgoing[0],
-          { ...TIMELINE.relations.outgoing[0], id: "b0000000-0000-4000-8000-000000000009", kind: "amends" },
+          {
+            ...TIMELINE.relations.outgoing[0],
+            id: "b0000000-0000-4000-8000-000000000009",
+            kind: "amends",
+          },
         ],
       },
     });
@@ -46,13 +50,21 @@ describe("buildSupersessionGraph", () => {
   });
 
   it("is just the document when nothing relates to it", () => {
-    const graph = buildSupersessionGraph({ ...TIMELINE, relations: { incoming: [], outgoing: [] } });
+    const graph = buildSupersessionGraph({
+      ...TIMELINE,
+      relations: { incoming: [], outgoing: [] },
+    });
     expect(graph.nodes.map((n) => n.id)).toEqual(["self"]);
     expect(graph.edges).toEqual([]);
   });
 });
 
-function driftEvent(id: string, documentId: string | null, title: string | null, at: string): DriftEvent {
+function driftEvent(
+  id: string,
+  documentId: string | null,
+  title: string | null,
+  at: string,
+): DriftEvent {
   return {
     id,
     answer_id: "c0000000-0000-4000-8000-000000000001",
@@ -75,7 +87,12 @@ describe("recentDocuments", () => {
       driftEvent("e4", null, null, "2026-01-01T00:00:00Z"),
     ]);
     expect(docs).toEqual([
-      { documentId: DOC_ID, title: "Metformin label", lastDriftAt: "2026-02-03T00:00:00Z", events: 2 },
+      {
+        documentId: DOC_ID,
+        title: "Metformin label",
+        lastDriftAt: "2026-02-03T00:00:00Z",
+        events: 2,
+      },
       { documentId: OTHER_DOC_ID, title: null, lastDriftAt: "2026-02-02T00:00:00Z", events: 1 },
     ]);
   });

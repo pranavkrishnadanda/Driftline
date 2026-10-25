@@ -107,9 +107,10 @@ describe("countdown", () => {
 
 describe("classifyAskFailure", () => {
   it("maps 429 to a rate limit that carries Retry-After", () => {
-    expect(classifyAskFailure(new ApiError(429, { retryAfter: 7, code: "backpressure" }))).toEqual(
-      { kind: "rate_limited", retryAfter: 7 },
-    );
+    expect(classifyAskFailure(new ApiError(429, { retryAfter: 7, code: "backpressure" }))).toEqual({
+      kind: "rate_limited",
+      retryAfter: 7,
+    });
   });
 
   it("uses a default wait when a 429 has no usable Retry-After", () => {

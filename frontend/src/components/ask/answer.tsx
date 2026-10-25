@@ -53,14 +53,11 @@ export function ReviewPending({ text, step }: { text: string; step: StepEvent | 
   const reason = step?.detail?.reason;
   const why = typeof reason === "string" ? (REVIEW_REASONS[reason] ?? null) : null;
   return (
-    <section
-      aria-label="Waiting for human review"
-      className={cn(bubble, "border-sky-500/40")}
-    >
+    <section aria-label="Waiting for human review" className={cn(bubble, "border-sky-500/40")}>
       <h2 className="mb-1 font-heading text-base font-semibold">Waiting for human review</h2>
       <p className="text-sm text-muted-foreground">
-        {why ? `${why} ` : ""}A reviewer has to approve, edit or reject it before it is shown.
-        The answer appears here once they do.
+        {why ? `${why} ` : ""}A reviewer has to approve, edit or reject it before it is shown. The
+        answer appears here once they do.
       </p>
       {text ? (
         <>

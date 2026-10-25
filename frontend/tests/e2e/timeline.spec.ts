@@ -24,7 +24,9 @@ interface Timeline {
   versions: { version_no: number; valid_from: string }[];
 }
 
-async function findDocument(request: APIRequestContext): Promise<{ id: string; timeline: Timeline } | null> {
+async function findDocument(
+  request: APIRequestContext,
+): Promise<{ id: string; timeline: Timeline } | null> {
   const fromEnv = process.env.DRIFTLINE_E2E_DOCUMENT_ID;
   let ids: string[] = fromEnv ? [fromEnv] : [];
   if (!ids.length) {
@@ -45,7 +47,10 @@ async function findDocument(request: APIRequestContext): Promise<{ id: string; t
 test.describe("Version timeline (real backend)", () => {
   test("the Timeline nav entry opens the document picker", async ({ page }) => {
     await page.goto("/ask");
-    await page.getByRole("navigation", { name: "Views" }).getByRole("link", { name: "Timeline" }).click();
+    await page
+      .getByRole("navigation", { name: "Views" })
+      .getByRole("link", { name: "Timeline" })
+      .click();
     await expect(page.getByRole("heading", { level: 1, name: "Timeline" })).toBeVisible();
     await expect(page.getByRole("form", { name: "Open a document" })).toBeVisible();
   });
@@ -61,7 +66,10 @@ test.describe("Version timeline (real backend)", () => {
     const slider = page.getByRole("slider", { name: "Version" });
     await expect(slider).toHaveAttribute("aria-valuenow", String(latest));
     await expect(
-      page.getByRole("heading", { level: 2, name: `Changes in v${latest} since v${nos[nos.length - 2]}` }),
+      page.getByRole("heading", {
+        level: 2,
+        name: `Changes in v${latest} since v${nos[nos.length - 2]}`,
+      }),
     ).toBeVisible();
 
     // Drag the scrubber from the right end of the axis to the left end.
@@ -74,7 +82,9 @@ test.describe("Version timeline (real backend)", () => {
     await page.mouse.up();
 
     await expect(slider).toHaveAttribute("aria-valuenow", String(nos[0]));
-    await expect(page.getByRole("heading", { level: 2, name: `v${nos[0]} is the first version` })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: `v${nos[0]} is the first version` }),
+    ).toBeVisible();
 
     // The keyboard scrubs too.
     await slider.press("ArrowRight");
@@ -88,7 +98,9 @@ test.describe("Version timeline (real backend)", () => {
     );
 
     const results = await new AxeBuilder({ page }).analyze();
-    const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+    const serious = results.violations.filter(
+      (v) => v.impact === "serious" || v.impact === "critical",
+    );
     expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
   });
 });

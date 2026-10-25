@@ -84,7 +84,9 @@ function Front({ feature }: { feature: Feature }) {
 function Back({ feature }: { feature: Feature }) {
   return (
     <div className="flex h-full flex-col gap-3 p-5">
-      <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">How it works</p>
+      <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        How it works
+      </p>
       <ul className="flex list-disc flex-col gap-2 pl-4 text-sm">
         {feature.details.map((d) => (
           <li key={d}>{d}</li>

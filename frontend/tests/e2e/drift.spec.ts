@@ -73,7 +73,9 @@ function ingest(externalId: string, content: string): void {
 async function answerId(request: APIRequestContext): Promise<string> {
   let last = "no answer yet";
   for (let attempt = 0; attempt < 20; attempt++) {
-    const asked = await request.post(`${API}/v1/ask`, { data: { question: QUESTION, tenant: TENANT } });
+    const asked = await request.post(`${API}/v1/ask`, {
+      data: { question: QUESTION, tenant: TENANT },
+    });
     expect(asked.ok(), await asked.text()).toBe(true);
     const { job_id: jobId } = (await asked.json()) as { job_id: string };
     for (let poll = 0; poll < 60; poll++) {
@@ -91,7 +93,9 @@ async function answerId(request: APIRequestContext): Promise<string> {
     // The document may still be embedding: ask again shortly.
     await new Promise((r) => setTimeout(r, 3000));
   }
-  throw new Error(`the fixture question never got an answer (${last}); check DRIFTLINE_E2E_DRIFT_QUESTION`);
+  throw new Error(
+    `the fixture question never got an answer (${last}); check DRIFTLINE_E2E_DRIFT_QUESTION`,
+  );
 }
 
 async function expectAxeClean(page: Page): Promise<void> {

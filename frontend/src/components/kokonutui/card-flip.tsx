@@ -47,7 +47,7 @@ const THICKNESS = 6;
 const SLICES = 7;
 const SLICE_DEPTHS = Array.from(
   { length: SLICES },
-  (_, i) => -THICKNESS / 2 + (THICKNESS * (i + 0.5)) / SLICES
+  (_, i) => -THICKNESS / 2 + (THICKNESS * (i + 0.5)) / SLICES,
 );
 const SUBSTEP = 1 / 240;
 // Release velocity is read from the last this-many ms of the drag.
@@ -107,14 +107,12 @@ function paintLight(
   axis: Axis,
   sin: number,
   bands: (HTMLDivElement | null)[],
-  shades: (HTMLDivElement | null)[]
+  shades: (HTMLDivElement | null)[],
 ) {
   const turn = Math.abs(sin);
   const shift = `${(sin * 140).toFixed(1)}%`;
   const transform =
-    axis === "y"
-      ? `translateX(${shift}) rotate(18deg)`
-      : `translateY(${shift}) rotate(72deg)`;
+    axis === "y" ? `translateX(${shift}) rotate(18deg)` : `translateY(${shift}) rotate(72deg)`;
   for (const band of bands) {
     if (band) {
       band.style.opacity = (turn * 0.12).toFixed(3);
@@ -224,7 +222,7 @@ export default function CardFlip({
       ax,
       sin,
       [frontBandRef.current, backBandRef.current],
-      [frontShadeRef.current, backShadeRef.current]
+      [frontShadeRef.current, backShadeRef.current],
     );
 
     const showsBack = sideOf(s.angle);
@@ -261,7 +259,7 @@ export default function CardFlip({
       render();
       s.raf = requestAnimationFrame(stepRef.current);
     },
-    [render]
+    [render],
   );
   useLayoutEffect(() => {
     stepRef.current = step;
@@ -301,14 +299,14 @@ export default function CardFlip({
       }
       settle();
     },
-    [settle]
+    [settle],
   );
 
   const flipBy = useCallback(
     (direction: number) => {
       aim(nearestFace(sim.current.target) + 180 * direction);
     },
-    [aim]
+    [aim],
   );
 
   // Driftline: read the preference through the shared hook (guards a missing
@@ -363,11 +361,7 @@ export default function CardFlip({
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     const s = sim.current;
     // One pointer at a time: a second finger does not steal the drag.
-    if (
-      s.pointerId !== null ||
-      e.button !== 0 ||
-      (e.target as Element).closest(INTERACTIVE)
-    ) {
+    if (s.pointerId !== null || e.button !== 0 || (e.target as Element).closest(INTERACTIVE)) {
       return;
     }
     s.pointerId = e.pointerId;
@@ -381,18 +375,11 @@ export default function CardFlip({
 
   const hoverTilt = (e: PointerEvent<HTMLDivElement>) => {
     // The tilt follows the cursor: it's movement, so reduced motion skips it.
-    if (
-      e.pointerType !== "mouse" ||
-      sim.current.reduceMotion ||
-      !rootRef.current
-    ) {
+    if (e.pointerType !== "mouse" || sim.current.reduceMotion || !rootRef.current) {
       return;
     }
     const r = rootRef.current.getBoundingClientRect();
-    setTilt(
-      ((e.clientX - r.left) / r.width) * 2 - 1,
-      ((e.clientY - r.top) / r.height) * 2 - 1
-    );
+    setTilt(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
   };
 
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
@@ -433,9 +420,7 @@ export default function CardFlip({
         // A click pushes the half you pressed away from you.
         const r = e.currentTarget.getBoundingClientRect();
         const pushed =
-          axis === "y"
-            ? e.clientX > r.left + r.width / 2
-            : e.clientY < r.top + r.height / 2;
+          axis === "y" ? e.clientX > r.left + r.width / 2 : e.clientY < r.top + r.height / 2;
         flipBy(pushed ? 1 : -1);
       }
       return;
@@ -468,7 +453,7 @@ export default function CardFlip({
     "absolute inset-0 overflow-hidden rounded-2xl [backface-visibility:hidden]",
     "border border-zinc-200 bg-white text-zinc-900",
     "dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50",
-    faceClassName
+    faceClassName,
   );
 
   return (
@@ -482,7 +467,7 @@ export default function CardFlip({
         "group/flick relative aspect-[7/10] w-[260px] select-none rounded-2xl outline-hidden [perspective:1100px]",
         "focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-950",
         axis === "y" ? "touch-pan-y" : "touch-pan-x",
-        className
+        className,
       )}
       onKeyDown={onKeyDown}
       onLostPointerCapture={(e) => release(e, true)}
@@ -551,8 +536,7 @@ export default function CardFlip({
       </div>
 
       <span className="sr-only" id={hintId}>
-        Showing the {isFlipped ? "back" : "front"}. Press Enter or Space, or
-        drag, to turn it over.
+        Showing the {isFlipped ? "back" : "front"}. Press Enter or Space, or drag, to turn it over.
       </span>
     </div>
   );
@@ -571,10 +555,7 @@ function LightBand({
       className="pointer-events-none absolute inset-0 flex items-center justify-center"
     >
       <div className="absolute inset-0 bg-black opacity-0" ref={shadeRef} />
-      <div
-        className="h-[220%] w-1/3 shrink-0 bg-white opacity-0"
-        ref={bandRef}
-      />
+      <div className="h-[220%] w-1/3 shrink-0 bg-white opacity-0" ref={bandRef} />
     </div>
   );
 }
@@ -675,15 +656,7 @@ function TicketBack() {
   );
 }
 
-function TicketField({
-  label,
-  value,
-  wide,
-}: {
-  label: string;
-  value: string;
-  wide?: boolean;
-}) {
+function TicketField({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
   return (
     <div className={cn(wide && "col-span-2")}>
       <dt className="text-[11px] text-zinc-500 dark:text-zinc-400">{label}</dt>

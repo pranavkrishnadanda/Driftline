@@ -63,10 +63,7 @@ export function Circles({
       />
       {corners?.map(([cornerX, cornerY]) => (
         <circle
-          className={cn(
-            "visx-pattern-circle visx-pattern-circle-complement",
-            className
-          )}
+          className={cn("visx-pattern-circle visx-pattern-circle-complement", className)}
           cx={cornerX}
           cy={cornerY}
           fill={fill}

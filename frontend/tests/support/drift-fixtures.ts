@@ -25,9 +25,7 @@ export function alert(overrides: Partial<AlertEvent> & { drift_event_id: string 
   };
 }
 
-export function driftEvent(
-  overrides: Partial<DriftEvent> & { id: string },
-): DriftEvent {
+export function driftEvent(overrides: Partial<DriftEvent> & { id: string }): DriftEvent {
   return {
     answer_id: "a1111111-1111-4111-8111-111111111111",
     claim_idx: 0,

@@ -46,7 +46,9 @@ export function TextDiff({ before, after }: { before: string | null; after: stri
           })}
         </p>
       ) : (
-        <p className="text-sm text-muted-foreground">No section text was recorded for this change.</p>
+        <p className="text-sm text-muted-foreground">
+          No section text was recorded for this change.
+        </p>
       )}
     </div>
   );

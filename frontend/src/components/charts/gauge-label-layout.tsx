@@ -47,7 +47,7 @@ export function GaugeLabelShell({
         chartCenterContainerClassName,
         "flex min-w-0 flex-col",
         labelAlignClass[align],
-        className
+        className,
       )}
     >
       <ChartStatFlow
@@ -55,15 +55,12 @@ export function GaugeLabelShell({
         label={defaultLabel}
         labelClassName={cn(
           chartCenterLabelClassName,
-          "text-[length:var(--chart-foreground-muted)]"
+          "text-[length:var(--chart-foreground-muted)]",
         )}
         prefix={prefix}
         suffix={suffix}
         value={centerValue}
-        valueClassName={cn(
-          chartCenterValueClassName,
-          "text-[length:var(--chart-foreground)]"
-        )}
+        valueClassName={cn(chartCenterValueClassName, "text-[length:var(--chart-foreground)]")}
       />
     </div>
   );
@@ -106,13 +103,7 @@ export function GaugeLabelLayout({
 
   if (placement === "top") {
     return (
-      <div
-        className={cn(
-          "flex w-full min-w-0 flex-col gap-3",
-          crossAxisAlign[align],
-          className
-        )}
-      >
+      <div className={cn("flex w-full min-w-0 flex-col gap-3", crossAxisAlign[align], className)}>
         <div className={crossAxisSelf[align]}>{label}</div>
         <div className="w-full min-w-0">{children}</div>
       </div>
@@ -121,13 +112,7 @@ export function GaugeLabelLayout({
 
   if (placement === "bottom") {
     return (
-      <div
-        className={cn(
-          "flex w-full min-w-0 flex-col gap-3",
-          crossAxisAlign[align],
-          className
-        )}
-      >
+      <div className={cn("flex w-full min-w-0 flex-col gap-3", crossAxisAlign[align], className)}>
         <div className="w-full min-w-0">{children}</div>
         <div className={crossAxisSelf[align]}>{label}</div>
       </div>
@@ -137,11 +122,7 @@ export function GaugeLabelLayout({
   if (placement === "left") {
     return (
       <div
-        className={cn(
-          "flex w-full min-w-0 items-center gap-4",
-          inlineAxisAlign[align],
-          className
-        )}
+        className={cn("flex w-full min-w-0 items-center gap-4", inlineAxisAlign[align], className)}
       >
         <div className="shrink-0">{label}</div>
         <div className="min-w-0 flex-1">{children}</div>
@@ -151,11 +132,7 @@ export function GaugeLabelLayout({
 
   return (
     <div
-      className={cn(
-        "flex w-full min-w-0 items-center gap-4",
-        inlineAxisAlign[align],
-        className
-      )}
+      className={cn("flex w-full min-w-0 items-center gap-4", inlineAxisAlign[align], className)}
     >
       <div className="min-w-0 flex-1">{children}</div>
       <div className="shrink-0">{label}</div>

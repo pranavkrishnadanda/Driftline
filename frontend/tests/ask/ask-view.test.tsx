@@ -6,7 +6,12 @@ import { AskView } from "@/components/ask/ask-view";
 import { createApiClient, type AskAccepted, type JobStatus } from "@/lib/api/client";
 
 import expired from "../fixtures/sse/ask-expired.json";
-import { closedPortUrl, startApiServer, type ApiServer, type FixtureResponse } from "../support/api-server";
+import {
+  closedPortUrl,
+  startApiServer,
+  type ApiServer,
+  type FixtureResponse,
+} from "../support/api-server";
 import {
   ANSWERED,
   ANSWERED_EVENTS,
@@ -56,7 +61,10 @@ function accepted(eventsUrl: string): FixtureResponse {
   };
 }
 
-async function setup(events: FixtureEvent[], extra: Parameters<typeof startSseServer>[0] = { events }) {
+async function setup(
+  events: FixtureEvent[],
+  extra: Parameters<typeof startSseServer>[0] = { events },
+) {
   sse = await startSseServer({ retryMs: 10, ...extra, events });
   const routes: Record<string, FixtureResponse> = { "POST /v1/ask": accepted(sse.url) };
   api = await startApiServer(routes);
@@ -65,13 +73,14 @@ async function setup(events: FixtureEvent[], extra: Parameters<typeof startSseSe
 
 function renderView(baseUrl: string, tenants = ["demo", "pharma"]) {
   const user = userEvent.setup();
-  render(
-    <AskView client={createApiClient({ baseUrl })} tenants={tenants} streamOptions={FAST} />,
-  );
+  render(<AskView client={createApiClient({ baseUrl })} tenants={tenants} streamOptions={FAST} />);
   return user;
 }
 
-async function ask(user: ReturnType<typeof userEvent.setup>, question = "How often should ALT be checked?") {
+async function ask(
+  user: ReturnType<typeof userEvent.setup>,
+  question = "How often should ALT be checked?",
+) {
   await user.click(screen.getByRole("textbox", { name: "Question" }));
   await user.keyboard(`${question}{Enter}`);
 }
@@ -107,11 +116,22 @@ describe("AskView: answering", () => {
     const answer = await screen.findByRole("region", { name: "Answer" });
     const timeline = screen.getByRole("region", { name: "Agent timeline" });
     // Above the answer in document order.
-    expect(timeline.compareDocumentPosition(answer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      timeline.compareDocumentPosition(answer) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     const lit = [...timeline.querySelectorAll<HTMLElement>("[data-lit-order]")]
       .sort((a, b) => Number(a.dataset.litOrder) - Number(b.dataset.litOrder))
       .map((el) => el.dataset.node);
-    expect(lit).toEqual(["classify", "cache", "plan", "subagent", "merge", "draft", "verify", "respond"]);
+    expect(lit).toEqual([
+      "classify",
+      "cache",
+      "plan",
+      "subagent",
+      "merge",
+      "draft",
+      "verify",
+      "respond",
+    ]);
     expect(timeline.querySelector('[aria-live="polite"]')).toHaveTextContent(
       "Done: 1 of 1 claims verified.",
     );
@@ -181,7 +201,10 @@ describe("AskView: answering", () => {
 
 describe("AskView: human review", () => {
   it("shows 'Waiting for human review' when the stream pauses at the review step", async () => {
-    await setup(REVIEW_WAITING_EVENTS, { events: REVIEW_WAITING_EVENTS, connections: [{ hold: true }] });
+    await setup(REVIEW_WAITING_EVENTS, {
+      events: REVIEW_WAITING_EVENTS,
+      connections: [{ hold: true }],
+    });
     const user = renderView(api!.url);
 
     await ask(user);
@@ -191,7 +214,10 @@ describe("AskView: human review", () => {
     expect(pending).toHaveTextContent("confidence is below the review threshold");
     expect(screen.getByRole("status")).toHaveTextContent("Waiting for human review.");
     const timeline = screen.getByRole("region", { name: "Agent timeline" });
-    expect(timeline.querySelector('[data-node="review"]')).toHaveAttribute("data-status", "waiting");
+    expect(timeline.querySelector('[data-node="review"]')).toHaveAttribute(
+      "data-status",
+      "waiting",
+    );
     // Not an error, and not an endless spinner: the prompt is free again.
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Answer in progress" })).not.toBeInTheDocument();

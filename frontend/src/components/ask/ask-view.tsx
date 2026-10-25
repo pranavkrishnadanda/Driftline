@@ -167,8 +167,9 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
   const timeline = useMemo(() => buildTimeline(stream.events), [stream.events]);
 
   const lastStep =
-    (stream.events.filter((e): e is StepEvent => e.type === "step").at(-1) as StepEvent | undefined) ??
-    null;
+    (stream.events.filter((e): e is StepEvent => e.type === "step").at(-1) as
+      | StepEvent
+      | undefined) ?? null;
 
   // Paused for a human reviewer: the stream stays open (the answer follows on it once the
   // item is resolved), but nothing is being worked on, so it is neither busy nor failed.
@@ -193,8 +194,8 @@ export function AskView({ tenants, client: clientProp, streamOptions }: AskViewP
         <header>
           <SectionHeading>Ask</SectionHeading>
           <p className="text-sm text-muted-foreground">
-            Answers come only from the document versions in force on the as-of date, with the
-            exact quotes they rest on.
+            Answers come only from the document versions in force on the as-of date, with the exact
+            quotes they rest on.
           </p>
         </header>
 

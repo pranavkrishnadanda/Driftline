@@ -68,7 +68,7 @@ export function PieCenterShell({
 
   const data: PieData[] = useMemo(
     () => [{ label: "_pieCenterShell", value: Math.max(flowTotal, 0) }],
-    [flowTotal]
+    [flowTotal],
   );
 
   const totalValue = flowTotal;
@@ -120,7 +120,7 @@ export function PieCenterShell({
       }
       return getColor(index);
     },
-    [data, getColor]
+    [data, getColor],
   );
 
   const center = contextSize / 2;
@@ -149,17 +149,7 @@ export function PieCenterShell({
       geometryScrubbing: false,
       scrubSlicePaths: null,
     }),
-    [
-      data,
-      arcs,
-      contextSize,
-      center,
-      outerRadius,
-      innerRadiusPx,
-      totalValue,
-      getColor,
-      getFill,
-    ]
+    [data, arcs, contextSize, center, outerRadius, innerRadiusPx, totalValue, getColor, getFill],
   );
 
   return (

@@ -48,7 +48,9 @@ async function expectRendered(page: Page, stats: Stats): Promise<void> {
   const drift = page.getByRole("figure", { name: "Drift events per day" });
   if (stats.drift.total > 0) await expect(drift.locator("svg").first()).toBeVisible();
   if (stats.latest_eval === null) {
-    await expect(page.getByRole("figure", { name: "Eval scores" })).toContainText("No eval runs yet.");
+    await expect(page.getByRole("figure", { name: "Eval scores" })).toContainText(
+      "No eval runs yet.",
+    );
   }
 }
 

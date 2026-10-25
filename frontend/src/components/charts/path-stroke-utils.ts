@@ -3,7 +3,7 @@ import { type RefObject, useEffect, useState } from "react";
 export function findPathLengthAtX(
   path: SVGPathElement | null,
   pathLength: number,
-  targetX: number
+  targetX: number,
 ): number {
   if (!path || pathLength === 0) {
     return 0;
@@ -42,10 +42,13 @@ const EMPTY_METRICS: PathStrokeMetrics = { pathD: null, pathLength: 0 };
  */
 export function usePathStrokeMetrics(
   pathRef: RefObject<SVGPathElement | null>,
-  deps: readonly unknown[]
+  deps: readonly unknown[],
 ): PathStrokeMetrics {
   const [metrics, setMetrics] = useState<PathStrokeMetrics>(EMPTY_METRICS);
 
+  // Bklit registry source: `deps` is passed through on purpose. Oxlint reports it twice (the
+  // effect call and the non-literal list), so the whole effect is wrapped.
+  /* oxlint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     const path = pathRef.current;
     if (!path) {
@@ -54,32 +57,26 @@ export function usePathStrokeMetrics(
     const d = path.getAttribute("d");
     const len = d ? path.getTotalLength() : 0;
     setMetrics((prev) =>
-      prev.pathD === d && prev.pathLength === len
-        ? prev
-        : { pathD: d, pathLength: len }
+      prev.pathD === d && prev.pathLength === len ? prev : { pathD: d, pathLength: len },
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Bklit registry source: the dependency list is deliberate.
   }, deps);
+  /* oxlint-enable react-hooks/exhaustive-deps */
 
   return metrics;
 }
 
 export function resolveDashTailBounds(
   dashFromIndex: number | undefined,
-  dataLength: number
+  dataLength: number,
 ): boolean {
-  return (
-    dashFromIndex != null &&
-    dashFromIndex >= 0 &&
-    dashFromIndex < dataLength - 1
-  );
+  return dashFromIndex != null && dashFromIndex >= 0 && dashFromIndex < dataLength - 1;
 }
 
 export function resolveDashStartX(
   data: Record<string, unknown>[],
   dashFromIndex: number,
   xScale: (value: Date | number) => number | undefined,
-  xAccessor: (datum: Record<string, unknown>) => Date | number
+  xAccessor: (datum: Record<string, unknown>) => Date | number,
 ): number {
   const dashFromPoint = data[dashFromIndex];
   if (!dashFromPoint) {

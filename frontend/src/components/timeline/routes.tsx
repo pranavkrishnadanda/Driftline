@@ -17,9 +17,7 @@ function first(value: string | string[] | undefined): string | undefined {
 }
 
 function tenantFrom(query: Awaited<Query>): string {
-  return (
-    first(query.tenant)?.trim() || parseTenants(process.env.NEXT_PUBLIC_DRIFTLINE_TENANTS)[0]
-  );
+  return first(query.tenant)?.trim() || parseTenants(process.env.NEXT_PUBLIC_DRIFTLINE_TENANTS)[0];
 }
 
 /**

@@ -63,12 +63,18 @@ describe("DocumentPicker", () => {
     const form = screen.getByRole("form", { name: "Open a document" });
     expect(form).toHaveAttribute("action", "/timeline");
     expect(form).toHaveAttribute("method", "get");
-    expect(within(form).getByRole("textbox", { name: "Document id" })).toHaveAttribute("name", "document");
+    expect(within(form).getByRole("textbox", { name: "Document id" })).toHaveAttribute(
+      "name",
+      "document",
+    );
   });
 
   it("reports an unreachable gateway without hiding the paste form", async () => {
     render(
-      <DocumentPicker tenants={["demo"]} client={createApiClient({ baseUrl: await closedPortUrl() })} />,
+      <DocumentPicker
+        tenants={["demo"]}
+        client={createApiClient({ baseUrl: await closedPortUrl() })}
+      />,
     );
     expect(await screen.findByRole("alert")).toHaveTextContent("Driftline API unreachable");
     expect(screen.getByRole("textbox", { name: "Document id" })).toBeInTheDocument();
@@ -82,7 +88,10 @@ describe("DocumentPicker", () => {
         invalidId="not-a-uuid"
       />,
     );
-    expect(screen.getByRole("textbox", { name: "Document id" })).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByRole("textbox", { name: "Document id" })).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
     expect(screen.getByText(/“not-a-uuid” is not a document id/)).toBeInTheDocument();
   });
 });
