@@ -9,6 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from redis.asyncio import Redis
 from redis.exceptions import ResponseError
+from starlette.datastructures import State
 
 from driftline.agents.events import ErrorEvent, FinalEvent
 from driftline.agents.schemas import AGENT_GROUP, AGENT_STREAM, AnswerSchema, AskJob, AskRequest
@@ -60,6 +61,41 @@ async def agent_backlog(redis: Redis) -> int:
     return int(group["pending"]) + int(group["lag"])
 
 
+class Backpressure(Exception):
+    """The agent-stream backlog is above `ask_max_pending`: try again later."""
+
+    def __init__(self, backlog: int) -> None:
+        super().__init__(f"agent backlog {backlog} exceeds the limit")
+        self.backlog = backlog
+
+
+async def submit_ask(state: State, caller: TenantRow, body: AskRequest) -> UUID:
+    """Create an ask job for `caller` and queue it for the agent workers (spec section 3).
+
+    The one job-creation path, shared by `POST /v1/ask` and the MCP `ask` tool. Raises
+    Backpressure when the backlog is over `ask_max_pending` (nothing is written then).
+    """
+    backlog = await agent_backlog(state.redis)
+    if backlog > state.settings.ask_max_pending:
+        raise Backpressure(backlog)
+    async with state.pg.acquire() as conn:
+        job_id = await conn.fetchval(
+            "INSERT INTO jobs (tenant_id, kind, payload) VALUES ($1, 'ask', $2::jsonb) "
+            "RETURNING id",
+            caller.id,
+            body.model_dump_json(),
+        )
+    job = AskJob(
+        job_id=job_id,
+        tenant_id=caller.id,
+        question=body.question,
+        as_of=body.as_of,
+        source_kinds=body.source_kinds,
+    )
+    await state.bus.publish(AGENT_STREAM, job.model_dump(mode="json"))
+    return job_id
+
+
 async def _job_row(request: Request, job_id: UUID, caller: TenantRow | None):
     """The ask job with its answer and cost, or None when it is not the caller's.
 
@@ -104,29 +140,14 @@ def build_ask_router() -> APIRouter:
         caller = await caller_tenant(request, body.tenant, credentials)
         if caller is None:
             raise unauthorized()
-        backlog = await agent_backlog(state.redis)
-        if backlog > settings.ask_max_pending:
+        try:
+            job_id = await submit_ask(state, caller, body)
+        except Backpressure as exc:
             raise HTTPException(
                 status_code=429,
-                detail={"code": "backpressure", "backlog": backlog},
+                detail={"code": "backpressure", "backlog": exc.backlog},
                 headers={"Retry-After": str(settings.ask_retry_after_s)},
-            )
-        tenant_id = caller.id
-        async with state.pg.acquire() as conn:
-            job_id = await conn.fetchval(
-                "INSERT INTO jobs (tenant_id, kind, payload) VALUES ($1, 'ask', $2::jsonb) "
-                "RETURNING id",
-                tenant_id,
-                body.model_dump_json(),
-            )
-        job = AskJob(
-            job_id=job_id,
-            tenant_id=tenant_id,
-            question=body.question,
-            as_of=body.as_of,
-            source_kinds=body.source_kinds,
-        )
-        await state.bus.publish(AGENT_STREAM, job.model_dump(mode="json"))
+            ) from None
         return AskAccepted(
             job_id=job_id, events_url=f"/v1/jobs/{job_id}/events", status_url=f"/v1/jobs/{job_id}"
         )

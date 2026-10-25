@@ -14,6 +14,7 @@ from driftline.gateway.ask import build_ask_router
 from driftline.gateway.contract import install_event_schemas
 from driftline.gateway.drift import build_drift_router
 from driftline.gateway.review import build_review_router
+from driftline.mcp import build_mcp
 from driftline.streams.bus import StreamBus
 
 
@@ -47,7 +48,9 @@ def create_app(settings: Settings) -> FastAPI:
         # One pool of SSE slots for ask and alert streams alike.
         app.state.sse_slots = asyncio.Semaphore(settings.sse_max_connections)
         try:
-            yield
+            # The mounted MCP app's own lifespan never runs: its session manager runs here.
+            async with mcp.session_manager.run():
+                yield
         finally:
             await app.state.redis_stream.aclose()
             await app.state.redis.aclose()
@@ -65,6 +68,8 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(build_drift_router())
     app.include_router(build_review_router())
     install_event_schemas(app)
+    mcp = build_mcp(app.state)
+    app.add_route("/mcp", mcp.streamable_http_app(), include_in_schema=False)
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
