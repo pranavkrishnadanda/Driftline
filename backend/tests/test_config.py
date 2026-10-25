@@ -72,6 +72,7 @@ def test_retrieval_and_agent_settings_defaults():
     assert s.llm_offline is False
     assert s.semantic_cache_enabled is True and s.semantic_cache_threshold == 0.95
     assert (s.ask_max_pending, s.ask_retry_after_s) == (200, 5)
+    assert s.ask_queue_timeout_s == 300  # queued asks with no stream entry are reaped after
     assert s.sse_heartbeat_s == 15.0
     assert s.langfuse_public_key is None and s.langfuse_secret_key is None
 

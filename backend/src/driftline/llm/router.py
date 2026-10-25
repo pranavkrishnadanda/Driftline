@@ -247,7 +247,9 @@ def build_router(settings: Settings, redis: Redis, *, clock: Clock) -> LLMRouter
     answer: list[Route] = []
     judge: list[Route] = []
     if settings.anthropic_api_key:
-        providers["anthropic"] = AnthropicAdapter(settings.anthropic_api_key, clock=clock)
+        providers["anthropic"] = AnthropicAdapter(
+            settings.anthropic_api_key, clock=clock, timeout_s=settings.llm_timeout_s
+        )
         claude_fallbacks = [Route("anthropic", m) for m in settings.model_fallback]
         extract += [Route("anthropic", settings.model_extract), *claude_fallbacks]
         answer += [

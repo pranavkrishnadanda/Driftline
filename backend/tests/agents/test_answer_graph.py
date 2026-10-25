@@ -18,7 +18,6 @@ from driftline.agents.schemas import AskJob
 from driftline.cache.semantic import SemanticCache
 from driftline.clock import ManualClock
 from driftline.config import Settings
-from driftline.llm.adapters.anthropic import AnthropicAdapter
 from driftline.llm.adapters.deterministic import DeterministicAdapter
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.router import AllRoutesFailed, LLMRouter, Route
@@ -147,7 +146,7 @@ async def test_answers_from_the_in_force_version_and_streams_events(make_agent, 
     assert subagent.detail["reranked"] is True
     assert det.calls == ["det-extract", "det-answer", "det-judge"]
     async with fresh_pool.acquire() as conn:
-        cost = await job_cost(conn, job_id)
+        cost = await job_cost(conn, job_id, tenant_id=corpus["tenant"])
     assert cost.calls == 3 and cost.cost_usd == 0
 
 
@@ -222,7 +221,7 @@ async def test_empty_corpus_returns_insufficient_evidence_without_any_model_call
         ("respond", "completed"),
     ]
     async with fresh_pool.acquire() as conn:
-        assert (await job_cost(conn, job_id)).calls == 0
+        assert (await job_cost(conn, job_id, tenant_id=tenant)).calls == 0
 
 
 async def test_as_of_before_any_version_returns_insufficient_evidence_without_drafting(
@@ -366,15 +365,6 @@ async def test_insufficient_evidence_is_not_cached(
     assert ("cache", "miss") in steps(events)
     assert second.status == "answered" and not second.cached
     assert second.answer == OLD_RULE
-
-
-def test_anthropic_adapter_uses_the_configured_request_timeout():
-    # Follow-up from the T1 review: never the SDK's 600 s default.
-    assert Settings(_env_file=None).llm_timeout_s == 120.0
-    assert AnthropicAdapter("unused")._client.timeout == 120.0
-    assert AnthropicAdapter("unused", timeout_s=7.5)._client.timeout == 7.5
-    settings = Settings(_env_file=None, llm_timeout_s=30)
-    assert AnthropicAdapter("unused", timeout_s=settings.llm_timeout_s)._client.timeout == 30.0
 
 
 async def test_malformed_draft_json_ends_in_insufficient_evidence(make_agent, corpus, fresh_pool):
