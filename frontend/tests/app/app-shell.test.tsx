@@ -6,7 +6,6 @@ import AppLayout from "@/app/(app)/layout";
 import DriftPage from "@/app/(app)/drift/page";
 import ReviewPage from "@/app/(app)/review/page";
 import StatsPage from "@/app/(app)/stats/page";
-import TimelinePage from "@/app/(app)/timeline/page";
 import { NAV_ITEMS, NavLinks } from "@/components/app-nav";
 
 describe("app shell navigation", () => {
@@ -34,6 +33,12 @@ describe("app shell navigation", () => {
     expect(screen.getByRole("link", { name: "Timeline" })).toHaveAttribute("aria-current", "page");
   });
 
+  it("marks Timeline current on a document's timeline", () => {
+    render(<NavLinks pathname="/documents/0b6f7e52-6a49-4d0e-9a3c-2f5d1c7e8a10" />);
+    expect(screen.getByRole("link", { name: "Timeline" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Ask" })).not.toHaveAttribute("aria-current");
+  });
+
   it("renders the navigation around the page", () => {
     const html = renderToStaticMarkup(
       <AppLayout params={Promise.resolve({})}>
@@ -51,7 +56,6 @@ describe("app shell navigation", () => {
 
 describe("views that are not built yet", () => {
   it.each([
-    ["Timeline", TimelinePage],
     ["Stats", StatsPage],
   ])("%s renders a coming-soon placeholder instead of a 404", (name, Page) => {
     render(<Page />);

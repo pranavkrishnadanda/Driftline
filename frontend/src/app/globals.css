@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* React Flow's base styles (supersession graph); imported after Tailwind as its docs ask. */
+@import "@xyflow/react/dist/style.css";
+
+/* React Flow's default attribution grey (#999) fails WCAG AA contrast. */
+.react-flow__attribution a {
+  color: var(--muted-foreground);
+}
 
 @custom-variant dark (&:is(.dark *));
 
