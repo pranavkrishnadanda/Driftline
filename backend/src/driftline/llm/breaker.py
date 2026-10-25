@@ -49,6 +49,13 @@ class CircuitBreaker:
             return True
         return False
 
+    def release_probe(self) -> None:
+        """Give back a granted half-open probe that was never sent to the provider.
+
+        Counts as neither success nor failure; a no-op unless a probe is in flight.
+        """
+        self._probe_in_flight = False
+
     def record_success(self) -> None:
         if self.state is BreakerState.half_open:
             self._reset()

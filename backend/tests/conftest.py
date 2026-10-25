@@ -3,6 +3,8 @@ import redis.asyncio as aioredis
 from testcontainers.community.postgres import PostgresContainer
 from testcontainers.community.redis import RedisContainer
 
+pytest_plugins = ["conftest_cassettes"]
+
 
 @pytest.fixture(scope="session")
 def pg_dsn():

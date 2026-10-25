@@ -33,7 +33,7 @@
 **Configuration**
 - Settings come from environment variables with prefix `DRIFTLINE_` (for example `DRIFTLINE_GEMINI_API_KEY`).
 - Gateway host port: DRIFTLINE_GATEWAY_PORT (default 8010); the container listens on 8000.
-- Gemini model IDs live in config only. Defaults: `gemini-2.5-flash` (extract), `gemini-2.5-pro` (answer), fallback `["gemini-2.5-flash", "gemini-2.5-flash-lite"]`, embedding `gemini-embedding-001`. Update the defaults if newer stable IDs exist when you implement; never hard-code them elsewhere.
+- Gemini model IDs live in config only. Defaults: `gemini-3.8-flash` (extract), `gemini-3.1-pro-preview` (answer), fallback `["gemini-3.8-flash", "gemini-3.5-flash-lite"]`, embedding `gemini-embedding-001` (confirmed against a live `models.list()`; `gemini-2.5-flash` is retired for new users). `-latest` aliases are deliberately avoided so eval results stay reproducible. Update the defaults if newer stable IDs exist when you implement; never hard-code them elsewhere.
 - Embedding dimension is **768**. `chunks.embedding` is `vector(768)` and `Settings.embed_dim = 768`.
 
 **Fixed parameters from the spec**
