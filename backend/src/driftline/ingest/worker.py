@@ -211,7 +211,9 @@ class IngestWorker:
                 )
                 raise
             await conn.execute(
-                "UPDATE sources SET status = 'active', last_polled_at = now() WHERE id = $1",
+                # Only recover a stale source; a paused source stays paused.
+                "UPDATE sources SET last_polled_at = now(), status = CASE status "
+                "WHEN 'stale_source' THEN 'active' ELSE status END WHERE id = $1",
                 source_id,
             )
             await clear_fetch_failures(self._redis, source_id)
