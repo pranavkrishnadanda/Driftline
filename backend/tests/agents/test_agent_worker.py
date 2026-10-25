@@ -256,6 +256,25 @@ async def test_reaper_fails_only_stale_queued_asks_without_a_stream_entry(
     assert await events.last_id(lost) == 1
 
 
+async def test_reaper_spares_asks_waiting_in_the_outbox(fresh_pool, fresh_conn, redis_client):
+    """A review follow-up (regeneration) is queued through the outbox: while its row is
+    unpublished (the relay is down or behind), the ask is not lost and is not reaped."""
+    tenant, _ = await seed_source(fresh_conn)
+    clock = ManualClock(time.time())
+    waiting = await insert_job(fresh_conn, tenant)
+    job = AskJob(job_id=waiting, tenant_id=tenant, question="q")
+    await fresh_conn.execute(
+        "INSERT INTO outbox (topic, payload) VALUES ('ask.regenerate', $1::jsonb)",
+        job.model_dump_json(),
+    )
+    clock.advance(301)
+    reaped = await reap_lost_asks(
+        fresh_pool, redis_client, AskEventLog(redis_client), now=clock.now(), timeout_s=300
+    )
+    assert reaped == []
+    assert (await job_row(fresh_conn, waiting))["status"] == "queued"
+
+
 async def test_worker_reaps_periodically(setup, fresh_conn, redis_client):
     clock = ManualClock(time.time())
     _, worker, _ = setup["make"](clock=clock)

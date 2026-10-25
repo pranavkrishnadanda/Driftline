@@ -7,15 +7,20 @@ supersession relations ingestion was unsure about.
   effect of the resolution commits in the same transaction as the status change.
 - Effects, by kind:
   - `relation`: approve applies the relation (edit: with the corrected `kind`), reject
-    rejects it. Items queued for a malformed extraction reference a version, not a
-    relation, and are only marked resolved.
+    rejects it. Applying it also queues a `cache.invalidate` of every version of the
+    replaced document, so the semantic cache stops serving answers that cite it. Items
+    queued for a malformed extraction reference a version, not a relation, and are only
+    marked resolved.
   - `broken_answer` (and legacy `answer` rows from the P4 drift hook): approve or edit
     queues an ask that regenerates the answer through `run_ask`; reject does nothing.
   - `low_confidence_answer` (ref = the paused ask's job id): any action queues the
     reviewer's decision for the paused graph thread, which the agent worker resumes.
   - any `edit` also records an `eval_cases` row.
-- Follow-up asks are published to the `agent` stream after the commit, so only the one
-  successful resolution ever publishes (and the graph resumes once).
+- Follow-ups go through the transactional outbox, written in the resolve's transaction
+  (topics `ask.resume` / `ask.regenerate` -> stream `agent`, and `cache.invalidate`).
+  Only the one successful resolution ever writes them, and a failed publish is retried
+  by the relay instead of leaving a paused ask stranded. Delivery is at-least-once: the
+  agent worker resumes a given decision only once (see `AgentWorker.handle_ask`).
 """
 
 import builtins
@@ -27,8 +32,12 @@ from uuid import UUID
 import asyncpg
 from pydantic import BaseModel
 
-from driftline.agents.schemas import AGENT_STREAM, AskJob, ReviewAction, ReviewDecision
-from driftline.streams.bus import StreamBus
+from driftline.agents.schemas import AskJob, ReviewAction, ReviewDecision
+from driftline.ingest.outbox import (
+    ASK_REGENERATE_TOPIC,
+    ASK_RESUME_TOPIC,
+    CACHE_INVALIDATE_TOPIC,
+)
 
 ReviewKind = Literal["relation", "broken_answer", "low_confidence_answer", "answer"]
 ReviewStatus = Literal["open", "resolved"]
@@ -90,10 +99,13 @@ def _check_edit(kind: str, action: str, edit: dict | None) -> None:
         raise InvalidResolution("an answer edit is {'answer': '<corrected answer text>'}")
 
 
+async def _outbox(conn: asyncpg.Connection, topic: str, payload: str) -> None:
+    await conn.execute("INSERT INTO outbox (topic, payload) VALUES ($1, $2::jsonb)", topic, payload)
+
+
 class ReviewQueue:
-    def __init__(self, pool: asyncpg.Pool, bus: StreamBus | None = None) -> None:
+    def __init__(self, pool: asyncpg.Pool) -> None:
         self._pool = pool
-        self._bus = bus  # where follow-up asks go; required to resolve answer items
 
     async def open(
         self,
@@ -149,7 +161,7 @@ class ReviewQueue:
     ) -> ReviewItem:
         if action not in ("approve", "edit", "reject"):
             raise InvalidResolution(f"unknown action {action!r}")
-        follow_up: AskJob | None = None
+        follow_up: tuple[str, AskJob] | None = None
         async with self._pool.acquire() as conn, conn.transaction():
             row = await conn.fetchrow(
                 f"SELECT {_COLUMNS} FROM review_items WHERE id = $1 AND tenant_id = $2 FOR UPDATE",
@@ -166,17 +178,17 @@ class ReviewQueue:
             if item.kind == "relation":
                 question, as_of, original = await self._resolve_relation(conn, item, action, edit)
             elif item.kind in ANSWER_KINDS:
-                follow_up, question, as_of, original = await self._resolve_broken(
-                    conn, item, action
-                )
+                job, question, as_of, original = await self._resolve_broken(conn, item, action)
+                follow_up = (ASK_REGENERATE_TOPIC, job) if job is not None else None
             else:
-                follow_up, question, as_of, original = await self._resolve_paused(
+                job, question, as_of, original = await self._resolve_paused(
                     conn, item, action, edit, by
                 )
+                follow_up = (ASK_RESUME_TOPIC, job)
             if follow_up is not None:
-                if self._bus is None:
-                    raise RuntimeError("ReviewQueue needs a bus to resolve answer items")
-                resolution["job_id"] = str(follow_up.job_id)
+                topic, job = follow_up
+                await _outbox(conn, topic, job.model_dump_json())
+                resolution["job_id"] = str(job.job_id)
             if action == "edit":
                 await conn.execute(
                     "INSERT INTO eval_cases (tenant_id, source_review_id, question, as_of, "
@@ -197,13 +209,12 @@ class ReviewQueue:
                 json.dumps(resolution),
                 by,
             )
-        if follow_up is not None:
-            await self._bus.publish(AGENT_STREAM, follow_up.model_dump(mode="json"))
         return _item(done)
 
     async def _resolve_relation(self, conn, item: ReviewItem, action: str, edit: dict | None):
         rel = await conn.fetchrow(
-            "SELECT r.id, r.kind, r.status, sv.valid_from, sd.title AS src_title, "
+            "SELECT r.id, r.kind, r.status, r.dst_document_id, sv.valid_from, "
+            "sd.title AS src_title, "
             "dd.title AS dst_title FROM relations r "
             "JOIN doc_versions sv ON sv.id = r.src_version_id "
             "JOIN documents sd ON sd.id = sv.document_id "
@@ -222,6 +233,19 @@ class ReviewQueue:
         await conn.execute(
             "UPDATE relations SET status = $2, kind = $3 WHERE id = $1", rel["id"], status, kind
         )
+        if status == "applied":
+            # Cached answers citing the replaced document must not be served again: its
+            # versions are still inside their validity windows, so the cache's own
+            # in-force re-check would not catch it. (Amendments too: the meaning changed.)
+            versions = await conn.fetch(
+                "SELECT id FROM doc_versions WHERE document_id = $1", rel["dst_document_id"]
+            )
+            if versions:
+                await _outbox(
+                    conn,
+                    CACHE_INVALIDATE_TOPIC,
+                    json.dumps({"version_ids": [str(v["id"]) for v in versions]}),
+                )
         question = f"Does {rel['src_title']!s} {kind} {rel['dst_title']!s}?"
         return question, rel["valid_from"], {"kind": rel["kind"], "status": rel["status"]}
 

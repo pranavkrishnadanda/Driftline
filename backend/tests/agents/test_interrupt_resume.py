@@ -8,6 +8,7 @@ import json
 from contextlib import AsyncExitStack
 from datetime import UTC, datetime
 
+import asyncpg
 import pytest
 from agentkit import AgentKit, finals, half_supported_draft, review_steps
 from dbseed import VersionSeed, embed_all, seed_history, seed_source, seed_watched_answer
@@ -90,7 +91,7 @@ async def test_resume_after_worker_restart_applies_the_reviewers_edit(kit, corpu
     item_id = await fresh_conn.fetchval("SELECT id FROM review_items")
 
     await kit.restart()  # a new process: new checkpointer connection, graph and worker
-    queue = ReviewQueue(kit.pool, kit.bus)
+    queue = ReviewQueue(kit.pool)
     resolved = await queue.resolve(
         item_id, "edit", {"answer": RULE}, by="alice", tenant_id=corpus["tenant"]
     )
@@ -120,7 +121,7 @@ async def test_resume_after_worker_restart_applies_the_reviewers_edit(kit, corpu
 async def test_rejected_answer_resumes_into_an_explained_non_answer(kit, corpus, fresh_conn):
     job = await pause_low_confidence_ask(kit, corpus)
     item_id = await fresh_conn.fetchval("SELECT id FROM review_items")
-    await ReviewQueue(kit.pool, kit.bus).resolve(
+    await ReviewQueue(kit.pool).resolve(
         item_id, "reject", None, by="bob", tenant_id=corpus["tenant"]
     )
     await kit.drain()
@@ -133,7 +134,7 @@ async def test_rejected_answer_resumes_into_an_explained_non_answer(kit, corpus,
 async def test_concurrent_resolves_resume_the_graph_exactly_once(kit, corpus, fresh_conn):
     job = await pause_low_confidence_ask(kit, corpus)
     item_id = await fresh_conn.fetchval("SELECT id FROM review_items")
-    queue = ReviewQueue(kit.pool, kit.bus)
+    queue = ReviewQueue(kit.pool)
     results = await asyncio.gather(
         queue.resolve(item_id, "approve", None, by="a", tenant_id=corpus["tenant"]),
         queue.resolve(item_id, "approve", None, by="b", tenant_id=corpus["tenant"]),
@@ -157,7 +158,7 @@ async def test_redelivered_messages_neither_reopen_review_nor_resume_twice(kit, 
     assert await fresh_conn.fetchval("SELECT count(*) FROM review_items") == 1
     assert review_steps(await kit.job_events(job.job_id)) == ["waiting"]
 
-    await ReviewQueue(kit.pool, kit.bus).resolve(
+    await ReviewQueue(kit.pool).resolve(
         item_id, "approve", None, by="a", tenant_id=corpus["tenant"]
     )
     # ...and again after it was resolved but before the resume message ran: no new item.
@@ -199,7 +200,7 @@ async def test_regenerating_a_watched_answer_always_goes_to_review(kit, corpus, 
     assert payload["reason"] == "watched_answer" and payload["answer"]["confidence"] == 1.0
     assert payload["answer_id"] == str(answer_id)
 
-    await ReviewQueue(kit.pool, kit.bus).resolve(
+    await ReviewQueue(kit.pool).resolve(
         item["id"], "approve", None, by="a", tenant_id=corpus["tenant"]
     )
     await kit.drain()
@@ -217,3 +218,60 @@ async def test_regenerating_a_watched_answer_always_goes_to_review(kit, corpus, 
     assert await fresh_conn.fetchval("SELECT status FROM jobs WHERE id = $1", job.job_id) == (
         "succeeded"
     )
+
+
+async def test_a_resolve_survives_a_relay_crash_and_resumes_exactly_once(
+    kit, corpus, fresh_conn, fresh_dsn, redis_client
+):
+    """The resume goes through the outbox: nothing reaches the stream at commit, a relay
+    that dies after publishing (before marking the row) publishes it again, and the
+    duplicate delivery does not resume the thread a second time."""
+    job = await pause_low_confidence_ask(kit, corpus)
+    item_id = await fresh_conn.fetchval("SELECT id FROM review_items")
+    entries_before = await redis_client.xlen(AGENT_STREAM)
+    await ReviewQueue(kit.pool).resolve(
+        item_id, "approve", None, by="a", tenant_id=corpus["tenant"]
+    )
+    # Committed with the resolve, but not yet on the stream: the relay has not run.
+    row = await fresh_conn.fetchrow("SELECT topic, payload, published_at FROM outbox")
+    assert (row["topic"], row["published_at"]) == ("ask.resume", None)
+    assert json.loads(row["payload"])["resume"]["review_id"] == str(item_id)
+    assert await redis_client.xlen(AGENT_STREAM) == entries_before
+    assert await kit.worker.run_once(block_ms=50) == 0  # nothing to resume yet
+
+    crashing = await asyncpg.connect(fresh_dsn)
+    tx = crashing.transaction()
+    await tx.start()
+    assert len(await kit.relay.claim_and_publish(crashing)) == 1
+    await crashing.close()  # the relay dies before marking the row published
+    assert await kit.relay.relay_once() == 1  # the restarted relay publishes it again
+    assert await redis_client.xlen(AGENT_STREAM) == entries_before + 2
+
+    assert await kit.drain() == 2  # both copies are consumed (and acked)...
+    events = await kit.job_events(job.job_id)
+    assert review_steps(events) == ["waiting", "completed"]  # ...but resume only once
+    assert len(finals(events)) == 1
+    assert await fresh_conn.fetchval("SELECT count(*) FROM answers") == 1
+    assert (await redis_client.xpending(AGENT_STREAM, AGENT_GROUP))["pending"] == 0
+
+
+async def test_concurrent_duplicate_resume_deliveries_resume_once(
+    kit, corpus, fresh_conn, redis_client
+):
+    """Two copies of one decision handled at the same time (two workers): the decision
+    is claimed once, so only one of them runs the graph."""
+    job = await pause_low_confidence_ask(kit, corpus)
+    item_id = await fresh_conn.fetchval("SELECT id FROM review_items")
+    await ReviewQueue(kit.pool).resolve(
+        item_id, "approve", None, by="a", tenant_id=corpus["tenant"]
+    )
+    await kit.relay.relay_once()
+    [(msg_id, fields)] = (await redis_client.xrange(AGENT_STREAM))[-1:]
+    payload = json.loads(fields["data"])
+    await asyncio.gather(
+        kit.worker.handle_ask(msg_id, payload),
+        kit.worker.handle_ask("0-1", payload),  # the same decision, another stream entry
+    )
+    events = await kit.job_events(job.job_id)
+    assert review_steps(events) == ["waiting", "completed"]
+    assert len(finals(events)) == 1

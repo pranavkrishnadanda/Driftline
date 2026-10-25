@@ -18,7 +18,11 @@ from dbseed import (
 )
 
 from driftline.agents.schemas import AGENT_STREAM, AskJob
+from driftline.cache.semantic import SemanticCache
 from driftline.clock import ManualClock
+from driftline.drift.alerts import AlertLog
+from driftline.ingest.outbox import OutboxRelay
+from driftline.llm.adapters.deterministic import DeterministicAdapter
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.router import LLMRouter, Route
 from driftline.retrieval.hybrid import HybridRetriever
@@ -37,11 +41,17 @@ JUNE = datetime(2024, 6, 1, tzinfo=UTC)
 
 
 @pytest.fixture
-def queue(fresh_pool, redis_client):
-    return ReviewQueue(fresh_pool, StreamBus(redis_client))
+def queue(fresh_pool):
+    return ReviewQueue(fresh_pool)
 
 
-async def agent_messages(redis_client) -> list[AskJob]:
+def relay(pool, redis_client) -> OutboxRelay:
+    return OutboxRelay(pool, StreamBus(redis_client), alerts=AlertLog(redis_client))
+
+
+async def agent_messages(redis_client, pool) -> list[AskJob]:
+    """The follow-up asks on the `agent` stream, after the outbox relay has run."""
+    await relay(pool, redis_client).relay_once()
     entries = await redis_client.xrange(AGENT_STREAM)
     return [AskJob.model_validate(json.loads(fields["data"])) for _, fields in entries]
 
@@ -190,6 +200,57 @@ async def test_rejecting_a_relation_marks_it_rejected(queue, fresh_conn):
     await queue.resolve(item, "reject", None, by="alice", tenant_id=tenant)
     assert await fresh_conn.fetchval("SELECT status FROM relations") == "rejected"
     assert await fresh_conn.fetchval("SELECT count(*) FROM eval_cases") == 0
+    assert await fresh_conn.fetchval("SELECT count(*) FROM outbox") == 0  # cache untouched
+
+
+async def test_approving_a_relation_invalidates_cached_answers_citing_the_superseded_document(
+    queue, fresh_conn, fresh_pool, redis_client
+):
+    tenant, relation = await pending_relation(fresh_conn)
+    versions = {
+        r["external_id"]: r["id"]
+        for r in await fresh_conn.fetch(
+            "SELECT v.id, d.external_id FROM doc_versions v JOIN documents d ON d.id = v.document_id"
+        )
+    }
+    router = LLMRouter(
+        providers={"det": DeterministicAdapter("det")},
+        chains={"embed": [Route("det", "hash")]},
+        clock=ManualClock(),
+    )
+    cache = SemanticCache(redis_client, router)
+    stale = await cache.store(
+        tenant_id=tenant,
+        question="How often should ALT be checked?",
+        as_of=JUNE,
+        answer={"answer": OLD_RULE},
+        version_ids=[versions["lipitor"]],
+    )
+    kept = await cache.store(
+        tenant_id=tenant,
+        question="What does the hepatic guide say?",
+        as_of=JUNE,
+        answer={"answer": NEW_RULE},
+        version_ids=[versions["hepatic-guide"]],
+    )
+    item = await queue.open("relation", relation, tenant, {"reason": "low_confidence"})
+    await queue.resolve(item, "approve", None, by="alice", tenant_id=tenant)
+    assert await redis_client.exists(f"semcache:entry:{stale}") == 1  # until the relay runs
+    await relay(fresh_pool, redis_client).relay_once()
+
+    assert await redis_client.exists(f"semcache:entry:{stale}") == 0
+    assert await redis_client.exists(f"semcache:entry:{kept}") == 1
+    # The replaced label's answer is no longer served: its version is still inside its
+    # validity window, so the lookup's in-force re-check alone would have served it.
+    async with fresh_pool.acquire() as conn:
+        gone = await cache.lookup(
+            conn, tenant_id=tenant, question="How often should ALT be checked?", as_of=JUNE
+        )
+        hit = await cache.lookup(
+            conn, tenant_id=tenant, question="What does the hepatic guide say?", as_of=JUNE
+        )
+    assert gone is None
+    assert hit is not None and hit.entry_id == kept
 
 
 async def test_an_edit_applies_the_corrected_relation_and_creates_an_eval_case(queue, fresh_conn):
@@ -254,13 +315,13 @@ async def broken_watched_answer(conn, embedder_url):
 
 
 async def test_approved_broken_answer_regenerates_through_run_ask(
-    queue, kit, fresh_conn, redis_client, embedder_url
+    queue, kit, fresh_conn, fresh_pool, redis_client, embedder_url
 ):
     tenant, answer, _, chunks = await broken_watched_answer(fresh_conn, embedder_url)
     item = await queue.open("broken_answer", answer, tenant, {"reason": "broken"})
     done = await queue.resolve(item, "approve", None, by="alice", tenant_id=tenant)
 
-    [job] = await agent_messages(redis_client)
+    [job] = await agent_messages(redis_client, fresh_pool)
     assert job.answer_id == answer and job.tenant_id == tenant and job.as_of is None
     assert job.question == "How often should ALT be checked?"
     assert done.resolution["job_id"] == str(job.job_id)
@@ -280,13 +341,19 @@ async def test_approved_broken_answer_regenerates_through_run_ask(
 
     [final] = finals(await kit.job_events(job.job_id))
     assert final.answer.answer == NEW_RULE and final.answer.answer_id == answer
+    # The answer now belongs to its latest job (still one answer per job).
+    assert await fresh_conn.fetchval("SELECT job_id FROM answers WHERE id = $1", answer) == (
+        job.job_id
+    )
     cited = await fresh_conn.fetch(
         "SELECT chunk_id FROM answer_citations WHERE answer_id = $1", answer
     )
     assert [r["chunk_id"] for r in cited] == [chunks[1][0]]  # now cites v2
 
 
-async def test_rejected_broken_answer_is_not_regenerated(queue, fresh_conn, redis_client):
+async def test_rejected_broken_answer_is_not_regenerated(
+    queue, fresh_conn, fresh_pool, redis_client
+):
     tenant, _ = await seed_source(fresh_conn)
     answer = await fresh_conn.fetchval(
         "INSERT INTO answers (tenant_id, question, as_of, body) "
@@ -295,11 +362,11 @@ async def test_rejected_broken_answer_is_not_regenerated(queue, fresh_conn, redi
     )
     item = await queue.open("broken_answer", answer, tenant, {"reason": "broken"})
     await queue.resolve(item, "reject", None, by="a", tenant_id=tenant)
-    assert await agent_messages(redis_client) == []
+    assert await agent_messages(redis_client, fresh_pool) == []
 
 
 async def test_legacy_answer_kind_items_resolve_like_broken_answers(
-    queue, fresh_conn, redis_client
+    queue, fresh_conn, fresh_pool, redis_client
 ):
     tenant, _ = await seed_source(fresh_conn)
     answer = await fresh_conn.fetchval(
@@ -315,7 +382,7 @@ async def test_legacy_answer_kind_items_resolve_like_broken_answers(
     )
     assert [i.id for i in await queue.list(tenant, kind="broken_answer")] == [item]
     await queue.resolve(item, "edit", {"answer": "It is monthly now."}, by="a", tenant_id=tenant)
-    [job] = await agent_messages(redis_client)
+    [job] = await agent_messages(redis_client, fresh_pool)
     assert job.answer_id == answer and job.question == "What changed?"
     case = await fresh_conn.fetchrow("SELECT question, expected FROM eval_cases")
     assert case["question"] == "What changed?"

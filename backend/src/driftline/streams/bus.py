@@ -35,6 +35,11 @@ class StreamBus:
         self._max_deliveries = max_deliveries
         self._dlq_prefix = dlq_prefix
 
+    @property
+    def redis(self) -> Redis:
+        """The client this bus publishes with (for side effects that are not streams)."""
+        return self._redis
+
     async def publish(self, stream: str, payload: dict[str, Any]) -> str:
         return await self._redis.xadd(stream, {"data": json.dumps(payload)})
 

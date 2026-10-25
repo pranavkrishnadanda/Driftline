@@ -2,6 +2,10 @@
 Postgres checkpointer, the DeterministicAdapter running the in-repo ExtractiveResponder
 (or scripted replies), the TEI embedder, and an AgentWorker on the real `agent` stream.
 
+Review follow-ups (resumes, regenerations) reach the `agent` stream through the
+transactional outbox, so `AgentKit.drain()` runs the real outbox relay before each
+worker pass, as a deployment's relay process would.
+
 `AgentKit.restart()` builds a brand-new checkpointer, graph and worker on the same
 database, which is what a worker process restart looks like to a paused thread.
 """
@@ -23,6 +27,8 @@ from driftline.agents.offline import ExtractiveResponder
 from driftline.agents.schemas import AGENT_STREAM, AskJob
 from driftline.agents.worker import AgentWorker
 from driftline.clock import ManualClock
+from driftline.drift.alerts import AlertLog
+from driftline.ingest.outbox import OutboxRelay
 from driftline.llm.adapters.deterministic import DeterministicAdapter
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.router import LLMRouter, Route
@@ -67,6 +73,10 @@ class AgentKit:
     @property
     def bus(self) -> StreamBus:
         return StreamBus(self.redis)
+
+    @property
+    def relay(self) -> OutboxRelay:
+        return OutboxRelay(self.pool, self.bus, alerts=AlertLog(self.redis))
 
     @property
     def events(self) -> AskEventLog:
@@ -114,9 +124,11 @@ class AgentKit:
         return job
 
     async def drain(self, limit: int = 10) -> int:
-        """Process agent-stream messages until none is left; returns how many ran."""
+        """Relay the outbox and process agent-stream messages until none is left;
+        returns how many messages ran."""
         done = 0
         for _ in range(limit):
+            await self.relay.relay_once()
             n = await self.worker.run_once(block_ms=50)
             if n == 0:
                 break

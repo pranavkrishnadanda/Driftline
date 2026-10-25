@@ -4,12 +4,17 @@ resolve, 422 on an edit the item kind cannot take."""
 
 import asyncio
 import json
+from contextlib import AsyncExitStack
 from datetime import UTC, datetime
 
-from dbseed import VersionSeed, seed_history, seed_source
+from agentkit import AgentKit
+from dbseed import VersionSeed, embed_all, seed_history, seed_source, seed_watched_answer
 from test_ask_api import asgi_client, settings_for
 
 from driftline.agents.schemas import AGENT_STREAM
+from driftline.drift.alerts import AlertLog
+from driftline.ingest.outbox import OutboxRelay
+from driftline.streams.bus import StreamBus
 
 
 async def seed_items(conn, name: str):
@@ -98,7 +103,9 @@ async def test_resolve_then_resolve_again_is_409(fresh_dsn, redis_url, fresh_con
     assert await fresh_conn.fetchval("SELECT status FROM relations") == "applied"
 
 
-async def test_concurrent_resolves_one_200_one_409(fresh_dsn, redis_url, fresh_conn, redis_client):
+async def test_concurrent_resolves_one_200_one_409(
+    fresh_dsn, redis_url, fresh_conn, fresh_pool, redis_client
+):
     a = await seed_items(fresh_conn, "pharma")
     url = f"/v1/review/{a['broken']}/resolve"
     async with asgi_client(settings_for(fresh_dsn, redis_url)) as client:
@@ -107,7 +114,10 @@ async def test_concurrent_resolves_one_200_one_409(fresh_dsn, redis_url, fresh_c
             client.post(url, params={"tenant": "pharma"}, json=resolve_body(by="b")),
         )
     assert sorted([first.status_code, second.status_code]) == [200, 409]
-    # The approved broken answer is regenerated exactly once.
+    # The approved broken answer is regenerated exactly once (through the outbox).
+    await OutboxRelay(
+        fresh_pool, StreamBus(redis_client), alerts=AlertLog(redis_client)
+    ).relay_once()
     entries = await redis_client.xrange(AGENT_STREAM)
     jobs = [json.loads(f["data"]) for _, f in entries]
     assert len(jobs) == 1 and jobs[0]["tenant_id"] == str(a["tenant"])
@@ -181,3 +191,64 @@ async def test_an_edit_records_an_eval_case(fresh_dsn, redis_url, fresh_conn):
         assert r.status_code == 200
     case = await fresh_conn.fetchrow("SELECT tenant_id, source_review_id FROM eval_cases")
     assert (case["tenant_id"], case["source_review_id"]) == (a["tenant"], a["rel_item"])
+
+
+async def test_a_regeneration_jobs_status_shows_the_regenerated_answer(
+    fresh_dsn, redis_url, fresh_conn, fresh_pool, redis_client, embedder_url
+):
+    """Approve a broken watched answer, let the regeneration pause for review, approve
+    that too: GET /v1/jobs/{regeneration job} then shows the regenerated answer."""
+    tenant, source = await seed_source(fresh_conn, tenant="pharma", api_key="key-pharma")
+    _, versions, chunks = await seed_history(
+        fresh_conn,
+        source,
+        external_id="lipitor",
+        title="Lipitor label",
+        versions=[
+            VersionSeed(datetime(2023, 1, 1, tzinfo=UTC), [("Liver", "Check ALT yearly.")]),
+            VersionSeed(datetime(2024, 4, 15, tzinfo=UTC), [("Hepatic", "Check ALT monthly.")]),
+        ],
+    )
+    await embed_all(fresh_conn, embedder_url)
+    answer = await seed_watched_answer(
+        fresh_conn,
+        tenant,
+        versions[0],
+        [chunks[0][0]],
+        [("Check ALT yearly.", "Check ALT yearly.")],
+        question="How often should ALT be checked?",
+    )
+    broken = await fresh_conn.fetchval(
+        "INSERT INTO review_items (kind, ref_id, tenant_id, payload) "
+        "VALUES ('broken_answer', $1, $2, '{}') RETURNING id",
+        answer,
+        tenant,
+    )
+    async with (
+        AsyncExitStack() as stack,
+        asgi_client(settings_for(fresh_dsn, redis_url)) as client,
+    ):
+        kit = AgentKit(fresh_pool, redis_client, fresh_dsn, embedder_url, stack)
+        await kit.restart()
+        r = await client.post(
+            f"/v1/review/{broken}/resolve", params={"tenant": "pharma"}, json=resolve_body()
+        )
+        assert r.status_code == 200
+        regen_job = r.json()["resolution"]["job_id"]
+        await kit.drain()  # relays the regeneration, which pauses for review
+        paused = await fresh_conn.fetchval(
+            "SELECT id FROM review_items WHERE kind = 'low_confidence_answer'"
+        )
+        r = await client.post(
+            f"/v1/review/{paused}/resolve", params={"tenant": "pharma"}, json=resolve_body()
+        )
+        assert r.status_code == 200
+        await kit.drain()
+
+        r = await client.get(f"/v1/jobs/{regen_job}", params={"tenant": "pharma"})
+    assert r.status_code == 200
+    status = r.json()
+    assert status["status"] == "succeeded"
+    assert status["answer"] is not None
+    assert status["answer"]["answer_id"] == str(answer)
+    assert status["answer"]["answer"] == "Check ALT monthly."

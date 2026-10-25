@@ -16,6 +16,7 @@ from driftline.agents.events import ErrorEvent, FinalEvent
 from driftline.agents.graph import ReviewPending, run_ask
 from driftline.agents.schemas import AGENT_GROUP, AGENT_STREAM, AnswerSchema, AskJob
 from driftline.clock import Clock, SystemClock
+from driftline.ingest.outbox import ASK_REGENERATE_TOPIC, ASK_RESUME_TOPIC
 from driftline.llm.router import AllRoutesFailed
 from driftline.obs.cost import job_cost
 from driftline.review.queue import ReviewQueue
@@ -29,6 +30,9 @@ REAP_INTERVAL_S = 60.0
 # start the scan for a job's entry this far before its created_at to absorb skew.
 REAP_SCAN_SLACK_MS = 5 * 60_000
 REAP_SCAN_PAGE = 500
+ASK_TOPICS = (ASK_RESUME_TOPIC, ASK_REGENERATE_TOPIC)  # outbox topics carrying an AskJob
+# Which stream entry owns a reviewer's decision (see `AgentWorker._claim_resume`).
+RESUME_CLAIM_TTL_S = 7 * 24 * 3600
 
 
 async def persist_answer(
@@ -80,11 +84,15 @@ async def _replace_watched_answer(
     conn: asyncpg.Connection, job: AskJob, answer: AnswerSchema, cost_usd
 ) -> AnswerSchema:
     """A regeneration (`job.answer_id`) rewrites that answer in place, so it keeps its id
-    and its watch; its citations are replaced. Rerunning it writes the same rows."""
+    and its watch; its citations are replaced. Rerunning it writes the same rows.
+
+    The answer's `job_id` moves to this (latest) job, so `GET /v1/jobs/{job}` for the
+    regeneration shows the answer; the earlier job then shows none. The unique index on
+    `answers.job_id` holds: a regeneration job never inserts an answer of its own."""
     async with conn.transaction():
         found = await conn.fetchval(
             "UPDATE answers SET as_of = $3, body = $4::jsonb, confidence = $5, status = $6, "
-            "degraded = $7, cost_usd = $8 WHERE id = $1 AND tenant_id = $2 "
+            "degraded = $7, cost_usd = $8, job_id = $9 WHERE id = $1 AND tenant_id = $2 "
             "RETURNING id",
             job.answer_id,
             job.tenant_id,
@@ -94,6 +102,7 @@ async def _replace_watched_answer(
             answer.status,
             answer.degraded,
             cost_usd,
+            job.job_id,
         )
         if found is None:
             raise LookupError(f"no answer {job.answer_id} for tenant {job.tenant_id}")
@@ -136,12 +145,19 @@ async def reap_lost_asks(
 ) -> list[UUID]:
     """Fail asks still `queued` after `timeout_s` that never reached the agent stream (the
     gateway inserted the job, then its publish failed). Their clients get a terminal
-    `enqueue_lost` error instead of waiting forever. Returns the reaped job ids."""
+    `enqueue_lost` error instead of waiting forever. Returns the reaped job ids.
+
+    An ask whose message still waits in the outbox (a review follow-up the relay has not
+    published yet) is not lost: the relay delivers it, so it is never reaped."""
     async with pool.acquire() as conn:
         stale = await conn.fetch(
-            "SELECT id, created_at FROM jobs WHERE kind = 'ask' AND status = 'queued' "
-            "AND created_at < to_timestamp($1) ORDER BY created_at",
+            "SELECT j.id, j.created_at FROM jobs j WHERE j.kind = 'ask' "
+            "AND j.status = 'queued' AND j.created_at < to_timestamp($1) "
+            "AND NOT EXISTS (SELECT 1 FROM outbox o WHERE o.published_at IS NULL "
+            "AND o.topic = ANY($2::text[]) AND o.payload->>'job_id' = j.id::text) "
+            "ORDER BY j.created_at",
             now - timeout_s,
+            list(ASK_TOPICS),
         )
     if not stale:
         return []
@@ -262,6 +278,18 @@ class AgentWorker:
         )
         return bool(info) and int(info[0]["times_delivered"]) >= self._max_deliveries
 
+    async def _claim_resume(self, msg_id: str, job: AskJob) -> bool:
+        """True when this stream entry may resume the paused thread with `job.resume`.
+
+        The outbox delivers a decision at least once, so two entries can carry the same
+        one. The first entry to get here claims it (SET NX); any other entry is skipped,
+        even while the first is still running. The claiming entry itself may come back (a
+        reclaim after a worker crash) and then continues from the checkpoint."""
+        key = f"resume-claim:{job.job_id}:{job.resume.review_id}"
+        if await self._redis.set(key, msg_id, nx=True, ex=RESUME_CLAIM_TTL_S):
+            return True
+        return await self._redis.get(key) == msg_id
+
     async def handle_ask(self, msg_id: str, payload: dict[str, Any]) -> None:
         job = AskJob.model_validate(payload)
         async with self._pool.acquire() as conn:
@@ -278,6 +306,8 @@ class AgentWorker:
                 return  # redelivered after completion
             if status == "needs_review" and job.resume is None:
                 return  # redelivered while paused: only a reviewer's decision resumes it
+            if job.resume is not None and not await self._claim_resume(msg_id, job):
+                return  # another copy of this decision (outbox redelivery) owns the resume
             await conn.execute(
                 "UPDATE jobs SET status = 'running' WHERE id = $1 AND status = 'queued'",
                 job.job_id,

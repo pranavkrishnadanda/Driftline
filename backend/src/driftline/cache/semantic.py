@@ -63,6 +63,20 @@ def _version_key(version_id: UUID) -> str:
     return f"{PREFIX}:version:{version_id}"
 
 
+async def invalidate_versions(redis: Redis, version_ids: Sequence[UUID]) -> int:
+    """Drop every cached answer that cites any of these versions; returns how many.
+
+    Needs only Redis (no embedder), so the outbox relay can run it for a
+    `cache.invalidate` row. Idempotent: a redelivered row drops nothing more."""
+    dropped = 0
+    for version_id in version_ids:
+        key = _version_key(version_id)
+        for entry_id in await redis.smembers(key):
+            dropped += await redis.delete(_entry_key(entry_id))
+        await redis.delete(key)
+    return dropped
+
+
 class SemanticCache:
     def __init__(
         self,
@@ -160,13 +174,7 @@ class SemanticCache:
 
     async def invalidate_versions(self, version_ids: Sequence[UUID]) -> int:
         """Drop every cached answer that cites any of these versions; returns how many."""
-        dropped = 0
-        for version_id in version_ids:
-            key = _version_key(version_id)
-            for entry_id in await self._redis.smembers(key):
-                dropped += await self._redis.delete(_entry_key(entry_id))
-            await self._redis.delete(key)
-        return dropped
+        return await invalidate_versions(self._redis, version_ids)
 
     async def _delete(self, entry_id: str, version_ids: Sequence[UUID], bucket: str) -> None:
         pipe = self._redis.pipeline(transaction=True)
