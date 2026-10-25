@@ -25,11 +25,23 @@ from driftline.agents.schemas import AnswerSchema, Citation, Claim
 CONTRACT_PATH = Path(__file__).resolve().parents[4] / "contracts" / "sse" / "ask-events.v1.json"
 _CHUNK = UUID("00000000-0000-4000-8000-0000000000c2")
 _VERSION = UUID("00000000-0000-4000-8000-0000000000a2")
+_DOCUMENT = UUID("00000000-0000-4000-8000-0000000000d1")
 _QUOTE = "Check ALT monthly during therapy."
 
 
 def example_events() -> list[tuple[int, Any]]:
-    citation = Citation(chunk_id=_CHUNK, version_id=_VERSION, quote=_QUOTE)
+    citation = Citation(
+        chunk_id=_CHUNK,
+        version_id=_VERSION,
+        quote=_QUOTE,
+        document_id=_DOCUMENT,
+        title="Lipitor (atorvastatin calcium) label",
+        external_id="lipitor",
+        version_no=2,
+        section_path="Warnings and Precautions > Liver Dysfunction",
+        valid_from="2024-04-15T00:00:00Z",
+        valid_to=None,
+    )
     answer = AnswerSchema(
         status="answered",
         answer="ALT should be checked monthly during therapy.",

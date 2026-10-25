@@ -177,8 +177,15 @@
       "data": {
         "citation": {
           "chunk_id": "00000000-0000-4000-8000-0000000000c2",
+          "document_id": "00000000-0000-4000-8000-0000000000d1",
+          "external_id": "lipitor",
           "quote": "Check ALT monthly during therapy.",
-          "version_id": "00000000-0000-4000-8000-0000000000a2"
+          "section_path": "Warnings and Precautions > Liver Dysfunction",
+          "title": "Lipitor (atorvastatin calcium) label",
+          "valid_from": "2024-04-15T00:00:00Z",
+          "valid_to": null,
+          "version_id": "00000000-0000-4000-8000-0000000000a2",
+          "version_no": 2
         },
         "idx": 0,
         "reason": null,
@@ -226,8 +233,15 @@
           "citations": [
             {
               "chunk_id": "00000000-0000-4000-8000-0000000000c2",
+              "document_id": "00000000-0000-4000-8000-0000000000d1",
+              "external_id": "lipitor",
               "quote": "Check ALT monthly during therapy.",
-              "version_id": "00000000-0000-4000-8000-0000000000a2"
+              "section_path": "Warnings and Precautions > Liver Dysfunction",
+              "title": "Lipitor (atorvastatin calcium) label",
+              "valid_from": "2024-04-15T00:00:00Z",
+              "valid_to": null,
+              "version_id": "00000000-0000-4000-8000-0000000000a2",
+              "version_no": 2
             }
           ],
           "claims": [
@@ -235,8 +249,15 @@
               "citations": [
                 {
                   "chunk_id": "00000000-0000-4000-8000-0000000000c2",
+                  "document_id": "00000000-0000-4000-8000-0000000000d1",
+                  "external_id": "lipitor",
                   "quote": "Check ALT monthly during therapy.",
-                  "version_id": "00000000-0000-4000-8000-0000000000a2"
+                  "section_path": "Warnings and Precautions > Liver Dysfunction",
+                  "title": "Lipitor (atorvastatin calcium) label",
+                  "valid_from": "2024-04-15T00:00:00Z",
+                  "valid_to": null,
+                  "version_id": "00000000-0000-4000-8000-0000000000a2",
+                  "version_no": 2
                 }
               ],
               "idx": 0,
@@ -377,20 +398,108 @@
         "type": "object"
       },
       "Citation": {
+        "description": "A cited chunk, with the metadata of the version it belongs to (for the UI).\n\nNew citations are built with `from_evidence`, which fills every metadata field.\nThe fields are optional only so answer bodies stored before they existed (in\n`answers.body` and the semantic cache) still load; the validator keeps them\nall-or-nothing, so a citation is either fully described or a legacy one.",
         "properties": {
           "chunk_id": {
             "format": "uuid",
             "title": "Chunk Id",
             "type": "string"
           },
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Document Id"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "External Id"
+          },
           "quote": {
             "title": "Quote",
             "type": "string"
+          },
+          "section_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Section Path"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Title"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Valid To"
           },
           "version_id": {
             "format": "uuid",
             "title": "Version Id",
             "type": "string"
+          },
+          "version_no": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Version No"
           }
         },
         "required": [

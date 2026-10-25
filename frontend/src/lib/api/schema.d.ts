@@ -177,20 +177,63 @@ export interface components {
             /** Tenant */
             tenant: string;
         };
-        /** Citation */
+        /**
+         * Citation
+         * @description A cited chunk, with the metadata of the version it belongs to (for the UI).
+         *
+         *     New citations are built with `from_evidence`, which fills every metadata field.
+         *     The fields are optional only so answer bodies stored before they existed (in
+         *     `answers.body` and the semantic cache) still load; the validator keeps them
+         *     all-or-nothing, so a citation is either fully described or a legacy one.
+         */
         Citation: {
             /**
              * Chunk Id
              * Format: uuid
              */
             chunk_id: string;
+            /**
+             * Document Id
+             * @default null
+             */
+            document_id: string | null;
+            /**
+             * External Id
+             * @default null
+             */
+            external_id: string | null;
             /** Quote */
             quote: string;
+            /**
+             * Section Path
+             * @default null
+             */
+            section_path: string | null;
+            /**
+             * Title
+             * @default null
+             */
+            title: string | null;
+            /**
+             * Valid From
+             * @default null
+             */
+            valid_from: string | null;
+            /**
+             * Valid To
+             * @default null
+             */
+            valid_to: string | null;
             /**
              * Version Id
              * Format: uuid
              */
             version_id: string;
+            /**
+             * Version No
+             * @default null
+             */
+            version_no: number | null;
         };
         /** Claim */
         Claim: {

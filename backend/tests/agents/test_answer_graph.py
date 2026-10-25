@@ -47,7 +47,7 @@ def det_router(det: DeterministicAdapter, embedder_url: str) -> LLMRouter:
 @pytest.fixture
 async def corpus(fresh_conn, embedder_url):
     tenant, source = await seed_source(fresh_conn, kind="openfda")
-    _, versions, chunks = await seed_history(
+    document, versions, chunks = await seed_history(
         fresh_conn,
         source,
         external_id="lipitor",
@@ -58,7 +58,13 @@ async def corpus(fresh_conn, embedder_url):
         ],
     )
     await embed_all(fresh_conn, embedder_url)
-    return {"tenant": tenant, "source": source, "versions": versions, "chunks": chunks}
+    return {
+        "tenant": tenant,
+        "source": source,
+        "document": document,
+        "versions": versions,
+        "chunks": chunks,
+    }
 
 
 @pytest.fixture
@@ -118,6 +124,14 @@ async def test_answers_from_the_in_force_version_and_streams_events(make_agent, 
     [claim] = answer.claims
     assert claim.verified and claim.citations[0].chunk_id == corpus["chunks"][1][0]
     assert {c.version_id for c in answer.citations} == {corpus["versions"][1]}
+    # Every citation carries the in-force version's metadata, for the UI's hover card.
+    for cited in [*claim.citations, *answer.citations]:
+        assert cited.document_id == corpus["document"]
+        assert (cited.title, cited.external_id) == ("Lipitor label", "lipitor")
+        assert (cited.version_no, cited.section_path) == (2, "Warnings > Liver")
+        assert (cited.valid_from, cited.valid_to) == (T_NEW, None)
+    claim_events = [e for e in events if isinstance(e, ClaimEvent)]
+    assert claim_events[0].citation == claim.citations[0]
     assert answer.as_of == JUNE_2024 and answer.confidence == 1.0 and not answer.degraded
     assert steps(events) == [
         ("classify", "started"),
@@ -165,6 +179,9 @@ async def test_question_dated_before_the_change_cites_the_old_version(
     assert answer.as_of == datetime(2023, 6, 1, 23, 59, 59, 999999, UTC)
     assert answer.answer == OLD_RULE
     assert {c.version_id for c in answer.citations} == {corpus["versions"][0]}
+    assert {(c.version_no, c.valid_from, c.valid_to) for c in answer.citations} == {
+        (1, T_OLD, T_NEW)
+    }
     classify = next(
         e
         for e in events

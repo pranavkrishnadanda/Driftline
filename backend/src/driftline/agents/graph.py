@@ -165,6 +165,18 @@ def _uuid(value: str) -> UUID | None:
         return None
 
 
+def _dropped_citation(
+    chunk_id: UUID, version_id: UUID, quote: str, index: dict[str, Evidence]
+) -> Citation:
+    """A failed claim's citation as the model gave it. It carries metadata when it names
+    a retrieved chunk at that chunk's version; otherwise there is no trustworthy
+    metadata (an invented or mismatched id), so it stays bare."""
+    item = index.get(str(chunk_id))
+    if item is not None and item.version_id == version_id:
+        return Citation.from_evidence(item, quote)
+    return Citation(chunk_id=chunk_id, version_id=version_id, quote=quote)
+
+
 def _evidence(state: AskState) -> list[Evidence]:
     return [Evidence.model_validate(e) for e in state.get("evidence") or []]
 
@@ -425,7 +437,7 @@ def build_answer_graph(deps: AgentDeps) -> StateGraph:
                 )
             else:
                 cited = [
-                    Citation(chunk_id=c, version_id=v, quote=d.quote)
+                    _dropped_citation(c, v, d.quote, index)
                     for d in claim.citations
                     if (c := _uuid(d.chunk_id)) and (v := _uuid(d.version_id))
                 ]

@@ -212,7 +212,7 @@ class DriftEngine:
             if status == "unchanged":
                 verdict = "still_valid"
                 chunk = _same_chunk(row["chunk_id"], row["text"], old_chunks, new_section)
-                target = Citation(chunk_id=chunk.id, version_id=latest["id"], quote=quote)
+                target = Citation.from_evidence(_evidence(chunk, document_id, doc, latest), quote)
             elif status == "changed":
                 check = await verify_claim(
                     DraftClaim(
