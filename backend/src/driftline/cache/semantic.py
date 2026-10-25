@@ -8,7 +8,9 @@ version id, so `invalidate_versions` drops every answer that cites a superseded 
 (the drift engine in P4 calls it; lookups re-check validity regardless).
 
 Every lookup also counts a hit or a miss in a per-tenant Redis hash (`lookup_counts`),
-which `GET /v1/stats` reports as the cache hit rate.
+which `GET /v1/stats` reports as the cache hit rate. The counter lives under its own
+`semstats:` namespace, never under `semcache:`, so anything that scans or clears cache
+entries by pattern neither mistakes it for an entry nor wipes the stats.
 """
 
 import json
@@ -26,6 +28,7 @@ from redis.asyncio import Redis
 from driftline.llm.router import LLMRouter
 
 PREFIX = "semcache"
+STATS_PREFIX = "semstats"  # deliberately outside PREFIX; see the module docstring
 IN_FORCE_COUNT = (
     "SELECT count(*) FROM doc_versions v "
     "JOIN documents d ON d.id = v.document_id JOIN sources s ON s.id = d.source_id "
@@ -67,7 +70,7 @@ def _version_key(version_id: UUID) -> str:
 
 
 def _counts_key(tenant_id: UUID) -> str:
-    return f"{PREFIX}:counts:{tenant_id}"
+    return f"{STATS_PREFIX}:{tenant_id}"
 
 
 async def lookup_counts(redis: Redis, tenant_id: UUID) -> tuple[int, int]:

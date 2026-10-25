@@ -332,3 +332,13 @@ async def test_a_stale_entry_evicted_on_lookup_counts_as_a_miss(redis_client, fr
     )
     assert await cache.lookup(fresh_conn, tenant_id=tenant_a, question=QUESTION, as_of=JUNE) is None
     assert await lookup_counts(redis_client, tenant_a) == (0, 1)
+
+
+async def test_lookup_counter_is_not_under_the_cache_key_namespace(redis_client, fresh_conn):
+    # Regression: the counter used to be `semcache:counts:{tenant}`, so a `semcache:*`
+    # scan (cache-emptiness checks, pattern invalidation) saw it as a cache entry.
+    tenant = uuid4()
+    cache = det_cache(redis_client)
+    assert await cache.lookup(fresh_conn, tenant_id=tenant, question=QUESTION, as_of=JUNE) is None
+    assert await redis_client.keys("semcache:*") == []
+    assert await lookup_counts(redis_client, tenant) == (0, 1)
