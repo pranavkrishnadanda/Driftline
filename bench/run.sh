@@ -17,6 +17,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 N="${1:?usage: bench/run.sh N (agent workers)}"
 VUS="${VUS:-$((4 * N))}" # 4 in flight per agent worker: each is kept busy, latency comparable
+# Results file tag: workers-N.json, or workers-N-rrf.json with the reranker off.
+TAG="$N"
+[[ "${BENCH_RERANKER:-on}" == off ]] && TAG="$N-rrf"
 DURATION="${DURATION:-180s}"
 WARMUP="${WARMUP:-20s}"
 export BENCH_LLM_MEDIAN_MS="${BENCH_LLM_MEDIAN_MS:-800}" BENCH_LLM_SIGMA="${BENCH_LLM_SIGMA:-0.5}"
@@ -60,26 +63,26 @@ for _ in $(seq 1 150); do
   sleep 2
 done
 
-RAW="$WORK/workers-$N.ndjson"
+RAW="$WORK/workers-$TAG.ndjson"
 RUN_START="$(psql_q "SELECT now()")"
 blog "run: $DURATION at $VUS VUs, $N agent worker(s)"
-(sleep "$(( ${DURATION%s} / 2 ))" && stats_json >"$WORK/stats-$N.json" 2>/dev/null) &
+(sleep "$(( ${DURATION%s} / 2 ))" && stats_json >"$WORK/stats-$TAG.json" 2>/dev/null) &
 STATS_PID=$!
 k6_status=0
 k6_run "$DURATION" --out "json=$RAW" >&2 || k6_status=$?
 wait "$STATS_PID" || true
 # Per-stage timing of the run's asks, from their own step events (bench/stages.py).
-compose exec -T gateway python - "$RUN_START" <"$ROOT/bench/stages.py" >"$WORK/stages-$N.json" ||
-  echo "{}" >"$WORK/stages-$N.json"
+compose exec -T gateway python - "$RUN_START" <"$ROOT/bench/stages.py" >"$WORK/stages-$TAG.json" ||
+  echo "{}" >"$WORK/stages-$TAG.json"
 gzip -9 -f "$RAW"
 
 oom="$(oom_killed)"
 [[ -n "$oom" ]] && blog "OOM-killed containers: $oom"
-python3 - "$WORK/meta-$N.json" <<PY
+python3 - "$WORK/meta-$TAG.json" <<PY
 import json, sys
 stats = []
 try:
-    stats = json.load(open("$WORK/stats-$N.json"))
+    stats = json.load(open("$WORK/stats-$TAG.json"))
 except (OSError, ValueError):
     pass
 json.dump({
@@ -94,14 +97,14 @@ json.dump({
         "llm_seed": $BENCH_LLM_SEED, "per_worker_seed": "seed ^ crc32(consumer)",
         "corpus": {"documents": $docs, "embedded_chunks": $chunks},
     },
-    "stages": json.load(open("$WORK/stages-$N.json")),
+    "stages": json.load(open("$WORK/stages-$TAG.json")),
     "oom_killed": [x for x in "$oom".split(",") if x],
     "container_stats_mid_run": stats,
 }, open(sys.argv[1], "w"))
 PY
-summarize k6 "$RAW.gz" --meta "$WORK/meta-$N.json" --out "$OUT/workers-$N.json"
-cp "$RAW.gz" "$OUT/k6-workers-$N.ndjson.gz"
-blog "wrote $OUT/workers-$N.json"
+summarize k6 "$RAW.gz" --meta "$WORK/meta-$TAG.json" --out "$OUT/workers-$TAG.json"
+cp "$RAW.gz" "$OUT/k6-workers-$TAG.ndjson.gz"
+blog "wrote $OUT/workers-$TAG.json"
 
 if [[ "${CHAOS:-0}" == 1 ]]; then
   # bench/chaos.sh on this same stack: k6 load while a random agent-worker is killed every

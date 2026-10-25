@@ -86,7 +86,9 @@ git_sha() { git -C "$ROOT" rev-parse --short=12 HEAD; }
 
 results_dir() {
   local dir
-  dir="$ROOT/bench/results/$(git_sha)"
+  # BENCH_RESULTS_SHA adds runs to an existing results directory (each run records its
+  # own commit in workers-N.json).
+  dir="$ROOT/bench/results/${BENCH_RESULTS_SHA:-$(git_sha)}"
   mkdir -p "$dir"
   printf '%s' "$dir"
 }

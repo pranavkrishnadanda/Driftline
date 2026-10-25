@@ -104,6 +104,11 @@ def _machine_lines(machine: dict[str, Any]) -> list[str]:
     ]
 
 
+def _run_key(run: dict[str, Any]) -> tuple[bool, int]:
+    """Reranker-on rows first, then by worker count."""
+    return (run.get("config", {}).get("reranker", "on") != "on", run["workers"])
+
+
 STAGE_COLUMNS = ("wall", "queue", "worker", "plan", "retrieve", "draft", "verify")
 
 
@@ -117,9 +122,7 @@ def _cpu(entry: dict[str, Any]) -> float:
 def _where_the_time_goes(runs: Sequence[dict[str, Any]]) -> list[str]:
     """p50 ms per stage (bench/stages.py, from each ask's step events) and the busiest
     containers in the mid-run `docker stats` snapshot."""
-    staged = [
-        r for r in sorted(runs, key=lambda r: r["workers"]) if r.get("stages", {}).get("asks")
-    ]
+    staged = [r for r in sorted(runs, key=_run_key) if r.get("stages", {}).get("asks")]
     if not staged:
         return []
     lines = [
@@ -133,10 +136,10 @@ def _where_the_time_goes(runs: Sequence[dict[str, Any]]) -> list[str]:
             "`plan`, `draft` and `verify` are stub-LLM calls."
         ),
         "",
-        "| workers | asks | "
+        "| workers | asks | reranker | "
         + " | ".join(STAGE_COLUMNS)
         + " | rerank ran | busiest containers (CPU) |",
-        "|---|---|" + "---|" * len(STAGE_COLUMNS) + "---|---|",
+        "|---|---|---|" + "---|" * len(STAGE_COLUMNS) + "---|---|",
     ]
     for run in staged:
         st = run["stages"]
@@ -146,7 +149,7 @@ def _where_the_time_goes(runs: Sequence[dict[str, Any]]) -> list[str]:
             f"{e['Name'].removeprefix('driftline-bench-')} {e['CPUPerc']}" for e in busiest
         )
         lines.append(
-            f"| {run['workers']} | {st['asks']} | "
+            f"| {run['workers']} | {st['asks']} | {run.get('config', {}).get('reranker', 'n/a')} | "
             + " | ".join(cells)
             + f" | {_pct(st.get('rerank_ran_share'))} | {cpu or 'n/a'} |"
         )
@@ -181,7 +184,7 @@ def render_readme(
             ),
             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
         ]
-        for run in sorted(runs, key=lambda r: r["workers"]):
+        for run in sorted(runs, key=_run_key):
             s, cfg = run["summary"], run.get("config", {})
             lat, ttft = s["latency_ms"], s["ttft_ms"]
             oom = ", ".join(run.get("oom_killed") or []) or "none"
