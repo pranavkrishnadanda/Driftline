@@ -1,0 +1,693 @@
+{
+  "endpoints": {
+    "events": "GET /v1/jobs/{job_id}/events (alias GET /v1/ask/{job_id}/events)",
+    "status": "GET /v1/jobs/{job_id}",
+    "submit": "POST /v1/ask -> 202 {job_id, events_url, status_url}"
+  },
+  "examples": [
+    {
+      "data": {
+        "detail": {},
+        "node": "classify",
+        "status": "started",
+        "t_ms": 0.0,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 1
+    },
+    {
+      "data": {
+        "detail": {
+          "as_of": "2024-06-01T00:00:00+00:00",
+          "refused": null,
+          "source": "request"
+        },
+        "node": "classify",
+        "status": "completed",
+        "t_ms": 2.1,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 2
+    },
+    {
+      "data": {
+        "detail": {},
+        "node": "cache",
+        "status": "miss",
+        "t_ms": 9.8,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 3
+    },
+    {
+      "data": {
+        "detail": {},
+        "node": "plan",
+        "status": "started",
+        "t_ms": 10.0,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 4
+    },
+    {
+      "data": {
+        "detail": {
+          "mode": "single",
+          "sub_questions": [
+            {
+              "as_of": "2024-06-01T00:00:00+00:00",
+              "question": "How often should ALT be checked?"
+            }
+          ]
+        },
+        "node": "plan",
+        "status": "completed",
+        "t_ms": 812.4,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 5
+    },
+    {
+      "data": {
+        "detail": {
+          "as_of": "2024-06-01T00:00:00+00:00",
+          "branch": 0,
+          "sub_question": "How often should ALT be checked?"
+        },
+        "node": "subagent",
+        "status": "started",
+        "t_ms": 813.0,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 6
+    },
+    {
+      "data": {
+        "detail": {
+          "branch": 0,
+          "kept": 8,
+          "rerank_error": null,
+          "reranked": true,
+          "retrieved": 30
+        },
+        "node": "subagent",
+        "status": "completed",
+        "t_ms": 1290.5,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 7
+    },
+    {
+      "data": {
+        "detail": {
+          "evidence": 8
+        },
+        "node": "merge",
+        "status": "completed",
+        "t_ms": 1291.0,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 8
+    },
+    {
+      "data": {
+        "detail": {
+          "attempt": 0
+        },
+        "node": "draft",
+        "status": "started",
+        "t_ms": 1291.2,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 9
+    },
+    {
+      "data": {
+        "text": "ALT should be checked ",
+        "type": "token"
+      },
+      "event": "token",
+      "id": 10
+    },
+    {
+      "data": {
+        "text": "monthly during therapy.",
+        "type": "token"
+      },
+      "event": "token",
+      "id": 11
+    },
+    {
+      "data": {
+        "detail": {
+          "attempt": 0,
+          "claims": 1
+        },
+        "node": "draft",
+        "status": "completed",
+        "t_ms": 3410.7,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 12
+    },
+    {
+      "data": {
+        "detail": {
+          "attempt": 0
+        },
+        "node": "verify",
+        "status": "started",
+        "t_ms": 3411.0,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 13
+    },
+    {
+      "data": {
+        "citation": {
+          "chunk_id": "00000000-0000-4000-8000-0000000000c2",
+          "quote": "Check ALT monthly during therapy.",
+          "version_id": "00000000-0000-4000-8000-0000000000a2"
+        },
+        "idx": 0,
+        "reason": null,
+        "type": "claim",
+        "verified": true
+      },
+      "event": "claim",
+      "id": 14
+    },
+    {
+      "data": {
+        "detail": {
+          "supported": 1,
+          "unsupported": 0
+        },
+        "node": "verify",
+        "status": "completed",
+        "t_ms": 4210.3,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 15
+    },
+    {
+      "data": {
+        "detail": {
+          "error": null,
+          "outcome": "answered"
+        },
+        "node": "respond",
+        "status": "completed",
+        "t_ms": 4212.9,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 16
+    },
+    {
+      "data": {
+        "answer": {
+          "answer": "ALT should be checked monthly during therapy.",
+          "answer_id": "00000000-0000-4000-8000-0000000000f1",
+          "as_of": "2024-06-01T00:00:00Z",
+          "cached": false,
+          "citations": [
+            {
+              "chunk_id": "00000000-0000-4000-8000-0000000000c2",
+              "quote": "Check ALT monthly during therapy.",
+              "version_id": "00000000-0000-4000-8000-0000000000a2"
+            }
+          ],
+          "claims": [
+            {
+              "citations": [
+                {
+                  "chunk_id": "00000000-0000-4000-8000-0000000000c2",
+                  "quote": "Check ALT monthly during therapy.",
+                  "version_id": "00000000-0000-4000-8000-0000000000a2"
+                }
+              ],
+              "idx": 0,
+              "reason": null,
+              "text": "ALT is checked monthly during therapy.",
+              "verified": true
+            }
+          ],
+          "confidence": 1.0,
+          "cost_usd": 0.0042,
+          "degraded": false,
+          "dropped_claims": [],
+          "nearest_sources": [],
+          "status": "answered"
+        },
+        "type": "final"
+      },
+      "event": "final",
+      "id": 17
+    },
+    {
+      "data": {
+        "code": "events_expired",
+        "message": "events after 3 are no longer stored",
+        "retryable": false,
+        "type": "error"
+      },
+      "event": "error",
+      "id": null
+    }
+  ],
+  "framing": {
+    "data": "one JSON object matching `schema`",
+    "event": "the event type: step | token | claim | final | error",
+    "heartbeat": ": ping (an SSE comment line, sent when no event arrives for 15 s)",
+    "id": "integer, strictly increasing per job, starting at 1; absent on gateway-made events",
+    "resume": "reconnect with the Last-Event-ID header (or ?last_event_id=) to replay",
+    "terminal": "the stream ends after `final`, or after `error` with retryable=false"
+  },
+  "media_type": "text/event-stream",
+  "name": "driftline.ask.events",
+  "schema": {
+    "$defs": {
+      "AnswerSchema": {
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "answer_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Answer Id"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "cached": {
+            "default": false,
+            "title": "Cached",
+            "type": "boolean"
+          },
+          "citations": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "claims": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Claim"
+            },
+            "title": "Claims",
+            "type": "array"
+          },
+          "confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "cost_usd": {
+            "default": 0.0,
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "degraded": {
+            "default": false,
+            "title": "Degraded",
+            "type": "boolean"
+          },
+          "dropped_claims": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Claim"
+            },
+            "title": "Dropped Claims",
+            "type": "array"
+          },
+          "nearest_sources": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/NearestSource"
+            },
+            "title": "Nearest Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "answered",
+              "insufficient_evidence",
+              "refused"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "answer",
+          "as_of",
+          "confidence"
+        ],
+        "title": "AnswerSchema",
+        "type": "object"
+      },
+      "Citation": {
+        "properties": {
+          "chunk_id": {
+            "format": "uuid",
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "quote": {
+            "title": "Quote",
+            "type": "string"
+          },
+          "version_id": {
+            "format": "uuid",
+            "title": "Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "version_id",
+          "quote"
+        ],
+        "title": "Citation",
+        "type": "object"
+      },
+      "Claim": {
+        "properties": {
+          "citations": {
+            "items": {
+              "$ref": "#/$defs/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "idx": {
+            "title": "Idx",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reason"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "verified": {
+            "default": false,
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "idx",
+          "text",
+          "citations"
+        ],
+        "title": "Claim",
+        "type": "object"
+      },
+      "ClaimEvent": {
+        "properties": {
+          "citation": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Citation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "idx": {
+            "title": "Idx",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reason"
+          },
+          "type": {
+            "const": "claim",
+            "default": "claim",
+            "title": "Type",
+            "type": "string"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "idx",
+          "verified"
+        ],
+        "title": "ClaimEvent",
+        "type": "object"
+      },
+      "ErrorEvent": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "default": "",
+            "title": "Message",
+            "type": "string"
+          },
+          "retryable": {
+            "title": "Retryable",
+            "type": "boolean"
+          },
+          "type": {
+            "const": "error",
+            "default": "error",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "retryable"
+        ],
+        "title": "ErrorEvent",
+        "type": "object"
+      },
+      "FinalEvent": {
+        "properties": {
+          "answer": {
+            "$ref": "#/$defs/AnswerSchema"
+          },
+          "type": {
+            "const": "final",
+            "default": "final",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "answer"
+        ],
+        "title": "FinalEvent",
+        "type": "object"
+      },
+      "NearestSource": {
+        "properties": {
+          "document_id": {
+            "format": "uuid",
+            "title": "Document Id",
+            "type": "string"
+          },
+          "external_id": {
+            "title": "External Id",
+            "type": "string"
+          },
+          "section_path": {
+            "title": "Section Path",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "valid_from": {
+            "format": "date-time",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Valid To"
+          },
+          "version_id": {
+            "format": "uuid",
+            "title": "Version Id",
+            "type": "string"
+          },
+          "version_no": {
+            "title": "Version No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "document_id",
+          "external_id",
+          "title",
+          "version_id",
+          "version_no",
+          "section_path",
+          "valid_from"
+        ],
+        "title": "NearestSource",
+        "type": "object"
+      },
+      "StepEvent": {
+        "properties": {
+          "detail": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Detail",
+            "type": "object"
+          },
+          "node": {
+            "title": "Node",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "started",
+              "completed",
+              "skipped",
+              "retry",
+              "hit",
+              "miss",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "t_ms": {
+            "default": 0.0,
+            "title": "T Ms",
+            "type": "number"
+          },
+          "type": {
+            "const": "step",
+            "default": "step",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node",
+          "status"
+        ],
+        "title": "StepEvent",
+        "type": "object"
+      },
+      "TokenEvent": {
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "type": {
+            "const": "token",
+            "default": "token",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "TokenEvent",
+        "type": "object"
+      }
+    },
+    "discriminator": {
+      "mapping": {
+        "claim": "#/$defs/ClaimEvent",
+        "error": "#/$defs/ErrorEvent",
+        "final": "#/$defs/FinalEvent",
+        "step": "#/$defs/StepEvent",
+        "token": "#/$defs/TokenEvent"
+      },
+      "propertyName": "type"
+    },
+    "oneOf": [
+      {
+        "$ref": "#/$defs/StepEvent"
+      },
+      {
+        "$ref": "#/$defs/TokenEvent"
+      },
+      {
+        "$ref": "#/$defs/ClaimEvent"
+      },
+      {
+        "$ref": "#/$defs/FinalEvent"
+      },
+      {
+        "$ref": "#/$defs/ErrorEvent"
+      }
+    ]
+  },
+  "version": 1
+}
