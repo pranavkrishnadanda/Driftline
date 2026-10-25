@@ -1,4 +1,8 @@
-"""`python -m driftline.ingest {worker,relay,enqueue}`: the ingestion processes."""
+"""`python -m driftline.ingest {worker,relay,enqueue}`: the ingestion processes.
+
+`worker --drain` is the batch mode (the nightly drift-watch job): it exits once the
+ingest and embed streams and the outbox are empty, with a relay running beside it.
+"""
 
 import argparse
 import asyncio
@@ -20,6 +24,10 @@ from driftline.ingest.embed import EmbedStage
 from driftline.ingest.outbox import OutboxRelay
 from driftline.ingest.supersession import SupersessionExtractor
 from driftline.ingest.worker import (
+    EMBED_GROUP,
+    EMBED_STREAM,
+    INGEST_GROUP,
+    INGEST_STREAM,
     IngestWorker,
     default_connector_factory,
     enqueue_ingest,
@@ -28,6 +36,7 @@ from driftline.ingest.worker import (
 from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.router import LLMRouter, Route, build_router
 from driftline.streams.bus import StreamBus
+from driftline.streams.drain import DrainTimeout, drain, pipeline_drained
 
 
 def build_ingest_router(
@@ -50,6 +59,13 @@ def _parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     worker = sub.add_parser("worker", help="consume the ingest and embed streams")
     worker.add_argument("--consumer", default=socket.gethostname())
+    worker.add_argument(
+        "--drain",
+        action="store_true",
+        help="exit once the ingest and embed streams and the outbox are empty "
+        "(needs a relay running)",
+    )
+    worker.add_argument("--timeout", type=float, default=3600.0, help="--drain time budget (s)")
     sub.add_parser("relay", help="publish committed outbox rows to Redis Streams")
     enqueue = sub.add_parser("enqueue", help="queue ingest jobs for a source")
     enqueue.add_argument("--tenant", required=True)
@@ -67,6 +83,25 @@ def _stop_on_signals() -> asyncio.Event:
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, stop.set)
     return stop
+
+
+async def _drain_worker(
+    worker: IngestWorker, pool: asyncpg.Pool, redis: Redis, *, timeout_s: float
+) -> int:
+    """Run the worker until the ingest pipeline is empty (see `streams.drain`); 1 on timeout."""
+    groups = [(INGEST_STREAM, INGEST_GROUP), (EMBED_STREAM, EMBED_GROUP)]
+    await worker.setup()
+    try:
+        processed = await drain(
+            worker.run_once, lambda: pipeline_drained(pool, redis, groups), timeout_s=timeout_s
+        )
+    except DrainTimeout as exc:
+        print(f"ingest worker --drain: {exc}", file=sys.stderr)
+        return 1
+    dead = {s: await redis.xlen(f"dlq:{s}") for s in (INGEST_STREAM, EMBED_STREAM)}
+    failed = " ".join(f"dlq:{s}={n}" for s, n in dead.items())
+    print(f"drained: {processed} message(s) processed; {failed}")
+    return 0
 
 
 async def amain(argv: list[str], settings: Settings, *, clock: Clock | None = None) -> int:
@@ -134,6 +169,8 @@ async def amain(argv: list[str], settings: Settings, *, clock: Clock | None = No
                 clock=clock,
                 stale_after_failures=settings.source_stale_after_failures,
             )
+            if args.drain:
+                return await _drain_worker(worker, pool, redis, timeout_s=args.timeout)
             await run_with_heartbeat(worker.run(stop), stop, settings.heartbeat_path)
             return 0
     finally:
