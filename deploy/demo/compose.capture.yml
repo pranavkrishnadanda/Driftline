@@ -3,10 +3,11 @@
 #
 #   docker compose -p driftline-demo-capture \
 #     -f deploy/compose/docker-compose.yml -f deploy/demo/compose.capture.yml \
-#     --env-file backend/.env --env-file deploy/demo/capture.env up -d --build
+#     --env-file deploy/demo/capture.env up -d --build
 #
-# The later --env-file wins, so capture.env pins the ports and models whatever the first
-# file sets. Redis's host port is fixed in the base file, so it is replaced here.
+# capture.env is offline by default (no key, DRIFTLINE_LLM_OFFLINE=true); a live capture
+# with Claude costs money and is an explicit opt-in, described there. Redis's host port is
+# fixed in the base file, so it is replaced here.
 services:
   redis:
     ports: !override ["127.0.0.1:${DEMO_REDIS_PORT:-16379}:6379"]
