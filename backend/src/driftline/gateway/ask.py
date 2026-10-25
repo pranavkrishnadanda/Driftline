@@ -1,9 +1,7 @@
 """POST /v1/ask, GET /v1/jobs/{id}, and the SSE event stream (spec sections 3 and 8)."""
 
 import json
-from collections.abc import AsyncGenerator, Callable
 from decimal import Decimal
-from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
@@ -14,9 +12,15 @@ from redis.exceptions import ResponseError
 
 from driftline.agents.events import ErrorEvent, FinalEvent
 from driftline.agents.schemas import AGENT_GROUP, AGENT_STREAM, AnswerSchema, AskJob, AskRequest
-from driftline.gateway.sse import ask_event_stream, parse_last_event_id
+from driftline.gateway.sse import (
+    ask_event_stream,
+    check_stream_slot,
+    open_stream,
+    resume_point,
+    sse_responses,
+)
 
-EVENTS_SCHEMA_REF = {"$ref": "#/components/schemas/AskEvent"}
+EVENTS_SCHEMA_REF = "#/components/schemas/AskEvent"
 
 
 class AskAccepted(BaseModel):
@@ -31,30 +35,6 @@ class JobStatus(BaseModel):
     error: str | None = None
     answer: AnswerSchema | None = None
     cost_usd: float = 0.0
-
-
-class _SlotStreamingResponse(StreamingResponse):
-    """Releases its SSE slot when the response ends, however it ends.
-
-    Releasing in the body generator's `finally` is not enough: a client that disconnects
-    at once can get the response cancelled before the generator first runs, and a
-    generator that never started never runs its `finally`, so the slot would leak.
-    """
-
-    def __init__(
-        self, content: AsyncGenerator[str, None], *, release: Callable[[], None], **kw: Any
-    ) -> None:
-        super().__init__(content, **kw)
-        self._content = content
-        self._release = release
-
-    async def __call__(self, scope, receive, send) -> None:
-        try:
-            await super().__call__(scope, receive, send)
-        finally:
-            # Release first: in a cancelled scope every further await raises again.
-            self._release()
-            await self._content.aclose()
 
 
 async def agent_backlog(redis: Redis) -> int:
@@ -145,22 +125,8 @@ def build_ask_router() -> APIRouter:
         state = request.app.state
         if await _job_row(request, job_id) is None:
             raise HTTPException(status_code=404, detail={"code": "unknown_job"})
-        slots = state.sse_slots
-        if slots.locked():
-            raise HTTPException(
-                status_code=503,
-                detail={"code": "too_many_streams"},
-                headers={"Retry-After": str(state.settings.ask_retry_after_s)},
-            )
-        # A Last-Event-ID ahead of the log (a stale tab, a bogus header) would only ever
-        # see heartbeats; clamp it so the client gets the next real events.
-        after = min(
-            parse_last_event_id(last_event_id or last_event_id_query),
-            await state.events.last_id(job_id),
-        )
-        # Nothing between acquiring the slot and returning the response may fail or
-        # await: the response releases the slot, so it must exist.
-        await slots.acquire()
+        check_stream_slot(state.sse_slots, state.settings.ask_retry_after_s)
+        after = await resume_point(state.events, job_id, last_event_id or last_event_id_query)
 
         async def finished():
             row = await _job_row(request, job_id)
@@ -170,7 +136,8 @@ def build_ask_router() -> APIRouter:
                 return FinalEvent(answer=_answer(row))
             return ErrorEvent(code="job_failed", retryable=False, message=row["error"] or "")
 
-        return _SlotStreamingResponse(
+        return await open_stream(
+            state.sse_slots,
             ask_event_stream(
                 state.events,
                 job_id,
@@ -178,28 +145,20 @@ def build_ask_router() -> APIRouter:
                 heartbeat_s=state.settings.sse_heartbeat_s,
                 finished=finished,
             ),
-            release=slots.release,
-            media_type="text/event-stream",
-            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
 
-    sse_responses: dict[int | str, dict[str, Any]] = {
-        200: {
-            "description": "Server-sent events: `id: <n>`, `event: <type>`, `data: <JSON>`; "
-            "`: ping` heartbeats; ends after `final` or a non-retryable `error`. "
-            "Reconnect with Last-Event-ID to replay missed events.",
-            "content": {"text/event-stream": {"schema": EVENTS_SCHEMA_REF}},
-        },
-        404: {"description": "unknown job"},
-        503: {"description": "too many open streams"},
-    }
+    responses = sse_responses(
+        EVENTS_SCHEMA_REF,
+        ends="ends after `final` or a non-retryable `error`.",
+        not_found="unknown job",
+    )
     for path in ("/jobs/{job_id}/events", "/ask/{job_id}/events"):
         router.add_api_route(
             path,
             events,
             methods=["GET"],
             response_class=StreamingResponse,
-            responses=sse_responses,
+            responses=responses,
             include_in_schema=path.startswith("/jobs"),
         )
     return router

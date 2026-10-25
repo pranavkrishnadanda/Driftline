@@ -1,0 +1,202 @@
+{
+  "endpoints": {
+    "history": "GET /v1/drift/events?tenant=<name>&limit=<n>",
+    "stream": "GET /v1/alerts/stream?tenant=<name>",
+    "watch": "POST /v1/answers/{answer_id}/watch?tenant=<name> (DELETE to unwatch)"
+  },
+  "examples": [
+    {
+      "data": {
+        "after": "Check ALT every two weeks during therapy.",
+        "answer_id": "00000000-0000-4000-8000-0000000000f1",
+        "before": "Check ALT monthly during therapy.",
+        "document_title": "Drug X label",
+        "drift_event_id": "00000000-0000-4000-8000-0000000000d1",
+        "new_version_id": "00000000-0000-4000-8000-0000000000a2",
+        "old_version_id": "00000000-0000-4000-8000-0000000000a1",
+        "t": "2024-07-01T09:30:00Z",
+        "type": "alert",
+        "verdict": "changed"
+      },
+      "event": "alert",
+      "id": 1
+    },
+    {
+      "data": {
+        "after": null,
+        "answer_id": "00000000-0000-4000-8000-0000000000f1",
+        "before": "Check ALT every two weeks during therapy.",
+        "document_title": "Drug X label",
+        "drift_event_id": "00000000-0000-4000-8000-0000000000d2",
+        "new_version_id": "00000000-0000-4000-8000-0000000000a3",
+        "old_version_id": "00000000-0000-4000-8000-0000000000a2",
+        "t": "2024-09-01T09:30:00Z",
+        "type": "alert",
+        "verdict": "broken"
+      },
+      "event": "alert",
+      "id": 2
+    },
+    {
+      "data": {
+        "code": "events_expired",
+        "message": "alerts after 1 are no longer stored; GET /v1/drift/events",
+        "retryable": false,
+        "type": "error"
+      },
+      "event": "error",
+      "id": null
+    }
+  ],
+  "framing": {
+    "data": "one JSON object matching `schema`",
+    "event": "the event type: alert | error",
+    "heartbeat": ": ping (an SSE comment line, sent when no event arrives for 15 s)",
+    "id": "integer, strictly increasing per tenant, starting at 1; absent on gateway-made events",
+    "resume": "reconnect with the Last-Event-ID header (or ?last_event_id=) to replay",
+    "terminal": "none: the stream stays open; it ends only after `error` (events_expired), when the client should reload GET /v1/drift/events",
+    "verdicts": "still_valid is recorded but not alerted; changed carries before and after; broken has after=null"
+  },
+  "media_type": "text/event-stream",
+  "name": "driftline.alert.events",
+  "schema": {
+    "$defs": {
+      "AlertEvent": {
+        "description": "A drift verdict on a watched answer, streamed on `events:alerts:{tenant}` (P4).",
+        "properties": {
+          "after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "After"
+          },
+          "answer_id": {
+            "format": "uuid",
+            "title": "Answer Id",
+            "type": "string"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Before"
+          },
+          "document_title": {
+            "title": "Document Title",
+            "type": "string"
+          },
+          "drift_event_id": {
+            "format": "uuid",
+            "title": "Drift Event Id",
+            "type": "string"
+          },
+          "new_version_id": {
+            "format": "uuid",
+            "title": "New Version Id",
+            "type": "string"
+          },
+          "old_version_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Version Id"
+          },
+          "t": {
+            "format": "date-time",
+            "title": "T",
+            "type": "string"
+          },
+          "type": {
+            "const": "alert",
+            "default": "alert",
+            "title": "Type",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "still_valid",
+              "changed",
+              "broken"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "drift_event_id",
+          "answer_id",
+          "verdict",
+          "document_title",
+          "old_version_id",
+          "new_version_id",
+          "t"
+        ],
+        "title": "AlertEvent",
+        "type": "object"
+      },
+      "ErrorEvent": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "default": "",
+            "title": "Message",
+            "type": "string"
+          },
+          "retryable": {
+            "title": "Retryable",
+            "type": "boolean"
+          },
+          "type": {
+            "const": "error",
+            "default": "error",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "retryable"
+        ],
+        "title": "ErrorEvent",
+        "type": "object"
+      }
+    },
+    "discriminator": {
+      "mapping": {
+        "alert": "#/$defs/AlertEvent",
+        "error": "#/$defs/ErrorEvent"
+      },
+      "propertyName": "type"
+    },
+    "oneOf": [
+      {
+        "$ref": "#/$defs/AlertEvent"
+      },
+      {
+        "$ref": "#/$defs/ErrorEvent"
+      }
+    ]
+  },
+  "version": 1
+}

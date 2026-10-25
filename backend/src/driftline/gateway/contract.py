@@ -13,7 +13,9 @@ from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
 from driftline.agents.events import (
+    ALERT_EVENT_ADAPTER,
     ASK_EVENT_ADAPTER,
+    AlertEvent,
     ClaimEvent,
     ErrorEvent,
     FinalEvent,
@@ -23,6 +25,7 @@ from driftline.agents.events import (
 from driftline.agents.schemas import AnswerSchema, Citation, Claim
 
 CONTRACT_PATH = Path(__file__).resolve().parents[4] / "contracts" / "sse" / "ask-events.v1.json"
+ALERT_CONTRACT_PATH = CONTRACT_PATH.with_name("alert-events.v1.json")
 _CHUNK = UUID("00000000-0000-4000-8000-0000000000c2")
 _VERSION = UUID("00000000-0000-4000-8000-0000000000a2")
 _QUOTE = "Check ALT monthly during therapy."
@@ -157,18 +160,98 @@ def build_contract() -> dict[str, Any]:
     }
 
 
+_ANSWER = UUID("00000000-0000-4000-8000-0000000000f1")
+_DOC_V1 = UUID("00000000-0000-4000-8000-0000000000a1")
+_DOC_V2 = UUID("00000000-0000-4000-8000-0000000000a2")
+_DOC_V3 = UUID("00000000-0000-4000-8000-0000000000a3")
+
+
+def example_alert_events() -> list[tuple[int, Any]]:
+    events = [
+        AlertEvent(
+            drift_event_id=UUID("00000000-0000-4000-8000-0000000000d1"),
+            answer_id=_ANSWER,
+            verdict="changed",
+            document_title="Drug X label",
+            old_version_id=_DOC_V1,
+            new_version_id=_DOC_V2,
+            before="Check ALT monthly during therapy.",
+            after="Check ALT every two weeks during therapy.",
+            t="2024-07-01T09:30:00Z",
+        ),
+        AlertEvent(
+            drift_event_id=UUID("00000000-0000-4000-8000-0000000000d2"),
+            answer_id=_ANSWER,
+            verdict="broken",
+            document_title="Drug X label",
+            old_version_id=_DOC_V2,
+            new_version_id=_DOC_V3,
+            before="Check ALT every two weeks during therapy.",
+            after=None,
+            t="2024-09-01T09:30:00Z",
+        ),
+    ]
+    return list(enumerate(events, start=1))
+
+
+def build_alert_contract() -> dict[str, Any]:
+    examples = [
+        {"id": seq, "event": event.type, "data": event.model_dump(mode="json")}
+        for seq, event in example_alert_events()
+    ]
+    examples.append(
+        {
+            "id": None,
+            "event": "error",
+            "data": ErrorEvent(
+                code="events_expired",
+                retryable=False,
+                message="alerts after 1 are no longer stored; GET /v1/drift/events",
+            ).model_dump(mode="json"),
+        }
+    )
+    return {
+        "name": "driftline.alert.events",
+        "version": 1,
+        "media_type": "text/event-stream",
+        "endpoints": {
+            "stream": "GET /v1/alerts/stream?tenant=<name>",
+            "history": "GET /v1/drift/events?tenant=<name>&limit=<n>",
+            "watch": "POST /v1/answers/{answer_id}/watch?tenant=<name> (DELETE to unwatch)",
+        },
+        "framing": {
+            "id": "integer, strictly increasing per tenant, starting at 1; "
+            "absent on gateway-made events",
+            "event": "the event type: alert | error",
+            "data": "one JSON object matching `schema`",
+            "heartbeat": ": ping (an SSE comment line, sent when no event arrives for 15 s)",
+            "terminal": "none: the stream stays open; it ends only after `error` "
+            "(events_expired), when the client should reload GET /v1/drift/events",
+            "resume": "reconnect with the Last-Event-ID header (or ?last_event_id=) to replay",
+            "verdicts": "still_valid is recorded but not alerted; changed carries before "
+            "and after; broken has after=null",
+        },
+        "schema": ALERT_EVENT_ADAPTER.json_schema(),
+        "examples": examples,
+    }
+
+
 def install_event_schemas(app: FastAPI) -> None:
-    """Publish the AskEvent union (and its parts) under components.schemas in OpenAPI."""
+    """Publish the AskEvent and AlertEvents unions (and their parts) under
+    components.schemas in OpenAPI."""
 
     def openapi() -> dict[str, Any]:
         if app.openapi_schema:
             return app.openapi_schema
         schema = get_openapi(title=app.title, version=app.version, routes=app.routes)
-        union = ASK_EVENT_ADAPTER.json_schema(ref_template="#/components/schemas/{model}")
-        defs = union.pop("$defs", {})
         components = schema.setdefault("components", {}).setdefault("schemas", {})
-        components.update(defs)
-        components["AskEvent"] = union
+        for name, adapter in (
+            ("AskEvent", ASK_EVENT_ADAPTER),
+            ("AlertEvents", ALERT_EVENT_ADAPTER),
+        ):
+            union = adapter.json_schema(ref_template="#/components/schemas/{model}")
+            components.update(union.pop("$defs", {}))
+            components[name] = union
         app.openapi_schema = schema
         return schema
 
@@ -177,14 +260,18 @@ def install_event_schemas(app: FastAPI) -> None:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="python -m driftline.gateway.contract")
-    parser.add_argument("--write", action="store_true", help=f"write {CONTRACT_PATH}")
+    parser.add_argument(
+        "--write", action="store_true", help=f"write {CONTRACT_PATH} and {ALERT_CONTRACT_PATH}"
+    )
     args = parser.parse_args(argv)
-    text = json.dumps(build_contract(), indent=2, sort_keys=True) + "\n"
-    if args.write:
-        CONTRACT_PATH.parent.mkdir(parents=True, exist_ok=True)
-        CONTRACT_PATH.write_text(text)
-    else:
-        sys.stdout.write(text)
+    contracts = {CONTRACT_PATH: build_contract(), ALERT_CONTRACT_PATH: build_alert_contract()}
+    for path, contract in contracts.items():
+        text = json.dumps(contract, indent=2, sort_keys=True) + "\n"
+        if args.write:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text)
+        else:
+            sys.stdout.write(text)
     return 0
 
 
