@@ -21,7 +21,7 @@ def vcr_config():
 
 
 @pytest.mark.vcr
-async def test_complete_returns_text_and_usage():
+async def test_complete_returns_text_and_usage(require_cassette):
     adapter = GeminiAdapter(API_KEY)
     result = await adapter.complete(
         MODEL,
@@ -40,14 +40,14 @@ async def test_complete_returns_text_and_usage():
 
 
 @pytest.mark.vcr
-async def test_embed_returns_vectors_of_requested_dim():
+async def test_embed_returns_vectors_of_requested_dim(require_cassette):
     vectors = await GeminiAdapter(API_KEY).embed(EMBED_MODEL, ["boxed warning", "kubectl"], 768)
     assert len(vectors) == 2
     assert all(len(v) == 768 for v in vectors)
 
 
 @pytest.mark.vcr
-async def test_unknown_model_is_non_retryable_provider_error():
+async def test_unknown_model_is_non_retryable_provider_error(require_cassette):
     with pytest.raises(ProviderError) as exc_info:
         await GeminiAdapter(API_KEY).complete(
             "gemini-does-not-exist-xyz",
