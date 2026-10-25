@@ -67,6 +67,13 @@ services:
       DRIFTLINE_OPENFDA_API_KEY: ${DRIFTLINE_OPENFDA_API_KEY:-}
       DRIFTLINE_UPLOAD_ROOT: /data/uploads
     volumes: [uploads:/data/uploads]
+    # No HTTP server: the event loop touches a heartbeat file every 10 s (driftline.health).
+    healthcheck:
+      test: ["CMD", "python", "-m", "driftline.health", "--max-age", "60"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     # No ports or container_name, so "--scale ingest-worker=N" works.
     depends_on:
       gateway: {condition: service_healthy}
@@ -77,8 +84,58 @@ services:
     environment:
       DRIFTLINE_DATABASE_URL: postgresql://driftline:driftline@postgres:5432/driftline
       DRIFTLINE_REDIS_URL: redis://redis:6379/0
+      DRIFTLINE_ANTHROPIC_API_KEY: ${DRIFTLINE_ANTHROPIC_API_KEY:-}
+    # No HTTP server: the event loop touches a heartbeat file every 10 s (driftline.health).
+    healthcheck:
+      test: ["CMD", "python", "-m", "driftline.health", "--max-age", "60"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
       gateway: {condition: service_healthy}
+  reranker:
+    # Open-source cross-encoder (BAAI/bge-reranker-base, MIT) on TEI's /rerank endpoint.
+    # Same image and model cache as the embedder. The agent falls back to RRF order
+    # when this service is down.
+    image: ${DRIFTLINE_EMBED_IMAGE:-ghcr.io/huggingface/text-embeddings-inference:cpu-arm64-1.9.4}
+    command: ["--model-id", "BAAI/bge-reranker-base"]
+    ports: ["${DRIFTLINE_RERANK_PORT:-8081}:80"]
+    volumes: [embedder-models:/data]
+    # Measured: ~2.15 GiB resident (ONNX fp32); 2g gets OOM-killed while loading.
+    mem_limit: 3g
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:80/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+  agent-worker:
+    build: ../../backend
+    command: ["python", "-m", "driftline.agents", "worker"]
+    environment:
+      DRIFTLINE_DATABASE_URL: postgresql://driftline:driftline@postgres:5432/driftline
+      DRIFTLINE_REDIS_URL: redis://redis:6379/0
+      DRIFTLINE_ANTHROPIC_API_KEY: ${DRIFTLINE_ANTHROPIC_API_KEY:-}
+      DRIFTLINE_GEMINI_API_KEY: ${DRIFTLINE_GEMINI_API_KEY:-}
+      DRIFTLINE_EMBED_URL: http://embedder:80
+      DRIFTLINE_RERANK_URL: http://reranker:80
+      DRIFTLINE_LLM_OFFLINE: ${DRIFTLINE_LLM_OFFLINE:-false}
+      DRIFTLINE_LANGFUSE_PUBLIC_KEY: ${DRIFTLINE_LANGFUSE_PUBLIC_KEY:-}
+      DRIFTLINE_LANGFUSE_SECRET_KEY: ${DRIFTLINE_LANGFUSE_SECRET_KEY:-}
+      DRIFTLINE_LANGFUSE_HOST: ${DRIFTLINE_LANGFUSE_HOST:-https://cloud.langfuse.com}
+    # No HTTP server: the event loop touches a heartbeat file every 10 s (driftline.health).
+    healthcheck:
+      test: ["CMD", "python", "-m", "driftline.health", "--max-age", "60"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    # No ports or container_name, so "--scale agent-worker=N" works.
+    depends_on:
+      gateway: {condition: service_healthy}
+      embedder: {condition: service_healthy}
+      reranker: {condition: service_started}
 volumes:
   pgdata: {}
   embedder-models: {}

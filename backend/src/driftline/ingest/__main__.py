@@ -14,6 +14,7 @@ from redis.asyncio import Redis
 
 from driftline.clock import Clock, SystemClock
 from driftline.config import Settings
+from driftline.health import run_with_heartbeat
 from driftline.ingest.embed import EmbedStage
 from driftline.ingest.outbox import OutboxRelay
 from driftline.ingest.supersession import SupersessionExtractor
@@ -89,9 +90,12 @@ async def amain(argv: list[str], settings: Settings, *, clock: Clock | None = No
                     )
                     print(f"enqueued {external_id} job={job_id}")
                 return 0
+            stop = _stop_on_signals()
             if args.command == "relay":
                 relay = OutboxRelay(pool, bus, batch_size=settings.outbox_batch_size)
-                await relay.run(_stop_on_signals(), clock=clock)
+                await run_with_heartbeat(
+                    relay.run(stop, clock=clock), stop, settings.heartbeat_path
+                )
                 return 0
             router, extraction = build_ingest_router(settings, redis, clock=clock)
             if not extraction:
@@ -119,7 +123,7 @@ async def amain(argv: list[str], settings: Settings, *, clock: Clock | None = No
                 overlap_tokens=settings.chunk_overlap_tokens,
                 clock=clock,
             )
-            await worker.run(_stop_on_signals())
+            await run_with_heartbeat(worker.run(stop), stop, settings.heartbeat_path)
             return 0
     finally:
         await redis.aclose()

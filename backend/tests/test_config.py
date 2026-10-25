@@ -59,3 +59,18 @@ def test_ingest_settings_defaults_and_local_postgres_port():
     assert s.relation_apply_threshold == 0.8
     assert s.outbox_batch_size == 100
     assert s.http_timeout_s == 120.0
+
+
+def test_retrieval_and_agent_settings_defaults():
+    s = Settings(_env_file=None)
+    assert s.rerank_url == "http://localhost:8081"
+    assert s.rerank_model == "BAAI/bge-reranker-base"
+    assert (s.retrieval_candidates, s.rerank_top_n, s.rrf_k) == (30, 8, 60)
+    assert (s.max_subagents, s.max_verify_retries) == (4, 2)
+    assert s.model_judge == "claude-sonnet-5-5"
+    assert s.answer_max_output_tokens == 4096
+    assert s.llm_offline is False
+    assert s.semantic_cache_enabled is True and s.semantic_cache_threshold == 0.95
+    assert (s.ask_max_pending, s.ask_retry_after_s) == (200, 5)
+    assert s.sse_heartbeat_s == 15.0
+    assert s.langfuse_public_key is None and s.langfuse_secret_key is None

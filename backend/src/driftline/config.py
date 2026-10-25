@@ -34,3 +34,29 @@ class Settings(BaseSettings):
     relation_apply_threshold: float = 0.8  # spec section 5
     outbox_batch_size: int = 100
     http_timeout_s: float = 120.0  # raw.githubusercontent.com can take 45 s from here
+
+    # Retrieval + agent (P3)
+    rerank_url: str | None = "http://localhost:8081"  # TEI /rerank; None disables reranking
+    rerank_model: str = "BAAI/bge-reranker-base"
+    retrieval_candidates: int = 30  # spec section 5: hybrid search, top 30
+    rerank_top_n: int = 8  # spec section 5: rerank down to the top 8
+    rrf_k: int = 60  # spec section 5: reciprocal-rank fusion constant
+    max_subagents: int = 4
+    max_verify_retries: int = 2  # spec section 5: re_retrieve at most 2 loops
+    model_judge: str = "claude-sonnet-5-5"
+    answer_max_output_tokens: int = 4096  # thinking counts against it
+    llm_offline: bool = False  # DeterministicAdapter + ExtractiveResponder; zero cost demos
+    semantic_cache_enabled: bool = True
+    semantic_cache_threshold: float = 0.95  # spec section 4
+    semantic_cache_ttl_s: int = 7 * 24 * 3600
+    ask_max_pending: int = 200  # spec section 3: 429 above this agent-stream backlog
+    ask_retry_after_s: int = 5
+    sse_heartbeat_s: float = 15.0  # spec section 8
+    sse_max_connections: int = 1000
+    ask_events_maxlen: int = 10_000
+    ask_events_ttl_s: int = 24 * 3600
+    heartbeat_path: str = "/tmp/driftline-heartbeat"
+    # Tracing is a no-op unless both keys are set (zero cost by default).
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: str | None = None
+    langfuse_host: str = "https://cloud.langfuse.com"

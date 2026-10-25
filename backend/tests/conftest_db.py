@@ -71,3 +71,13 @@ async def fresh_pool(fresh_dsn):
     pool = await asyncpg.create_pool(fresh_dsn, min_size=1, max_size=4)
     yield pool
     await pool.close()
+
+
+@pytest.fixture
+async def checkpointer(fresh_dsn):
+    """A LangGraph Postgres checkpointer on the test's fresh database (tables created)."""
+    from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+
+    async with AsyncPostgresSaver.from_conn_string(fresh_dsn) as saver:
+        await saver.setup()
+        yield saver
