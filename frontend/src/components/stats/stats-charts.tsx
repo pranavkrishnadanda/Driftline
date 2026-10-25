@@ -7,6 +7,7 @@
  *
  * Bklit honours reduced motion only partly, so these gate it themselves: series get
  * `animate={false}` and roots `animationDuration={0}` (no clip reveal, no bar stagger).
+ * The gauge draws its notches in place by itself (`gauge.tsx` checks `useReducedMotion`).
  */
 import { useMemo } from "react";
 

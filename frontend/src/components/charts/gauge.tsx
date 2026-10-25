@@ -121,6 +121,9 @@ function GaugeNotchSvg({
   resolveBgFill: (index: number) => string;
   resolveActiveFill: (notch: ComputedNotch) => string;
 }) {
+  // Under reduced motion draw the notches in place: a zero duration alone still
+  // leaves the staggered delays, so the notches would pop in one by one.
+  const staticNotches = useReducedMotion() || geometryScrubbing;
   return (
     <svg
       aria-hidden="true"
@@ -152,7 +155,7 @@ function GaugeNotchSvg({
           notchCornerRadius,
           cornerDepth
         );
-        if (geometryScrubbing) {
+        if (staticNotches) {
           return (
             <path
               d={pathD}
@@ -188,7 +191,7 @@ function GaugeNotchSvg({
             notchCornerRadius,
             cornerDepth
           );
-          if (geometryScrubbing) {
+          if (staticNotches) {
             return (
               <path
                 d={pathD}

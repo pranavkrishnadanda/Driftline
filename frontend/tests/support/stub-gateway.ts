@@ -15,6 +15,7 @@ import type { DriftEvent, ReviewItem, Stats } from "@/lib/api/client";
 import { ANSWERED_EVENTS } from "./ask-fixtures";
 import { BROKEN, LOW_CONFIDENCE, RELATION, alert, alertFrame, driftEvent } from "./drift-fixtures";
 import { frame, type FixtureEvent } from "./sse-server";
+import { busyStats } from "./stats-fixtures";
 import { DOC_ID, TIMELINE } from "./version-timeline-fixtures";
 
 export const STUB_DRIFT_EVENTS: DriftEvent[] = [
@@ -36,17 +37,8 @@ export const STUB_DRIFT_EVENTS: DriftEvent[] = [
 
 export const STUB_REVIEW_ITEMS: ReviewItem[] = [LOW_CONFIDENCE, BROKEN, RELATION];
 
-export const STUB_STATS: Stats = {
-  corpus: { documents: 3, versions: 7, chunks: 42 },
-  drift_events_per_day: [
-    { day: "2026-10-20", count: 1 },
-    { day: "2026-10-21", count: 1 },
-  ],
-  ask_latency_ms: { p50: 1200, p95: 2600 },
-  cost_per_answer_usd: 0.004,
-  cache_hit_rate: 0.25,
-  latest_eval: { faithfulness: 0.9 },
-};
+/** The busy-tenant `/v1/stats` payload, shared with the `/stats` unit tests. */
+export const STUB_STATS: Stats = busyStats();
 
 export const STUB_ALERT = alert({
   drift_event_id: "e0000000-0000-4000-8000-000000000003",
