@@ -84,3 +84,24 @@ def test_probe_failure_reopens_for_another_cooldown():
     assert not b.allow()
     clock.advance(1)
     assert b.allow()
+
+
+def test_release_probe_frees_half_open_slot_without_counting():
+    clock = ManualClock(0.0)
+    b = make(clock, failure_threshold=1, cooldown_seconds=30)
+    b.record_failure()
+    clock.advance(30)
+    assert b.allow() is True
+    assert b.allow() is False
+    b.release_probe()
+    assert b.state is BreakerState.half_open  # neither closed (success) nor reopened (failure)
+    assert b.allow() is True
+    assert b.allow() is False
+
+
+def test_release_probe_on_closed_breaker_keeps_failure_count():
+    b = make(failure_threshold=2, min_calls_in_window=100)
+    b.record_failure()
+    b.release_probe()
+    b.record_failure()
+    assert b.state is BreakerState.open

@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
 
     gemini_api_key: str | None = None
-    model_extract: str = "gemini-2.5-flash"
-    model_answer: str = "gemini-2.5-pro"
-    model_fallback: list[str] = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
+    model_extract: str = "gemini-3.8-flash"
+    model_answer: str = "gemini-3.1-pro-preview"
+    model_fallback: list[str] = ["gemini-3.8-flash", "gemini-3.5-flash-lite"]
     model_embed: str = "gemini-embedding-001"
     embed_dim: int = 768

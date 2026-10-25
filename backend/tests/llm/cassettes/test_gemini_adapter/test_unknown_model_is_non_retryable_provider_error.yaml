@@ -1,0 +1,59 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "hi"}], "role": "user"}], "generationConfig":
+      {"temperature": 0.0, "maxOutputTokens": 1024}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '126'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/2.33.0 gl-python/3.12.3
+      x-goog-api-client:
+      - google-genai-sdk/2.33.0 gl-python/3.12.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-does-not-exist-xyz:generateContent
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/02PQUvDUBCE7/kVyzs3UaEnb1IRBG0F9SzbZpo+eHlb3m5CtfS/uzE9eFmYbwZm
+        51wRBZQiJdzT2YXLnbRwtbxdLmbQQ5W7iYXevaQ3HfqYY90KtM5iNU5RrT59/1BUckB7GXLrt9DD
+        2zONKBol03i3hfGCHF9zOhyPUgxztkNGYcNKsiFbQytOiV6nzneUMe7QvHjRH1AyIQXIDqDklGRP
+        PHJMvE2g+VFi/8IDsfxr6mEHabUJ13lqbINO69abj6+nzef6MbhzqS7VLzKVJUkfAQAA
+    headers:
+      alt-svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      content-encoding:
+      - gzip
+      content-type:
+      - application/json; charset=UTF-8
+      date:
+      - Sun, 25 Oct 2026 02:48:38 GMT
+      server:
+      - scaffolding on HTTPServer2
+      server-timing:
+      - gfet4t7; dur=569
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      - X-Origin
+      - Referer
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-xss-protection:
+      - '0'
+    status:
+      code: 404
+      message: Not Found
+version: 1
