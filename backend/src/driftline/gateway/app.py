@@ -38,7 +38,11 @@ def create_app(settings: Settings) -> FastAPI:
             maxlen=settings.ask_events_maxlen,
             ttl_s=settings.ask_events_ttl_s,
         )
-        app.state.alerts = AlertLog(app.state.redis_stream)
+        app.state.alerts = AlertLog(
+            app.state.redis_stream,
+            maxlen=settings.alert_events_maxlen,
+            ttl_s=settings.alert_events_ttl_s,
+        )
         # One pool of SSE slots for ask and alert streams alike.
         app.state.sse_slots = asyncio.Semaphore(settings.sse_max_connections)
         try:

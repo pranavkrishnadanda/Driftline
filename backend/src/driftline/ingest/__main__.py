@@ -14,6 +14,7 @@ from redis.asyncio import Redis
 
 from driftline.clock import Clock, SystemClock
 from driftline.config import Settings
+from driftline.drift.alerts import AlertLog
 from driftline.health import run_with_heartbeat
 from driftline.ingest.embed import EmbedStage
 from driftline.ingest.outbox import OutboxRelay
@@ -92,7 +93,16 @@ async def amain(argv: list[str], settings: Settings, *, clock: Clock | None = No
                 return 0
             stop = _stop_on_signals()
             if args.command == "relay":
-                relay = OutboxRelay(pool, bus, batch_size=settings.outbox_batch_size)
+                relay = OutboxRelay(
+                    pool,
+                    bus,
+                    batch_size=settings.outbox_batch_size,
+                    alerts=AlertLog(
+                        redis,
+                        maxlen=settings.alert_events_maxlen,
+                        ttl_s=settings.alert_events_ttl_s,
+                    ),
+                )
                 await run_with_heartbeat(
                     relay.run(stop, clock=clock), stop, settings.heartbeat_path
                 )
