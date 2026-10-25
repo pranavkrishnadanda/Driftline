@@ -13,7 +13,8 @@ The story:
 3. v3 removes "Monitoring": the ALT answer is `broken` and goes to review.
 4. Resolving it regenerates the answer, which pauses for review again (a regenerated
    watched answer is always reviewed); resolving that one replaces the answer, which
-   then cites v3.
+   then cites v3. Each resolve writes its follow-up agent job to the outbox in the
+   resolve transaction, so the outbox relay runs before the agent worker picks it up.
 """
 
 import asyncio
@@ -334,6 +335,8 @@ async def test_watched_answer_drifts_breaks_and_is_regenerated(
         )
         assert r.status_code == 200, r.text
         regen_job = r.json()["resolution"]["job_id"]
+        # The regeneration job reaches the `agent` stream only through the outbox.
+        assert await relay.relay_once() == 1  # ask.regenerate -> agent
         paused = await run_job(regen_job)
         assert paused["event"] == "step" and paused["data"]["status"] == "waiting", paused
         assert await cited_versions(alt) == {v1}  # not replaced before the review
@@ -344,8 +347,17 @@ async def test_watched_answer_drifts_breaks_and_is_regenerated(
             f"/v1/review/{pending[0]['id']}/resolve?{q}", json={"action": "approve", "by": "qa"}
         )
         assert r.status_code == 200, r.text
+        assert await relay.relay_once() == 1  # ask.resume -> agent
         final = await run_job(regen_job, until=ended)
         assert final["event"] == "final", final
+
+        # The regeneration moved the answer's job link: the regen job's status shows it.
+        status = await client.get(f"/v1/jobs/{regen_job}?{q}")
+        assert status.status_code == 200, status.text
+        assert status.json()["status"] == "succeeded", status.json()
+        job_answer = status.json()["answer"]
+        assert UUID(job_answer["answer_id"]) == alt, job_answer
+        assert "two weeks" in job_answer["answer"], job_answer
 
         # The watched answer now cites v3, with v3's citation metadata.
         assert await cited_versions(alt) == {v3}
