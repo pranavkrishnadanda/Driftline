@@ -1,0 +1,15 @@
+{
+  "source": "contracts/sse/ask-events.v1.json examples (driftline.ask.events v1)",
+  "events": [
+    {
+      "data": {
+        "code": "events_expired",
+        "message": "events after 3 are no longer stored",
+        "retryable": false,
+        "type": "error"
+      },
+      "event": "error",
+      "id": null
+    }
+  ]
+}

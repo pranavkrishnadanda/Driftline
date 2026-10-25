@@ -1,0 +1,257 @@
+{
+  "source": "contracts/sse/ask-events.v1.json examples (driftline.ask.events v1)",
+  "events": [
+    {
+      "data": {
+        "detail": {},
+        "node": "classify",
+        "status": "started",
+        "t_ms": 0,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 1
+    },
+    {
+      "data": {
+        "detail": {
+          "as_of": "2024-06-01T00:00:00+00:00",
+          "refused": null,
+          "source": "request"
+        },
+        "node": "classify",
+        "status": "completed",
+        "t_ms": 2.1,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 2
+    },
+    {
+      "data": {
+        "detail": {},
+        "node": "cache",
+        "status": "miss",
+        "t_ms": 9.8,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 3
+    },
+    {
+      "data": {
+        "detail": {},
+        "node": "plan",
+        "status": "started",
+        "t_ms": 10,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 4
+    },
+    {
+      "data": {
+        "detail": {
+          "mode": "single",
+          "sub_questions": [
+            {
+              "as_of": "2024-06-01T00:00:00+00:00",
+              "question": "How often should ALT be checked?"
+            }
+          ]
+        },
+        "node": "plan",
+        "status": "completed",
+        "t_ms": 812.4,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 5
+    },
+    {
+      "data": {
+        "detail": {
+          "as_of": "2024-06-01T00:00:00+00:00",
+          "branch": 0,
+          "sub_question": "How often should ALT be checked?"
+        },
+        "node": "subagent",
+        "status": "started",
+        "t_ms": 813,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 6
+    },
+    {
+      "data": {
+        "detail": {
+          "branch": 0,
+          "kept": 8,
+          "rerank_error": null,
+          "reranked": true,
+          "retrieved": 30
+        },
+        "node": "subagent",
+        "status": "completed",
+        "t_ms": 1290.5,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 7
+    },
+    {
+      "data": {
+        "detail": {
+          "evidence": 8
+        },
+        "node": "merge",
+        "status": "completed",
+        "t_ms": 1291,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 8
+    },
+    {
+      "data": {
+        "detail": {
+          "attempt": 0
+        },
+        "node": "draft",
+        "status": "started",
+        "t_ms": 1291.2,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 9
+    },
+    {
+      "data": {
+        "text": "ALT should be checked ",
+        "type": "token"
+      },
+      "event": "token",
+      "id": 10
+    },
+    {
+      "data": {
+        "text": "monthly during therapy.",
+        "type": "token"
+      },
+      "event": "token",
+      "id": 11
+    },
+    {
+      "data": {
+        "detail": {
+          "attempt": 0,
+          "claims": 1
+        },
+        "node": "draft",
+        "status": "completed",
+        "t_ms": 3410.7,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 12
+    },
+    {
+      "data": {
+        "detail": {
+          "attempt": 0
+        },
+        "node": "verify",
+        "status": "started",
+        "t_ms": 3411,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 13
+    },
+    {
+      "data": {
+        "citation": {
+          "chunk_id": "00000000-0000-4000-8000-0000000000c2",
+          "quote": "Check ALT monthly during therapy.",
+          "version_id": "00000000-0000-4000-8000-0000000000a2"
+        },
+        "idx": 0,
+        "reason": null,
+        "type": "claim",
+        "verified": true
+      },
+      "event": "claim",
+      "id": 14
+    },
+    {
+      "data": {
+        "detail": {
+          "supported": 1,
+          "unsupported": 0
+        },
+        "node": "verify",
+        "status": "completed",
+        "t_ms": 4210.3,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 15
+    },
+    {
+      "data": {
+        "detail": {
+          "error": null,
+          "outcome": "answered"
+        },
+        "node": "respond",
+        "status": "completed",
+        "t_ms": 4212.9,
+        "type": "step"
+      },
+      "event": "step",
+      "id": 16
+    },
+    {
+      "data": {
+        "answer": {
+          "answer": "ALT should be checked monthly during therapy.",
+          "answer_id": "00000000-0000-4000-8000-0000000000f1",
+          "as_of": "2024-06-01T00:00:00Z",
+          "cached": false,
+          "citations": [
+            {
+              "chunk_id": "00000000-0000-4000-8000-0000000000c2",
+              "quote": "Check ALT monthly during therapy.",
+              "version_id": "00000000-0000-4000-8000-0000000000a2"
+            }
+          ],
+          "claims": [
+            {
+              "citations": [
+                {
+                  "chunk_id": "00000000-0000-4000-8000-0000000000c2",
+                  "quote": "Check ALT monthly during therapy.",
+                  "version_id": "00000000-0000-4000-8000-0000000000a2"
+                }
+              ],
+              "idx": 0,
+              "reason": null,
+              "text": "ALT is checked monthly during therapy.",
+              "verified": true
+            }
+          ],
+          "confidence": 1,
+          "cost_usd": 0.0042,
+          "degraded": false,
+          "dropped_claims": [],
+          "nearest_sources": [],
+          "status": "answered"
+        },
+        "type": "final"
+      },
+      "event": "final",
+      "id": 17
+    }
+  ]
+}
