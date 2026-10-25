@@ -5,7 +5,9 @@ import pytest
 from pydantic import ValidationError
 
 from driftline.agents.events import (
+    ALERT_EVENT_ADAPTER,
     ASK_EVENT_ADAPTER,
+    AlertEvent,
     ErrorEvent,
     FinalEvent,
     StepEvent,
@@ -74,6 +76,28 @@ def test_events_parse_by_type_and_terminal_rules():
     assert is_terminal(ErrorEvent(code="internal", retryable=True)) is False
     with pytest.raises(ValidationError):
         ASK_EVENT_ADAPTER.validate_python({"type": "nope"})
+
+
+def test_alert_event_round_trips_through_json():
+    alert = AlertEvent(
+        drift_event_id=uuid4(),
+        answer_id=uuid4(),
+        verdict="changed",
+        document_title="Label",
+        old_version_id=uuid4(),
+        new_version_id=uuid4(),
+        before="old text",
+        after=None,
+        t=AS_OF,
+    )
+    assert alert.type == "alert"
+    assert ALERT_EVENT_ADAPTER.validate_json(alert.model_dump_json()) == alert
+    expired = ErrorEvent(code="events_expired", retryable=False)
+    assert ALERT_EVENT_ADAPTER.validate_python(expired.model_dump(mode="json")) == expired
+    with pytest.raises(ValidationError):
+        AlertEvent.model_validate(alert.model_dump() | {"verdict": "maybe"})
+    with pytest.raises(ValidationError):
+        ASK_EVENT_ADAPTER.validate_python(alert.model_dump(mode="json"))
 
 
 def test_ask_request_validation():

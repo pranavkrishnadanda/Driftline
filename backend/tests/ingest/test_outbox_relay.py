@@ -79,10 +79,28 @@ async def test_concurrent_relays_skip_locked_rows(fresh_pool, fresh_dsn, redis_c
 
 
 async def test_unknown_topic_publishes_to_stream_named_after_topic(fresh_pool, redis_client):
-    assert streams_for("version.created") == TOPIC_STREAMS["version.created"] == ("embed",)
+    assert streams_for("custom.topic") == ("custom.topic",)
     await add_rows(fresh_pool, 1, topic="custom.topic")
     await OutboxRelay(fresh_pool, StreamBus(redis_client)).relay_once()
     assert len(await redis_client.xrange("custom.topic")) == 1
+
+
+async def test_version_created_fans_out_to_embed_and_drift(fresh_pool, redis_client):
+    assert streams_for("version.created") == TOPIC_STREAMS["version.created"] == ("embed", "drift")
+    [row_id] = await add_rows(fresh_pool, 1)
+    assert await OutboxRelay(fresh_pool, StreamBus(redis_client)).relay_once() == 1
+    for stream in ("embed", "drift"):
+        payloads = await stream_payloads(redis_client, stream)
+        assert payloads == [{"n": 0, "event_id": row_id, "topic": "version.created"}], stream
+
+
+async def test_drift_alert_topic_has_no_static_stream(fresh_pool, redis_client):
+    # Alerts go to a per-tenant stream (events:alerts:{tenant}), chosen by the alert
+    # publisher, so the relay must not fall back to a stream named after the topic.
+    assert streams_for("drift.alert") == ()
+    await add_rows(fresh_pool, 1, topic="drift.alert")
+    await OutboxRelay(fresh_pool, StreamBus(redis_client)).relay_once()
+    assert await redis_client.exists("drift.alert") == 0
 
 
 async def test_batch_size_limits_one_pass(fresh_pool, redis_client):

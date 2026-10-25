@@ -62,3 +62,8 @@ class Settings(BaseSettings):
     langfuse_public_key: str | None = None
     langfuse_secret_key: str | None = None
     langfuse_host: str = "https://cloud.langfuse.com"
+
+    # Drift + review (P4)
+    drift_enabled: bool = True
+    drift_batch: int = 50  # watched answers re-checked per drift-worker pass
+    review_confidence_threshold: float = 0.6  # below this an answer goes to human review

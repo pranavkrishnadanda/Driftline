@@ -74,3 +74,10 @@ def test_retrieval_and_agent_settings_defaults():
     assert (s.ask_max_pending, s.ask_retry_after_s) == (200, 5)
     assert s.sse_heartbeat_s == 15.0
     assert s.langfuse_public_key is None and s.langfuse_secret_key is None
+
+
+def test_drift_and_review_defaults():
+    s = Settings(_env_file=None)
+    assert s.drift_enabled is True
+    assert s.drift_batch == 50
+    assert s.review_confidence_threshold == 0.6

@@ -33,3 +33,12 @@ def test_reranker_and_agent_worker_services():
     assert agent["command"] == ["python", "-m", "driftline.agents", "worker"]
     assert agent["environment"]["DRIFTLINE_RERANK_URL"] == "http://reranker:80"
     assert "ports" not in agent and "container_name" not in agent  # --scale agent-worker=N
+
+
+def test_drift_worker_service():
+    services = _services()
+    drift = services["drift-worker"]
+    assert drift["command"] == ["python", "-m", "driftline.drift", "worker"]
+    assert "driftline.health" in " ".join(drift["healthcheck"]["test"])
+    assert drift["environment"]["DRIFTLINE_ANTHROPIC_API_KEY"] == "${DRIFTLINE_ANTHROPIC_API_KEY:-}"
+    assert "ports" not in drift and "container_name" not in drift  # --scale drift-worker=N

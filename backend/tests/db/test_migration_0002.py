@@ -38,7 +38,7 @@ async def test_fresh_dsn_is_isolated_and_migrated(fresh_dsn, migrated_dsn):
     assert fresh_dsn != migrated_dsn
     fresh = await asyncpg.connect(fresh_dsn)
     try:
-        assert await fresh.fetchval("SELECT version_num FROM alembic_version") == "0003"
+        assert await fresh.fetchval("SELECT version_num FROM alembic_version") == "0004"
         assert await fresh.fetchval("SELECT count(*) FROM documents") == 0
     finally:
         await fresh.close()
