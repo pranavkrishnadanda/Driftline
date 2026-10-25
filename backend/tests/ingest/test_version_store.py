@@ -72,6 +72,51 @@ async def test_identical_content_is_a_noop(fresh_conn):
         assert await fresh_conn.fetchval(f"SELECT count(*) FROM {table}") == expected
 
 
+async def test_revert_to_previous_content_creates_new_version(fresh_conn):
+    _, source = await seed_source(fresh_conn)
+    a1 = await store(fresh_conn, source, raw([("A", "alpha")], day=1, key="a"))
+    b = await store(fresh_conn, source, raw([("A", "beta")], day=5, key="b"))
+    a2 = await store(fresh_conn, source, raw([("A", "alpha")], day=9, key="a-again"))
+    assert a2.created and a2.version_no == 3
+    assert a2.version_id not in (a1.version_id, b.version_id)
+    assert a2.prev_version_id == b.version_id and a2.outbox_id is not None
+    rows = await fresh_conn.fetch(
+        "SELECT id, content_hash, valid_from, valid_to FROM doc_versions ORDER BY version_no"
+    )
+    assert [r["id"] for r in rows] == [a1.version_id, b.version_id, a2.version_id]
+    assert rows[0]["content_hash"] == rows[2]["content_hash"] != rows[1]["content_hash"]
+    assert rows[0]["valid_to"] == rows[1]["valid_from"] == datetime(2024, 1, 5, tzinfo=UTC)
+    assert rows[1]["valid_to"] == rows[2]["valid_from"] == datetime(2024, 1, 9, tzinfo=UTC)
+    current = await fresh_conn.fetch("SELECT id FROM doc_versions WHERE valid_to IS NULL")
+    assert [r["id"] for r in current] == [a2.version_id]
+    assert await diff_of(fresh_conn, a2.version_id) == {
+        "added": [],
+        "removed": [],
+        "changed": ["A"],
+        "unchanged": [],
+    }
+    assert await fresh_conn.fetchval("SELECT count(*) FROM chunks") == 3
+    assert await fresh_conn.fetchval("SELECT count(*) FROM outbox") == 3
+    # Re-ingesting the now-current content is still a no-op.
+    again = await store(fresh_conn, source, raw([("A", "alpha")], day=12, key="a-3"))
+    assert again.created is False and again.version_id == a2.version_id
+    assert await fresh_conn.fetchval("SELECT count(*) FROM doc_versions") == 3
+
+
+async def test_concurrent_reverts_create_one_version(fresh_dsn, fresh_conn):
+    _, source = await seed_source(fresh_conn)
+    await store(fresh_conn, source, raw([("A", "alpha")], day=1))
+    await store(fresh_conn, source, raw([("A", "beta")], day=5))
+    other = await asyncpg.connect(fresh_dsn)
+    try:
+        doc = raw([("A", "alpha")], day=9)
+        results = await asyncio.gather(store(fresh_conn, source, doc), store(other, source, doc))
+    finally:
+        await other.close()
+    assert sorted(r.created for r in results) == [False, True]
+    assert await fresh_conn.fetchval("SELECT count(*) FROM doc_versions") == 3
+
+
 async def test_changed_content_closes_previous_window(fresh_conn):
     _, source = await seed_source(fresh_conn)
     first = await store(fresh_conn, source, raw([("A", "alpha"), ("B", "beta")]))

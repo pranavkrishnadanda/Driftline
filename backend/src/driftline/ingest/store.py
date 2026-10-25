@@ -36,7 +36,7 @@ async def upsert_version(
     raw: RawDocument,
     chunks: Sequence[ChunkDraft],
 ) -> UpsertResult:
-    """Idempotent on `(document_id, content_hash)`; everything commits or nothing does."""
+    """No-op when the content equals the current version's; everything commits or nothing does."""
     hashes = section_hashes(raw.sections)
     digest = content_hash(raw.sections)
     async with conn.transaction():
@@ -50,27 +50,17 @@ async def upsert_version(
         )
         # The upsert row-locks the document until commit, so concurrent writers of one
         # document serialise here and the second one sees the first one's version.
-        existing = await conn.fetchrow(
-            "SELECT id, version_no, valid_from FROM doc_versions "
-            "WHERE document_id = $1 AND content_hash = $2",
-            document_id,
-            digest,
-        )
-        if existing is not None:
-            return UpsertResult(
-                document_id,
-                existing["id"],
-                existing["version_no"],
-                False,
-                existing["valid_from"],
-                None,
-                None,
-            )
         prev = await conn.fetchrow(
-            "SELECT id, version_no, valid_from, section_hashes FROM doc_versions "
+            "SELECT id, version_no, valid_from, content_hash, section_hashes FROM doc_versions "
             "WHERE document_id = $1 ORDER BY version_no DESC LIMIT 1",
             document_id,
         )
+        # Only the current version's content is a no-op. Content equal to an older,
+        # closed version is a revert (A -> B -> A) and gets its own version and window.
+        if prev is not None and prev["content_hash"] == digest:
+            return UpsertResult(
+                document_id, prev["id"], prev["version_no"], False, prev["valid_from"], None, None
+            )
         valid_from = raw.valid_from
         diff: dict | None = None
         if prev is not None:
