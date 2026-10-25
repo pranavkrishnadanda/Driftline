@@ -1,0 +1,915 @@
+{
+  "system": "plain_rag",
+  "corpus": "k8s",
+  "git_sha": "ce44d2b91109426c9ab416d7b58816da61b44d92",
+  "llm": "offline extractive LLM (DeterministicAdapter + ExtractiveResponder; extract=deterministic/offline-extract; answer=deterministic/offline-answer; judge=deterministic/offline-judge)",
+  "metrics": {
+    "citation_precision": 0.2653061224489796,
+    "outdated_citation_rate": 0.7346938775510204,
+    "trap_citation_precision": 0.3888888888888889,
+    "trap_outdated_citation_rate": 0.6111111111111112,
+    "faithfulness": 0.2653061224489796,
+    "insufficient_evidence_accuracy": 1.0,
+    "latency_p95_ms": 107.16104507446289,
+    "cost_per_answer_usd": 0.0,
+    "scored": 40.0,
+    "citations": 98.0,
+    "claims": 98.0,
+    "claims_judged": 0.0,
+    "cases": 40.0,
+    "stale_case_count": 0.0,
+    "error_count": 0.0
+  },
+  "cases": [
+    {
+      "case_id": "k8s-003",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The `CSIMigration` feature directs operations against existing in-tree plugins to corresponding CSI plugins (which are expected to be installed and configured). The `CSIMigration` feature, when enabled, directs operations against existing in-tree plugins to corresponding CSI plugins (which are expected to be installed and configured). The out-of-tree volume plugins include Container Storage Interface (CSI), and also FlexVolume (which is deprecated).",
+      "cited_version_ids": [
+        "f835ca11-b1e1-442b-8740-87a2cf9d51a8",
+        "42a097b6-1948-4b30-8ba7-174daf9b5b33"
+      ],
+      "scores": {
+        "citation_precision": 0.3333333333333333,
+        "outdated_citation_rate": 0.6666666666666666,
+        "faithfulness": 0.3333333333333333,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 107.16104507446289,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-004",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "A minimal Ingress resource example:    As with all other Kubernetes resources, an Ingress needs `apiVersion`, `kind`, and `metadata` fields. A minimal Ingress resource example:    An Ingress needs `apiVersion`, `kind`, `metadata` and `spec` fields. Before the IngressClass resource and `ingressClassName` field were added in Kubernetes 1.18, Ingress classes were specified with a `kubernetes.io/ingress.class` annotation on the Ingress.",
+      "cited_version_ids": [
+        "858fb0d7-ba69-42dd-8dd3-704d663bfabf",
+        "46973111-c9e3-439e-ba5c-a509fec50506",
+        "17b476b2-ffaf-4652-9b71-861988b7b572"
+      ],
+      "scores": {
+        "citation_precision": 0.3333333333333333,
+        "outdated_citation_rate": 0.6666666666666666,
+        "faithfulness": 0.3333333333333333,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 66.5903091430664,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-005",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "With the alpha feature gate `KubeletCrashLoopBackOffMax` enabled, you can reconfigure the maximum delay between container start retries from the default of 300s (5 minutes). With the feature gate `KubeletCrashLoopBackOffMax` enabled, you can reconfigure the maximum delay between container start retries from the default of 300s (5 minutes). If your cluster has the feature gate `ContainerRestartRules` enabled, you can specify  `restartPolicy` and `restartPolicyRules` on _individual containers_ to override the Pod restart policy.",
+      "cited_version_ids": [
+        "c81bb498-4669-47e5-bdc2-5589cccf4cbc",
+        "0e9fd8f9-f4a5-4613-b8be-1f1972441f58"
+      ],
+      "scores": {
+        "citation_precision": 0.6666666666666666,
+        "outdated_citation_rate": 0.3333333333333333,
+        "faithfulness": 0.6666666666666666,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 196.68197631835938,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-013",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "An Ingress with no rules sends all traffic to a single default backend and `.spec.defaultBackend` is the backend that should handle requests in that case. [Ingress](/docs/reference/generated/kubernetes-api//#ingress-v1-networking-k8s-io) exposes HTTP and HTTPS routes from outside the cluster to  within the cluster.",
+      "cited_version_ids": [
+        "e86611ea-7fcf-4f3f-b32a-6cba88556acc",
+        "46973111-c9e3-439e-ba5c-a509fec50506"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 80.25407791137695,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-014",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "It is generally discouraged to make label selector updates and it is suggested to plan your selectors up front. This is a _non-overlapping_ change:   the new Deployment will not \"see\" the old Pods (which lack the new label), causing the old   ReplicaSet to be **orphaned** and a brand-new ReplicaSet to be created.",
+      "cited_version_ids": [
+        "d7f01b20-a153-4193-9314-2d9be574e625",
+        "eacf4b8e-ba67-4a93-bb02-0dd28dcdd7a1"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 83.18090438842773,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-016",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Windows in Kubernetes has some limitations and differentiators from standard Linux-based workloads. The Pod Security Standards define three different _policies_ to broadly cover the security spectrum. Privileged access to the host is disallowed in the baseline policy.",
+      "cited_version_ids": [
+        "06b1d0c1-7576-4f74-99b6-7ff912aa2344"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 76.03812217712402,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-018",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As with all other Kubernetes configs, a Deployment needs `.apiVersion`, `.kind`, and `.metadata` fields. The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "401c37ba-5710-4289-898e-95c995e982a9",
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 68.1009292602539,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-023",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "**The _Privileged_ policy is purposely-open, and entirely unrestricted.** This type of policy is typically aimed at system- and infrastructure-level workloads managed by privileged, trusted users. Windows in Kubernetes has some limitations and differentiators from standard Linux-based workloads. The Pod Security Standards define three different _policies_ to broadly cover the security spectrum.",
+      "cited_version_ids": [
+        "06b1d0c1-7576-4f74-99b6-7ff912aa2344",
+        "324acbdc-56af-4540-a59a-56f6f8966486"
+      ],
+      "scores": {
+        "citation_precision": 0.6666666666666666,
+        "outdated_citation_rate": 0.3333333333333333,
+        "faithfulness": 0.6666666666666666,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 88.26494216918945,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-031",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "If the order of shutdowns matters, consider using a `preStop` hook to synchronize. If the order of shutdowns matters, consider using a `preStop` hook       to synchronize (or switch to using sidecar containers). If the `preStop` hook needs longer to complete than the default grace period allows,       you must modify `terminationGracePeriodSeconds` to suit this.",
+      "cited_version_ids": [
+        "d3cb26a9-ae33-4ec0-80dd-0f243c1d098c",
+        "ec7ac10f-aaa5-4f36-9636-78e93c30b1d6",
+        "4be626a9-25f1-465c-b668-f602ff3a5e6d"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 91.42494201660156,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-034",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "If you set the `emptyDir.medium` field to `\"Memory\"`, Kubernetes mounts a tmpfs (RAM-backed filesystem) for you instead. A size limit can be specified for the default medium, which limits the capacity of the `emptyDir` volume. A container crashing does *not* remove a Pod from a node.",
+      "cited_version_ids": [
+        "28435be3-d843-4082-aef0-1d7e8931b751",
+        "f835ca11-b1e1-442b-8740-87a2cf9d51a8",
+        "59e08941-9173-457a-af78-a9ec78819b6b"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 75.27828216552734,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-036",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "A size limit can be specified for the default medium, which limits the capacity of the `emptyDir` volume. A container crashing does *not* remove a Pod from a node. If you set the `emptyDir.medium` field to `\"Memory\"`, Kubernetes mounts a tmpfs (RAM-backed filesystem) for you instead.",
+      "cited_version_ids": [
+        "f835ca11-b1e1-442b-8740-87a2cf9d51a8",
+        "59e08941-9173-457a-af78-a9ec78819b6b",
+        "28435be3-d843-4082-aef0-1d7e8931b751"
+      ],
+      "scores": {
+        "citation_precision": 0.3333333333333333,
+        "outdated_citation_rate": 0.6666666666666666,
+        "faithfulness": 0.3333333333333333,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 87.90826797485352,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-037",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The `azureFile` volume type mounts a Microsoft Azure File volume (SMB 2.1 and 3.0) into a pod. Docker has a concept of [volumes](https://docs.docker.com/storage/), though it is somewhat looser and less managed. Mount propagation allows for sharing volumes mounted by a container to other containers in the same pod, or even to other pods on the same node.",
+      "cited_version_ids": [
+        "b5062a22-90c0-4c35-a239-e7c91938334e",
+        "42a097b6-1948-4b30-8ba7-174daf9b5b33"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 77.52490043640137,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-039",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "[Security Contexts](/docs/tasks/configure-pod-container/security-context/) configure Pods and Containers at runtime. Windows in Kubernetes has some limitations and differentiators from standard Linux-based workloads. The Pod Security Standards define three different _policies_ to broadly cover the security spectrum.",
+      "cited_version_ids": [
+        "06b1d0c1-7576-4f74-99b6-7ff912aa2344"
+      ],
+      "scores": {
+        "citation_precision": 1.0,
+        "outdated_citation_rate": 0.0,
+        "faithfulness": 1.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 100.52013397216797,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-049",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "A _Deployment_ provides declarative updates for Pods and ReplicaSets. The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "eacf4b8e-ba67-4a93-bb02-0dd28dcdd7a1",
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 70.27101516723633,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-050",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "You can set `.spec.revisionHistoryLimit` field in a Deployment to specify how many old ReplicaSets for this Deployment you want to retain. A Deployment's revision history is stored in the ReplicaSets it controls. The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "ba495613-cbda-42bc-9c82-29319512938b",
+        "c0dd4f3b-50ec-4daa-b3cf-be03c8ddbf41",
+        "401c37ba-5710-4289-898e-95c995e982a9"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 78.02987098693848,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-055",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "All existing Pods are killed before new ones are created when `.spec.strategy.type==Recreate`. The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "c0dd4f3b-50ec-4daa-b3cf-be03c8ddbf41",
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 74.85318183898926,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-059",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "You can set `.spec.revisionHistoryLimit` field in a Deployment to specify how many old ReplicaSets for this Deployment you want to retain. A Deployment's revision history is stored in the ReplicaSets it controls. The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "ba495613-cbda-42bc-9c82-29319512938b",
+        "c0dd4f3b-50ec-4daa-b3cf-be03c8ddbf41",
+        "401c37ba-5710-4289-898e-95c995e982a9"
+      ],
+      "scores": {
+        "citation_precision": 0.3333333333333333,
+        "outdated_citation_rate": 0.6666666666666666,
+        "faithfulness": 0.3333333333333333,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 79.09369468688965,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-064",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Each time a new Deployment is observed by the Deployment controller, a ReplicaSet is created to bring up the desired Pods. The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "1a761a1a-faf5-4fee-80af-a10ebad36b8c",
+        "401c37ba-5710-4289-898e-95c995e982a9"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 82.97181129455566,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-066",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "`.spec.strategy.rollingUpdate.maxSurge` is an optional field that specifies the maximum number of Pods that can be created over the desired number of Pods. `.spec.strategy.rollingUpdate.maxUnavailable` is an optional field that specifies the maximum number of Pods that can be unavailable during the update process. The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "401c37ba-5710-4289-898e-95c995e982a9",
+        "1a761a1a-faf5-4fee-80af-a10ebad36b8c",
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 79.12302017211914,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-070",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Do not change this label. Each time a new Deployment is observed by the Deployment controller, a ReplicaSet is created to bring up the desired Pods.",
+      "cited_version_ids": [
+        "1a761a1a-faf5-4fee-80af-a10ebad36b8c",
+        "eacf4b8e-ba67-4a93-bb02-0dd28dcdd7a1"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 103.19399833679199,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-071",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "There are existing Kubernetes concepts that allow you to expose a single Service (see [alternatives](#alternatives)). would require an Ingress such as:    When you create the Ingress with `kubectl apply -f`:  ```shell kubectl describe ingress simple-fanout-example ```  ``` Name:             simple-fanout-example Namespace:        default Address:          178.91.123.132 Default backend:  default-http-backend:80 (10.8.2.3:8080) Rules:   Host         Path  Backends   ----         ----  --------   foo.bar.com                /foo   service1:4200 (10.8.0.90:4200)                /bar   service2:8080 (10.8.0.91:8080) Events:   Type     Reason  Age                From                     Message   ----     ------  ----               ----                     -------   Normal   ADD     22s                loadbalancer-controller  default/test ```  The Ingress controller provisions an implementation-specific load balancer that satisfies the Ingress, as long as the Services (`service1`, `service2`) exist. John’s wort •Topiramate Consider using another birth control method when you take medicines that may make birth control pills less effective.",
+      "cited_version_ids": [
+        "46973111-c9e3-439e-ba5c-a509fec50506",
+        "e86611ea-7fcf-4f3f-b32a-6cba88556acc",
+        "9865cf01-1dd8-4e57-8c8d-a4b92eebd995"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 93.48416328430176,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-073",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Techniques for spreading traffic across failure domains differ between cloud providers. [Ingress](/docs/reference/generated/kubernetes-api//#ingress-v1-networking-k8s-io) exposes HTTP and HTTPS routes from outside the cluster to  within the cluster.",
+      "cited_version_ids": [
+        "07770fce-60f6-4615-83b6-93d5bf1a21fe",
+        "46973111-c9e3-439e-ba5c-a509fec50506"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 75.67906379699707,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-076",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "You can test your clusters by starting an API server with specific API versions disabled to simulate upcoming removals. The default scope for IngressClass parameters is cluster-wide.",
+      "cited_version_ids": [
+        "dc3dfc88-1aaf-45c9-828a-ab7961574224",
+        "23162a11-b683-4a55-8367-dd3355240559"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 64.83626365661621,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-077",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The **rbac.authorization.k8s.io/v1beta1** API version of ClusterRole, ClusterRoleBinding, Role, and RoleBinding is no longer served as of v1.22. The **certificates.k8s.io/v1beta1** API version of CertificateSigningRequest is no longer served as of v1.22.",
+      "cited_version_ids": [
+        "430270a1-1945-4735-b7c0-b0a837c9734f",
+        "dc3dfc88-1aaf-45c9-828a-ab7961574224"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 88.22107315063477,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-080",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "RollingUpdate Deployments support running multiple versions of an application at the same time. The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "ba495613-cbda-42bc-9c82-29319512938b",
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 76.52401924133301,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-081",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Before the IngressClass resource and `ingressClassName` field were added in Kubernetes 1.18, Ingress classes were specified with a `kubernetes.io/ingress.class` annotation on the Ingress. You can mark a particular IngressClass as default for your cluster.",
+      "cited_version_ids": [
+        "17b476b2-ffaf-4652-9b71-861988b7b572",
+        "e86611ea-7fcf-4f3f-b32a-6cba88556acc"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 59.41915512084961,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-082",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The **certificates.k8s.io/v1beta1** API version of CertificateSigningRequest is no longer served as of v1.22. The **authorization.k8s.io/v1beta1** API version of LocalSubjectAccessReview, SelfSubjectAccessReview, and SubjectAccessReview is no longer served as of v1.22. The **flowcontrol.apiserver.k8s.io/v1beta2** API version of FlowSchema and PriorityLevelConfiguration is no longer served as of v1.29.",
+      "cited_version_ids": [
+        "b7265af7-4bf9-4587-b3ee-6575557bc6a4",
+        "78406332-fdcb-43f1-966b-50c51349edb9",
+        "1712434a-e2a8-47b4-8916-f52f413c6084"
+      ],
+      "scores": {
+        "citation_precision": 0.3333333333333333,
+        "outdated_citation_rate": 0.6666666666666666,
+        "faithfulness": 0.3333333333333333,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 73.97890090942383,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-083",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "In some cases, multiple paths within an Ingress will match a request. Each path in an Ingress is required to have a corresponding path type.",
+      "cited_version_ids": [
+        "17b476b2-ffaf-4652-9b71-861988b7b572",
+        "07770fce-60f6-4615-83b6-93d5bf1a21fe"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 65.74821472167969,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-085",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "[Ingress](/docs/reference/generated/kubernetes-api//#ingress-v1-networking-k8s-io) exposes HTTP and HTTPS routes from outside the cluster to  within the cluster. You must have an [Ingress controller](/docs/concepts/services-networking/ingress-controllers) to satisfy an Ingress.",
+      "cited_version_ids": [
+        "46973111-c9e3-439e-ba5c-a509fec50506",
+        "17b476b2-ffaf-4652-9b71-861988b7b572"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 53.795814514160156,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-094",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "A Deployment's revision history is stored in the ReplicaSets it controls. The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "c0dd4f3b-50ec-4daa-b3cf-be03c8ddbf41",
+        "401c37ba-5710-4289-898e-95c995e982a9"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 67.03925132751465,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-096",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The Pod Security Standards define three different _policies_ to broadly cover the security spectrum. Windows in Kubernetes has some limitations and differentiators from standard Linux-based workloads. [Security Contexts](/docs/tasks/configure-pod-container/security-context/) configure Pods and Containers at runtime.",
+      "cited_version_ids": [
+        "06b1d0c1-7576-4f74-99b6-7ff912aa2344",
+        "324acbdc-56af-4540-a59a-56f6f8966486",
+        "1c00341d-e477-480e-9467-f9469276cb00"
+      ],
+      "scores": {
+        "citation_precision": 0.3333333333333333,
+        "outdated_citation_rate": 0.6666666666666666,
+        "faithfulness": 0.3333333333333333,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 66.69878959655762,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-101",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 1.0,
+        "claims": 1.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 65.23799896240234,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-107",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "`.spec.minReadySeconds` is an optional field that specifies the minimum number of seconds for which a newly created Pod should be ready without any of its containers crashing, for it to be considered available. The following are typical use cases for Deployments:  * [Create a Deployment to rollout a ReplicaSet](#creating-a-deployment).",
+      "cited_version_ids": [
+        "401c37ba-5710-4289-898e-95c995e982a9",
+        "d7f01b20-a153-4193-9314-2d9be574e625"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 73.56119155883789,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-109",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The **extensions/v1beta1**, **apps/v1beta1**, and **apps/v1beta2** API versions of ReplicaSet are no longer served as of v1.16. The **extensions/v1beta1**, **apps/v1beta1**, and **apps/v1beta2** API versions of Deployment are no longer served as of v1.16.",
+      "cited_version_ids": [
+        "b7265af7-4bf9-4587-b3ee-6575557bc6a4",
+        "430270a1-1945-4735-b7c0-b0a837c9734f"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 90.31295776367188,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-113",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "For clarity, this guide defines the following terms:  * Node: A worker machine in Kubernetes, part of a cluster. [Ingress](/docs/reference/generated/kubernetes-api//#ingress-v1-networking-k8s-io) exposes HTTP and HTTPS routes from outside the cluster to  within the cluster.",
+      "cited_version_ids": [
+        "e86611ea-7fcf-4f3f-b32a-6cba88556acc",
+        "858fb0d7-ba69-42dd-8dd3-704d663bfabf"
+      ],
+      "scores": {
+        "citation_precision": 0.5,
+        "outdated_citation_rate": 0.5,
+        "faithfulness": 0.5,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 58.74013900756836,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-129",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "Whilst a Pod is running, the kubelet is able to restart containers to handle some kind of faults. The `Running` status indicates that a container is executing without issues. This page describes the lifecycle of a Pod.",
+      "cited_version_ids": [
+        "0f898d9e-4cb3-4f14-acc0-304bb5e4c9ce",
+        "c81bb498-4669-47e5-bdc2-5589cccf4cbc",
+        "d3cb26a9-ae33-4ec0-80dd-0f243c1d098c"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 68.59016418457031,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-133",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "As the Kubernetes API evolves, APIs are periodically reorganized or upgraded. The **discovery.k8s.io/v1beta1** API version of EndpointSlice will no longer be served in v1.25. * Update custom integrations and controllers to call the non-deprecated APIs * Change YAML files to reference the non-deprecated APIs    You can use the `kubectl convert` command to automatically convert an existing object:    `kubectl convert -f <file> --output-version <group>/<version>`.",
+      "cited_version_ids": [
+        "a69b87fa-182e-4b1d-8e31-fa00236c9d3c",
+        "78406332-fdcb-43f1-966b-50c51349edb9",
+        "b7265af7-4bf9-4587-b3ee-6575557bc6a4"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 71.78807258605957,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-137",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "There are existing Kubernetes concepts that allow you to expose a single Service (see [alternatives](#alternatives)). Depending on the [Ingress controller](/docs/concepts/services-networking/ingress-controllers/) you are using, you may need to create a default-http-backend [Service](/docs/concepts/services-networking/service/). An Ingress may be configured to give Services externally-reachable URLs, load balance traffic, terminate SSL / TLS, and offer name-based virtual hosting.",
+      "cited_version_ids": [
+        "46973111-c9e3-439e-ba5c-a509fec50506",
+        "23162a11-b683-4a55-8367-dd3355240559",
+        "858fb0d7-ba69-42dd-8dd3-704d663bfabf"
+      ],
+      "scores": {
+        "citation_precision": 0.3333333333333333,
+        "outdated_citation_rate": 0.6666666666666666,
+        "faithfulness": 0.3333333333333333,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 3.0,
+        "claims": 3.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 114.89200592041016,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-139",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "If a container is not in either the `Running` or `Terminated` state, it is `Waiting`. As well as the [phase](#pod-phase) of the Pod overall, Kubernetes tracks the state of each container inside a Pod.",
+      "cited_version_ids": [
+        "d3cb26a9-ae33-4ec0-80dd-0f243c1d098c",
+        "c57cc9b0-7e61-4bad-acc3-aa3711e3d38f"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 91.45617485046387,
+      "cost_usd": 0.0,
+      "error": null
+    },
+    {
+      "case_id": "k8s-144",
+      "status": "scored",
+      "answer_status": "answered",
+      "answer": "The **admissionregistration.k8s.io/v1beta1** API version of MutatingWebhookConfiguration and ValidatingWebhookConfiguration is no longer served as of v1.22. The **certificates.k8s.io/v1beta1** API version of CertificateSigningRequest is no longer served as of v1.22.",
+      "cited_version_ids": [
+        "b7265af7-4bf9-4587-b3ee-6575557bc6a4",
+        "dc3dfc88-1aaf-45c9-828a-ab7961574224"
+      ],
+      "scores": {
+        "citation_precision": 0.0,
+        "outdated_citation_rate": 1.0,
+        "faithfulness": 0.0,
+        "insufficient_evidence_accuracy": 1.0,
+        "citations": 2.0,
+        "claims": 2.0,
+        "claims_judged": 0.0
+      },
+      "latency_ms": 88.1500244140625,
+      "cost_usd": 0.0,
+      "error": null
+    }
+  ]
+}
