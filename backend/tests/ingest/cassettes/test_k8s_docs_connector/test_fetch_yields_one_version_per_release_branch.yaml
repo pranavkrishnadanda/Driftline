@@ -1,0 +1,721 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - application/vnd.github+json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - api.github.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.github.com/repos/kubernetes/website/commits?sha=release-1.28&path=content%2Fen%2Fdocs%2Freference%2Fusing-api%2Fdeprecation-guide.md&per_page=1
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA8VW23LiOBD9FYrXhNjGdyozOxAT7iYQMiQMU5Rsy0ZgZI9lm0sq/74tILNJNjUb
+        8rIUD5bs093qbp3TPx6LbI6KlaKOZN8QFUlXdF/BimzKyDUUwy8bjirCQnQdz5FVrXhepJGHZ8QD
+        0NVsubb61c11qZRG1Y7lzXvlB6VnDTb2biBPFsPQtnpqr3y96FsDZbJoKQ+Lu3V/ZM97DZtMGq2d
+        PXoAi260WpG0WHksoiydRwl/omiFwcUwmiNa6KCYYfgQrxAJYVeSyrIky4p5lvD3pSV//y1jOGEX
+        NEpwHG4vApLOM+cCbAPQQym3VhbLckmSSqI0kuSKqlQkfVJ8eg4gxS89N0jazJwXTo+Gv51ieIUZ
+        QwF3fRfzGApuRFNMUwFTwYtcJiTYxwmmLhYyRmhQQjERPBwn2EUpiWgpyIiHL1belE7pVVQ65Ad7
+        JWdbKbSjxIPkdEkAIaWFy8V+/S08rC8oTr9C+GmCwf9znX0RK6bnaqaITRcpKlJ0TS+7viw6rubK
+        vua6oupLMgCzhKd6nqYxqwgCBPYipRB3HDFhmTk4AT+YCWvsMJJiAUIRuEsmfNgVFODzvg69w4QT
+        GphDoAYzN8oodJ14XsxxQnxySDnP1WGNocfTJMPnxQQjFlHIRo5C6PzzIiMBRWmW8MqW+K9Wb7Ts
+        wk3jpnDbatjV0d2wvt/ndVuzmlurVmtX1eqgNmiHg5C0r4a1jj5fKP1cTlrravXOE1vVtn3XNaN4
+        JLfGk9345gYbne9erTaleTZZrTdi6i6XjhL39PjWNMXVXa5dN2Lzajxv56aQ2Y613WyldW1t1IN7
+        9ayusZ1460VoaU3pbrkigUaiZnPe6G+dxSYMQjnu2ovb/jIy5eVYyrt6Zm52nUlSZkF33PdX18JO
+        SOojQ7hy1lO6NNshifTdJu/emlpHHEz61ftu3cDmxkV1Oxv12uXOgxsEqDupbW8Zqg5HE7XZVe/t
+        eQd38ZRGaRTWxKwfmc3A8UbW/aST3KkWbQeC7nYsGRty0Nd3i19pUEbaeDiUl43r/igZ77qokbaH
+        kElzma39kdw1yc2uma/yM/KdGtfGaE2tnNUHG0Q0S2nnv7SmPL5urno6a+Zz1VvcmMFDe/BlSr/Q
+        h5vylO5rU7etdysG9Y3RNowQ5zjey4WPtvKUxghuc1rwyy5GvmwgzVQdeJaxo4iwZSiyYSLHNETf
+        UxwXIjnc6MILnitcnkZvXwuSZhqGohmqXjgTVVmc0sOtAEIrHGiscPlv9noPN6X/G08937kZgjvJ
+        mVoBmi5J2kgyKyr/A1N/mik+wRLzdBXOXvPSP8z/HvMdfHyCiNgbNx+l2lMPJRyJj0GDPwstzcLw
+        jf6FUUA41wGjl/wwWsPXXO0l09AURdFfDgAg9dr3ezt0F3W1bz2ItjXgyoFylKLk7an2m+woIlyr
+        j1rIJVrIhGf7f+VfFLARJEcr+0njv+RoL/1cg54j/nP1XnzoRyGcEdBvw32td68dCL9RENjhGcT7
+        ExYA9ShE6RxDtuAIT/zghKWnBbNHPILyshTmMm6DQaYT7J0U0BED4awpRPK4l/i9scxhbkJiPo+c
+        FtgrJFiKkgBRsttPNqdZAiTv2v3UcdKp9ghA4hxo+TToAfIoxAnJkbvlqYCxDJMcEvsJc2+wYC3d
+        xvvJEAoPK17/WU7wenbcjzMnJC4vAMxVM+St+K30Ucgw0OBBZ1ix8uP3ZPdByeGuPjXZPdPNR7UN
+        HP35Fr4zPR459MMunn4+/fwbDksA5sQMAAA=
+    headers:
+      accept-ranges:
+      - bytes
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO,
+        X-GitHub-Request-Id, Deprecation, Sunset, Warning
+      cache-control:
+      - public, max-age=60, s-maxage=60
+      content-encoding:
+      - gzip
+      content-length:
+      - '1337'
+      content-security-policy:
+      - default-src 'none'
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Sun, 25 Oct 2026 04:20:07 GMT
+      etag:
+      - W/"b23f5999ab8956995b711241c6341fda8f9019f969dcae281f05c5af53068436"
+      last-modified:
+      - Wed, 01 Nov 2023 13:54:17 GMT
+      link:
+      - <https://api.github.com/repositories/51478266/commits?sha=release-1.28&path=content%2Fen%2Fdocs%2Freference%2Fusing-api%2Fdeprecation-guide.md&per_page=1&page=2>;
+        rel="next", <https://api.github.com/repositories/51478266/commits?sha=release-1.28&path=content%2Fen%2Fdocs%2Freference%2Fusing-api%2Fdeprecation-guide.md&per_page=1&page=28>;
+        rel="last"
+      referrer-policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      server:
+      - github.com
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains; preload
+      vary:
+      - Accept,Accept-Encoding, Accept, X-Requested-With
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - deny
+      x-github-api-version-selected:
+      - '2022-11-28'
+      x-github-edge-region:
+      - centralindia
+      x-github-media-type:
+      - github.v3; format=json
+      x-github-request-id:
+      - 9907:1096E6:11A55D7:1B23936:6ADD8377
+      x-ratelimit-limit:
+      - '60'
+      x-ratelimit-remaining:
+      - '49'
+      x-ratelimit-reset:
+      - '1792903486'
+      x-ratelimit-resource:
+      - core
+      x-ratelimit-used:
+      - '11'
+      x-xss-protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - raw.githubusercontent.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://raw.githubusercontent.com/kubernetes/website/7a3f8041747f4e4393ac848f28b5093a0cbdb356/content/en/docs/reference/using-api/deprecation-guide.md
+  response:
+    body:
+      string: !!binary |
+        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
+    headers:
+      accept-ranges:
+      - bytes
+      access-control-allow-origin:
+      - '*'
+      cache-control:
+      - max-age=300
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-length:
+      - '4495'
+      content-security-policy:
+      - default-src 'none'; style-src 'unsafe-inline'; sandbox
+      content-type:
+      - text/plain; charset=utf-8
+      cross-origin-resource-policy:
+      - cross-origin
+      date:
+      - Sun, 25 Oct 2026 04:20:08 GMT
+      etag:
+      - W/"e87fdebfb6d96eb8434bee38fb6efd2a5a9fc88ad3defb83cb4dfdb8ecba006e"
+      expires:
+      - Sun, 25 Oct 2026 04:25:08 GMT
+      source-age:
+      - '0'
+      strict-transport-security:
+      - max-age=31536000
+      vary:
+      - Authorization,Accept-Encoding
+      via:
+      - 1.1 varnish
+      x-cache:
+      - HIT
+      x-cache-hits:
+      - '0'
+      x-content-type-options:
+      - nosniff
+      x-fastly-request-id:
+      - f9adbce25ee02a2dbd8f8f687ea2fd3b019b2fb3
+      x-frame-options:
+      - deny
+      x-github-edge-region:
+      - centralindia
+      x-github-request-id:
+      - 1F26:2239CA:2AFEAD:35B064:6ADD7B2D
+      x-served-by:
+      - cache-bom-vanm7210027-BOM
+      x-timer:
+      - S1792902008.025828,VS0,VE240
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - application/vnd.github+json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - api.github.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.github.com/repos/kubernetes/kubernetes/releases/tags/v1.28.0
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA7WWbW/aMBDHv0qWvVk1IAlPpZGmrmqrbupKta2dprVT5CRH4uHYke2AKOK77xzC
+        QxFtVdjEiwTj+5399/l/TO1CMtu3U61z5TsOyWkjoTotwkYkMkdCLpQzLEKQHDQ8epXAgCgc87zD
+        VqvX7Lh2zSZKgVbBP4Q6cySyi5wJEm+w54Nq90VX/OkxJxnUGAmBzTBZqjO2kWpNlxcU0SRxRl6j
+        2WsYTWhs+0uNUKJCp0La/tRmIqEcxR/2VL1Ssy5FKHQV1Gp13E6706zZXMQQGI59dfa1++Nnn0V/
+        rh76Nyde/+x2YnQfEU3kpu7l4EKbQoGMBNfAdXm2hbPgH48+tJGRyIpSJjKCP1caBof1sGXpL0i3
+        JWIgGBNj5G1u4HE1PpHSWYbjmufvlCf7oDB86gidAiqK2zT1kFD1Ul0/tbwydOqYB56hgSk8Fgmb
+        pbxx957CVcG4wDHHtU3LS1pSi1BFkuaaCr6jko8QiBQyIZw+kD2QiFBIKp1ktzMpQxEBIyzdHRnz
+        2KmTSzoi0cTIJSECOsJT2Ie7AUGsnuSA1+cW6wa/mUMMRhTGQTWeFyGjkTktqiEgcWYcYECYgtn6
+        Nf92HgzHZ9cnN+LzULUvAn56adgkCYxNIX9lL1hLCegAr3RGNVUp/pgRpcv01eTLpYFbq7hYkoGu
+        cqNJZVmhSciQXa6mZucSKlNaDkUSiEbFCMbZTbfZqru9ute58Vzf6/jto19mx3m8fc6h77q+2zJz
+        ShFUuo20Nqsyfv/ut9m5DAnbdORXdKsKsGbLDzTfD1kB1pChiCeozD3/DmDdrZpEnXAuCh7Bx9/v
+        Fp02kaLI0ZuFSBiUhjwQssict2/mzy3RBw3rJI7xkAUnzAopJ3JixWgDpi8qi0iwGOVDiC3KLXQv
+        6+7000n/4vzL9cVa3lV3397FQiZCZ15BzjJ+9VYv+1oWHzTuebVRk+p/ZrJQESsTuL0YNKFMlanN
+        p7zGJCrtyXTUZzvW6/7MoK0uwFh+QhOGV6zgWPme6cjvPdvvejW7jk+3ZjNSJHjzuvjHQQhJsAra
+        OAnb7QAdANspTkmBSIw+wiWLaAj42uyhqU0AV96dzf4CQ54Q8IoJAAA=
+    headers:
+      accept-ranges:
+      - bytes
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO,
+        X-GitHub-Request-Id, Deprecation, Sunset, Warning
+      cache-control:
+      - public, max-age=60, s-maxage=60
+      content-encoding:
+      - gzip
+      content-length:
+      - '839'
+      content-security-policy:
+      - default-src 'none'
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Sun, 25 Oct 2026 04:20:08 GMT
+      etag:
+      - W/"494b55c720391d9b77955f7577e00d2742789b4b0be6f7a0f71dbdf74a42dbf4"
+      last-modified:
+      - Tue, 15 Aug 2023 17:00:03 GMT
+      referrer-policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      server:
+      - github.com
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains; preload
+      vary:
+      - Accept,Accept-Encoding, Accept, X-Requested-With
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - deny
+      x-github-api-version-selected:
+      - '2022-11-28'
+      x-github-edge-region:
+      - centralindia
+      x-github-media-type:
+      - github.v3; format=json
+      x-github-request-id:
+      - 9907:1096E6:11A5683:1B23A66:6ADD8377
+      x-ratelimit-limit:
+      - '60'
+      x-ratelimit-remaining:
+      - '48'
+      x-ratelimit-reset:
+      - '1792903486'
+      x-ratelimit-resource:
+      - core
+      x-ratelimit-used:
+      - '12'
+      x-xss-protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - application/vnd.github+json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - api.github.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.github.com/repos/kubernetes/website/commits?sha=release-1.31&path=content%2Fen%2Fdocs%2Freference%2Fusing-api%2Fdeprecation-guide.md&per_page=1
+  response:
+    body:
+      string: !!binary |
+        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
+    headers:
+      accept-ranges:
+      - bytes
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO,
+        X-GitHub-Request-Id, Deprecation, Sunset, Warning
+      cache-control:
+      - public, max-age=60, s-maxage=60
+      content-encoding:
+      - gzip
+      content-length:
+      - '1754'
+      content-security-policy:
+      - default-src 'none'
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Sun, 25 Oct 2026 04:20:08 GMT
+      etag:
+      - W/"136f077f032a1a99731c3cffa3bece63790a4f4f315b430a27354876ee7d0501"
+      last-modified:
+      - Sat, 16 Mar 2024 17:37:30 GMT
+      link:
+      - <https://api.github.com/repositories/51478266/commits?sha=release-1.31&path=content%2Fen%2Fdocs%2Freference%2Fusing-api%2Fdeprecation-guide.md&per_page=1&page=2>;
+        rel="next", <https://api.github.com/repositories/51478266/commits?sha=release-1.31&path=content%2Fen%2Fdocs%2Freference%2Fusing-api%2Fdeprecation-guide.md&per_page=1&page=35>;
+        rel="last"
+      referrer-policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      server:
+      - github.com
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains; preload
+      vary:
+      - Accept,Accept-Encoding, Accept, X-Requested-With
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - deny
+      x-github-api-version-selected:
+      - '2022-11-28'
+      x-github-edge-region:
+      - centralindia
+      x-github-media-type:
+      - github.v3; format=json
+      x-github-request-id:
+      - 9907:1096E6:11A56B2:1B23ACD:6ADD8378
+      x-ratelimit-limit:
+      - '60'
+      x-ratelimit-remaining:
+      - '47'
+      x-ratelimit-reset:
+      - '1792903486'
+      x-ratelimit-resource:
+      - core
+      x-ratelimit-used:
+      - '13'
+      x-xss-protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - raw.githubusercontent.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://raw.githubusercontent.com/kubernetes/website/f424d451424f01737b7d2bc22666ef184e117565/content/en/docs/reference/using-api/deprecation-guide.md
+  response:
+    body:
+      string: !!binary |
+        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
+        LCr7JSz/HxDJgEbyUwAA
+    headers:
+      accept-ranges:
+      - bytes
+      access-control-allow-origin:
+      - '*'
+      cache-control:
+      - max-age=300
+      connection:
+      - keep-alive
+      content-encoding:
+      - gzip
+      content-length:
+      - '4689'
+      content-security-policy:
+      - default-src 'none'; style-src 'unsafe-inline'; sandbox
+      content-type:
+      - text/plain; charset=utf-8
+      cross-origin-resource-policy:
+      - cross-origin
+      date:
+      - Sun, 25 Oct 2026 04:20:09 GMT
+      etag:
+      - W/"ada140bb206454f9f0201988c43583e3142f0f5d8aab71f15eecc6b95b7e39b4"
+      expires:
+      - Sun, 25 Oct 2026 04:25:09 GMT
+      source-age:
+      - '0'
+      strict-transport-security:
+      - max-age=31536000
+      vary:
+      - Authorization,Accept-Encoding
+      via:
+      - 1.1 varnish
+      x-cache:
+      - HIT
+      x-cache-hits:
+      - '0'
+      x-content-type-options:
+      - nosniff
+      x-fastly-request-id:
+      - 5b37a12757dd685dad7b910cb87eb4b21a423ca1
+      x-frame-options:
+      - deny
+      x-github-edge-region:
+      - centralindia
+      x-github-request-id:
+      - 4E0A:27D5F9:2B9642:36495C:6ADD7B29
+      x-served-by:
+      - cache-bom-vanm7210027-BOM
+      x-timer:
+      - S1792902009.934175,VS0,VE262
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - application/vnd.github+json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - api.github.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.github.com/repos/kubernetes/kubernetes/releases/tags/v1.31.0
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA7WWa2/aMBSG/0qWfVk1IAn3Rpo6tFZd1ZVqWztNvQg5ySF4OHZkOyCK+O87DuHS
+        iLYq3cSHBOPzHPv18XuY25lktm+PtE6V7zgkpbWY6lEW1EKROBJSoZxxFoDkoOHRqwQGROGY1z48
+        7DTdTsOu2EQp0GrwD6HOEonsLGWCRCX2clDtv+iCPz/iJIEKIwGwBSYb6YSVUm3p8oIimsTOxKs1
+        vJqLKBrZ/lojlCjTIyFtf24zEVOO4o+7qlqoWZUiELoIajRabqvZqldsLiIYGI59cfy9/et3n4V/
+        Lh76Vz2vf3w9M7pPiCayrHs+uNImUyBDwTVwnZ9t5qz4R5NPTWTEsqDkiYzgz5WGwWE97Fj6C9Lt
+        iBgKxsQUeeUNPK7GJ1I663Bc8/Kd8vgtKAyfO0KPABXFbZp6iKl6qa6fWl4eOnfMA8/QwBQei4Ry
+        KZfu3lO4IhgXOOW4tnl+SXNqFqhQ0lRTwfdU8hECkULGhNMH8gYkIhSScifZ70zyUETABEt3T8Yy
+        du6kkk5IODNySQiBTvAU3sItQRCrZyng9bnGusFv5hAHEwrTQTGeZgGjoTktqmFAosQ4wJAwBYvt
+        a/7jZDCeHl/2rsTZWDXPz27GLcMm8cDYFPI39oK1FIMe4JVOqKZqhD8mROk8fTH5fG3g1iYukmSo
+        i9xoUkmSaRIwZOerqdiphMKU1kOhBKJRMYJxdt2tN6tut+o1rtyOX+/6ze6N2XEa7ZzjNfwmTvPM
+        nFwENdpB2p5VGL9/e292LgPCyo78im5VALZs+YGmb0MWgC1kIKIZKnPHfwJYt5smUSWci4yH8Pn+
+        w6rTxlJkKXqzEDGD3JCHQmaJ8/7d8rkj+qBm9aIID1lwwqyAciJnVoQ2YPqisogEi1E+hsii3EL3
+        sm6/fO31T0++XZ5u5d10991dLGAicJYV5KzjN2/VvK8l0UHtjhcbNan+ZyYLFbESgduLQBPKVJ7a
+        fPJrTMLcnkxHfbZjve7PDNrqCozlJzRheMUyjpXvtbsV+6Nn+61Oxa7i063YjGQx3jyvjf8chJAE
+        y6CBs7DfDtECsJ/inBEQieF1nCNFOAbz7qGtzQDX7rmLxV9+M3qWjQkAAA==
+    headers:
+      accept-ranges:
+      - bytes
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO,
+        X-GitHub-Request-Id, Deprecation, Sunset, Warning
+      cache-control:
+      - public, max-age=60, s-maxage=60
+      content-encoding:
+      - gzip
+      content-length:
+      - '841'
+      content-security-policy:
+      - default-src 'none'
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Sun, 25 Oct 2026 04:20:09 GMT
+      etag:
+      - W/"70dcf4745a404150bd5a6410d86973d2854e5fba6c9e04fbea6573e0fe39dff9"
+      last-modified:
+      - Tue, 13 Aug 2024 13:47:21 GMT
+      referrer-policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      server:
+      - github.com
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains; preload
+      vary:
+      - Accept,Accept-Encoding, Accept, X-Requested-With
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - deny
+      x-github-api-version-selected:
+      - '2022-11-28'
+      x-github-edge-region:
+      - centralindia
+      x-github-media-type:
+      - github.v3; format=json
+      x-github-request-id:
+      - 9907:1096E6:11A5728:1B23B91:6ADD8378
+      x-ratelimit-limit:
+      - '60'
+      x-ratelimit-remaining:
+      - '46'
+      x-ratelimit-reset:
+      - '1792903486'
+      x-ratelimit-resource:
+      - core
+      x-ratelimit-used:
+      - '14'
+      x-xss-protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1
