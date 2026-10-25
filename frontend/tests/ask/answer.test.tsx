@@ -4,15 +4,9 @@ import { describe, expect, it } from "vitest";
 
 import { FinalAnswer, StreamingAnswer } from "@/components/ask/answer";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import type { AnswerSchema } from "@/lib/api/client";
+import type { AnswerSchema, Citation } from "@/lib/api/client";
 
-import {
-  ANSWERED,
-  ANSWERED_TEXT,
-  CITED_SOURCE,
-  LAST_STEP,
-  insufficientAnswer,
-} from "../support/ask-fixtures";
+import { ANSWERED, ANSWERED_TEXT, LAST_STEP, insufficientAnswer } from "../support/ask-fixtures";
 
 function renderFinal(answer: AnswerSchema) {
   return render(
@@ -45,30 +39,65 @@ describe("FinalAnswer: answered", () => {
     expect(within(claim).getByLabelText("Verified")).toBeInTheDocument();
   });
 
-  it("shows the exact quote with title, version and valid-from when a citation is focused", async () => {
+  it("shows the exact quote with title, version, section and valid-from when a citation is focused", async () => {
     const user = userEvent.setup();
-    renderFinal({ ...ANSWERED, nearest_sources: [CITED_SOURCE] });
+    // No nearest_sources: an answered answer's citations carry their own metadata.
+    renderFinal({ ...ANSWERED, nearest_sources: [] });
 
     await user.tab();
     const chip = screen.getByRole("button", { name: /Citation 1/ });
     expect(chip).toHaveFocus();
+    expect(chip).toHaveAccessibleName("Citation 1: Lipitor (atorvastatin calcium) label");
 
     const tip = await screen.findByRole("tooltip");
     expect(tip).toHaveTextContent("Check ALT monthly during therapy.");
-    expect(tip).toHaveTextContent("Acme tablets label");
-    expect(tip).toHaveTextContent("v3");
-    expect(tip).toHaveTextContent("Valid from 14 Feb 2023");
+    expect(tip).toHaveTextContent("Lipitor (atorvastatin calcium) label");
+    expect(tip).toHaveTextContent("Warnings and Precautions > Liver Dysfunction");
+    expect(tip).toHaveTextContent("v2");
+    expect(tip).toHaveTextContent("Valid from 15 Apr 2024");
   });
 
-  it("shows the quote on hover, with the version id when the answer has no metadata for it", async () => {
+  it("shows the valid-to of a superseded cited version", async () => {
     const user = userEvent.setup();
-    renderFinal(ANSWERED);
+    const cite = (c: Citation): Citation => ({ ...c, valid_to: "2025-01-01T00:00:00Z" });
+    renderFinal({
+      ...ANSWERED,
+      claims: ANSWERED.claims!.map((claim) => ({ ...claim, citations: claim.citations.map(cite) })),
+    });
+
+    await user.hover(screen.getByRole("button", { name: /Citation 1/ }));
+    const tip = await screen.findByRole("tooltip");
+    expect(tip).toHaveTextContent("Valid 15 Apr 2024 to 1 Jan 2025");
+  });
+
+  it("shows the quote and version id for a citation stored without metadata", async () => {
+    const user = userEvent.setup();
+    // The API sends a citation stored before metadata existed with the fields null.
+    const legacy = ({ chunk_id, version_id, quote }: Citation): Citation => ({
+      chunk_id,
+      version_id,
+      quote,
+      document_id: null,
+      title: null,
+      external_id: null,
+      version_no: null,
+      section_path: null,
+      valid_from: null,
+      valid_to: null,
+    });
+    renderFinal({
+      ...ANSWERED,
+      claims: ANSWERED.claims!.map((claim) => ({
+        ...claim,
+        citations: claim.citations.map(legacy),
+      })),
+    });
 
     await user.hover(screen.getByRole("button", { name: /Citation 1/ }));
     const tip = await screen.findByRole("tooltip");
     expect(tip).toHaveTextContent("Check ALT monthly during therapy.");
     expect(tip).toHaveTextContent("version 00000000…00a2");
-    expect(tip).toHaveTextContent("Valid from unknown");
+    expect(tip).not.toHaveTextContent("Valid");
   });
 
   it("shows degraded and cached badges only when the answer says so", () => {

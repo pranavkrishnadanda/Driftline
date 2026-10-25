@@ -21,6 +21,19 @@ const ANSWER_ID = "0b8e2f7a-5d36-4a3c-8f61-2a9c4e1d7b55";
 const DOC_ID = "c3a1e9d2-7b44-4f0e-9e1a-5f2d8c6b4a33";
 const ITEM_ID = "9d4b7c1e-2a5f-4e8b-b3c6-1f0a2e9d8c77";
 
+const CITATION = {
+  chunk_id: DOC_ID,
+  version_id: DOC_ID,
+  quote: "10 mg once daily",
+  document_id: DOC_ID,
+  title: "Acme tablets label",
+  external_id: "acme-label",
+  version_no: 3,
+  section_path: "Dosage",
+  valid_from: "2023-02-14T00:00:00Z",
+  valid_to: null,
+};
+
 const answer = {
   status: "answered",
   answer: "Take 10 mg once daily.",
@@ -28,12 +41,12 @@ const answer = {
     {
       idx: 0,
       text: "Take 10 mg once daily.",
-      citations: [{ chunk_id: DOC_ID, version_id: DOC_ID, quote: "10 mg once daily" }],
+      citations: [CITATION],
       verified: true,
       reason: null,
     },
   ],
-  citations: [{ chunk_id: DOC_ID, version_id: DOC_ID, quote: "10 mg once daily" }],
+  citations: [CITATION],
   dropped_claims: [],
   nearest_sources: [],
   as_of: "2026-10-01T00:00:00Z",

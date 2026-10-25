@@ -23,10 +23,25 @@ export interface ClaimEvent {
   type: "claim";
   verified: boolean;
 }
+/**
+ * A cited chunk, with the metadata of the version it belongs to (for the UI).
+ *
+ * New citations are built with `from_evidence`, which fills every metadata field.
+ * The fields are optional only so answer bodies stored before they existed (in
+ * `answers.body` and the semantic cache) still load; the validator keeps them
+ * all-or-nothing, so a citation is either fully described or a legacy one.
+ */
 export interface Citation {
   chunk_id: string;
+  document_id?: string | null;
+  external_id?: string | null;
   quote: string;
+  section_path?: string | null;
+  title?: string | null;
+  valid_from?: string | null;
+  valid_to?: string | null;
   version_id: string;
+  version_no?: number | null;
 }
 export interface FinalEvent {
   answer: AnswerSchema;

@@ -5,7 +5,13 @@ import { useId } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { citationNumbers, describeCitation, formatDate, stepLabel } from "@/lib/ask/format";
+import {
+  citationNumbers,
+  describeCitation,
+  formatDate,
+  formatValidity,
+  stepLabel,
+} from "@/lib/ask/format";
 // The SSE contract's types: the job-status (OpenAPI) answer is assignable to them.
 import type { AnswerSchema, Citation, Claim, NearestSource, StepEvent } from "@/lib/sse/events";
 import { cn } from "@/lib/utils";
@@ -28,18 +34,12 @@ export function StreamingAnswer({ text, step }: { text: string; step: StepEvent 
   );
 }
 
-function CitationChip({
-  citation,
-  number,
-  sources,
-}: {
-  citation: Citation;
-  number: number;
-  sources: NearestSource[];
-}) {
-  const details = describeCitation(citation, sources);
+function CitationChip({ citation, number }: { citation: Citation; number: number }) {
+  const details = describeCitation(citation);
   const descriptionId = useId();
-  const meta = `${details.title ?? "Source"}${details.section ? ` · ${details.section}` : ""} · ${details.version} · Valid from ${details.validFrom ?? "unknown"}`;
+  const meta = [details.title ?? "Source", details.section, details.version, details.validity]
+    .filter(Boolean)
+    .join(" · ");
   return (
     <Tooltip>
       {/* The popup only exists while open, so screen readers get the quote from here. */}
@@ -69,15 +69,7 @@ function CitationChip({
   );
 }
 
-function ClaimItem({
-  claim,
-  numbers,
-  sources,
-}: {
-  claim: Claim;
-  numbers: Map<string, number>;
-  sources: NearestSource[];
-}) {
+function ClaimItem({ claim, numbers }: { claim: Claim; numbers: Map<string, number> }) {
   const verified = claim.verified !== false;
   const Icon = verified ? CircleCheck : CircleX;
   return (
@@ -94,7 +86,6 @@ function ClaimItem({
             key={citation.chunk_id}
             citation={citation}
             number={numbers.get(citation.chunk_id) ?? 0}
-            sources={sources}
           />
         ))}
         {!verified && claim.reason ? (
@@ -123,9 +114,7 @@ function SourceList({ sources }: { sources: NearestSource[] }) {
             <span className="block text-xs text-muted-foreground">{source.section_path}</span>
           ) : null}
           <span className="block text-xs text-muted-foreground">
-            {source.valid_to
-              ? `Valid ${formatDate(source.valid_from)} to ${formatDate(source.valid_to)}`
-              : `Valid from ${formatDate(source.valid_from)}`}
+            {formatValidity(source.valid_from, source.valid_to)}
           </span>
         </li>
       ))}
@@ -156,8 +145,6 @@ function AnswerMeta({ answer }: { answer: AnswerSchema }) {
 
 /** A finished answer: claims with citations, or an explicit refusal with nearest sources. */
 export function FinalAnswer({ answer }: { answer: AnswerSchema }) {
-  const sources = answer.nearest_sources ?? [];
-
   if (answer.status !== "answered") {
     const refused = answer.status === "refused";
     return (
@@ -173,7 +160,7 @@ export function FinalAnswer({ answer }: { answer: AnswerSchema }) {
         <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Nearest sources
         </h3>
-        <SourceList sources={sources} />
+        <SourceList sources={answer.nearest_sources ?? []} />
       </section>
     );
   }
@@ -193,7 +180,7 @@ export function FinalAnswer({ answer }: { answer: AnswerSchema }) {
           </h3>
           <ul aria-label="Claims" className="flex flex-col gap-2">
             {claims.map((claim) => (
-              <ClaimItem key={claim.idx} claim={claim} numbers={numbers} sources={sources} />
+              <ClaimItem key={claim.idx} claim={claim} numbers={numbers} />
             ))}
           </ul>
         </>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ApiError, type Citation, type NearestSource } from "@/lib/api/client";
+import { ApiError } from "@/lib/api/client";
 import {
   citationNumbers,
   classifyAskFailure,
@@ -13,22 +13,18 @@ import {
   stepLabel,
   toAsOfParam,
 } from "@/lib/ask/format";
-import type { FinalEvent } from "@/lib/sse/events";
+import type { Citation, FinalEvent } from "@/lib/sse/events";
 
 import answered from "../fixtures/sse/ask-answered.json";
 
 const FINAL = answered.events.find((e) => e.event === "final")!.data as FinalEvent;
 const CITATION: Citation = FINAL.answer.citations![0];
 
-const SOURCE: NearestSource = {
-  document_id: "00000000-0000-4000-8000-0000000000d1",
-  external_id: "label-123",
-  section_path: "Warnings > Hepatotoxicity",
-  title: "Acme tablets label",
-  valid_from: "2023-02-14T00:00:00Z",
-  valid_to: null,
+/** A citation stored before answers carried version metadata. */
+const LEGACY: Citation = {
+  chunk_id: CITATION.chunk_id,
   version_id: CITATION.version_id,
-  version_no: 3,
+  quote: CITATION.quote,
 };
 
 describe("formatDate", () => {
@@ -54,23 +50,28 @@ describe("toAsOfParam", () => {
 });
 
 describe("describeCitation", () => {
-  it("adds the document title, version and valid-from when the version is known", () => {
-    expect(describeCitation(CITATION, [SOURCE])).toEqual({
+  it("shows the cited version's title, number, section and valid-from from the citation", () => {
+    expect(describeCitation(CITATION)).toEqual({
       quote: "Check ALT monthly during therapy.",
-      title: "Acme tablets label",
-      section: "Warnings > Hepatotoxicity",
-      version: "v3",
-      validFrom: "14 Feb 2023",
+      title: "Lipitor (atorvastatin calcium) label",
+      section: "Warnings and Precautions > Liver Dysfunction",
+      version: "v2",
+      validity: "Valid from 15 Apr 2024",
     });
   });
 
-  it("falls back to the version id when the answer carries no metadata for it", () => {
-    expect(describeCitation(CITATION, [])).toEqual({
+  it("shows the whole window of a superseded version", () => {
+    const superseded = { ...CITATION, valid_to: "2025-01-01T00:00:00Z" };
+    expect(describeCitation(superseded).validity).toBe("Valid 15 Apr 2024 to 1 Jan 2025");
+  });
+
+  it("falls back to the version id for a citation stored without metadata", () => {
+    expect(describeCitation(LEGACY)).toEqual({
       quote: "Check ALT monthly during therapy.",
       title: null,
       section: null,
       version: "version 00000000…00a2",
-      validFrom: null,
+      validity: null,
     });
   });
 });

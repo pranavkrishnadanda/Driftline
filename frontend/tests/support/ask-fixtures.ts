@@ -27,20 +27,18 @@ export const ANSWERED_PROGRESS: AskEvent[] = ANSWERED_EVENTS.filter(
 
 export const LAST_STEP = ANSWERED_PROGRESS.filter((e): e is StepEvent => e.type === "step").at(-1)!;
 
-/** A source for the cited version, so citations can show title, version and valid-from. */
-export const CITED_SOURCE: NearestSource = {
-  document_id: "00000000-0000-4000-8000-0000000000d1",
-  external_id: "acme-label",
-  section_path: "Warnings > Hepatotoxicity",
-  title: "Acme tablets label",
-  valid_from: "2023-02-14T00:00:00Z",
-  valid_to: null,
-  version_id: ANSWERED.citations![0].version_id,
-  version_no: 3,
-};
-
+/** Nearest sources for the insufficient-evidence outcome. */
 export const NEAR_SOURCES: NearestSource[] = [
-  CITED_SOURCE,
+  {
+    document_id: "00000000-0000-4000-8000-0000000000d1",
+    external_id: "acme-label",
+    section_path: "Warnings > Hepatotoxicity",
+    title: "Acme tablets label",
+    valid_from: "2023-02-14T00:00:00Z",
+    valid_to: null,
+    version_id: "00000000-0000-4000-8000-0000000000a2",
+    version_no: 3,
+  },
   {
     document_id: "00000000-0000-4000-8000-0000000000d2",
     external_id: "acme-label-2019",

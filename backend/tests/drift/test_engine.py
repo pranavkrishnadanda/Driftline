@@ -113,6 +113,15 @@ async def test_unchanged_section_repoints_silently(engine, judge, fresh_conn):
     body = json.loads(await fresh_conn.fetchval("SELECT body FROM answers WHERE id = $1", answer))
     assert body["claims"][0]["citations"][0]["chunk_id"] == str(new_liver)
     assert body["claims"][0]["citations"][0]["version_id"] == str(v2.version_id)
+    # The stored body started without metadata (a pre-T11 body); the re-point writes
+    # the new version's metadata, in the claim and in the top-level citation list.
+    for cited in (body["claims"][0]["citations"][0], body["citations"][0]):
+        assert cited["chunk_id"] == str(new_liver)
+        assert cited["document_id"] == str(v2.document_id)
+        assert (cited["title"], cited["external_id"]) == ("Lipitor label", "lipitor")
+        assert (cited["version_no"], cited["section_path"]) == (2, "Liver")
+        assert datetime.fromisoformat(cited["valid_from"]) == datetime(2024, 1, 2, tzinfo=UTC)
+        assert cited["valid_to"] is None
     rows = await drift_rows(fresh_conn)
     assert [(r["verdict"], r["tenant_id"]) for r in rows] == [("still_valid", tenant)]
     assert await alert_payloads(fresh_conn) == []  # silent: no alert
@@ -134,6 +143,10 @@ async def test_changed_section_still_supported_is_still_valid(engine, judge, fre
 
     assert [v.verdict for v in verdicts] == ["still_valid"]
     assert judge.calls == ["judge-model"]
+    body = json.loads(await fresh_conn.fetchval("SELECT body FROM answers WHERE id = $1", answer))
+    cited = body["claims"][0]["citations"][0]
+    assert (cited["version_id"], cited["version_no"]) == (str(v2.version_id), 2)
+    assert (cited["title"], cited["section_path"]) == ("Lipitor label", "Liver")
     assert await cited_chunk(fresh_conn, answer) == await chunk_of(
         fresh_conn, v2.version_id, "Liver"
     )

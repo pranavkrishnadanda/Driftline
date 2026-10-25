@@ -313,20 +313,108 @@
         "type": "object"
       },
       "Citation": {
+        "description": "A cited chunk, with the metadata of the version it belongs to (for the UI).\n\nNew citations are built with `from_evidence`, which fills every metadata field.\nThe fields are optional only so answer bodies stored before they existed (in\n`answers.body` and the semantic cache) still load; the validator keeps them\nall-or-nothing, so a citation is either fully described or a legacy one.",
         "properties": {
           "chunk_id": {
             "format": "uuid",
             "title": "Chunk Id",
             "type": "string"
           },
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Document Id"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "External Id"
+          },
           "quote": {
             "title": "Quote",
             "type": "string"
+          },
+          "section_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Section Path"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Title"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Valid To"
           },
           "version_id": {
             "format": "uuid",
             "title": "Version Id",
             "type": "string"
+          },
+          "version_no": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Version No"
           }
         },
         "required": [

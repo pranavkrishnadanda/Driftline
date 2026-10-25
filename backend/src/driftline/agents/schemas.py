@@ -2,10 +2,13 @@
 structured-output models the LLM fills in (no defaults, every field required)."""
 
 from datetime import datetime
-from typing import Literal
+from typing import TYPE_CHECKING, Literal, Self
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+if TYPE_CHECKING:
+    from driftline.retrieval.types import Evidence
 
 AGENT_STREAM = "agent"
 AGENT_GROUP = "agent-workers"
@@ -14,9 +17,53 @@ AnswerStatus = Literal["answered", "insufficient_evidence", "refused"]
 
 
 class Citation(BaseModel):
+    """A cited chunk, with the metadata of the version it belongs to (for the UI).
+
+    New citations are built with `from_evidence`, which fills every metadata field.
+    The fields are optional only so answer bodies stored before they existed (in
+    `answers.body` and the semantic cache) still load; the validator keeps them
+    all-or-nothing, so a citation is either fully described or a legacy one."""
+
     chunk_id: UUID
     version_id: UUID
     quote: str
+    document_id: UUID | None = None
+    title: str | None = None
+    external_id: str | None = None
+    version_no: int | None = None
+    section_path: str | None = None
+    valid_from: datetime | None = None
+    valid_to: datetime | None = None  # None also means "still in force"
+
+    @model_validator(mode="after")
+    def _metadata_all_or_nothing(self) -> Self:
+        meta = (
+            self.document_id,
+            self.title,
+            self.external_id,
+            self.version_no,
+            self.section_path,
+            self.valid_from,
+        )
+        missing = sum(v is None for v in meta)
+        if missing not in (0, len(meta)) or (missing and self.valid_to is not None):
+            raise ValueError("citation metadata must be complete or absent (legacy body)")
+        return self
+
+    @classmethod
+    def from_evidence(cls, item: "Evidence", quote: str) -> "Citation":
+        return cls(
+            chunk_id=item.chunk_id,
+            version_id=item.version_id,
+            quote=quote,
+            document_id=item.document_id,
+            title=item.title,
+            external_id=item.external_id,
+            version_no=item.version_no,
+            section_path=item.section_path,
+            valid_from=item.valid_from,
+            valid_to=item.valid_to,
+        )
 
 
 class Claim(BaseModel):

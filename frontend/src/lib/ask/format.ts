@@ -3,7 +3,7 @@
  * classification. Nothing here touches React, the network or the clock.
  */
 import { ApiError } from "@/lib/api/client";
-import type { Citation, Claim, NearestSource } from "@/lib/sse/events";
+import type { Citation, Claim } from "@/lib/sse/events";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
@@ -31,30 +31,40 @@ export function toAsOfParam(date: Date | null): string | null {
 
 export interface CitationDetails {
   quote: string;
-  /** Null when the answer carries no metadata for the cited version. */
+  /** Null for a citation stored before answers carried version metadata. */
   title: string | null;
   section: string | null;
   version: string;
-  validFrom: string | null;
+  /** "Valid from …" or "Valid … to …"; null when the citation has no metadata. */
+  validity: string | null;
 }
 
 function shortId(id: string): string {
   return id.length > 12 ? `${id.slice(0, 8)}…${id.slice(-4)}` : id;
 }
 
+/** A version's validity window: "Valid from 1 Jun 2024" or "Valid 1 May 2019 to 1 Jun 2024". */
+export function formatValidity(validFrom: string, validTo?: string | null): string {
+  return validTo
+    ? `Valid ${formatDate(validFrom)} to ${formatDate(validTo)}`
+    : `Valid from ${formatDate(validFrom)}`;
+}
+
 /**
- * What a citation's hover card shows. The SSE contract's `Citation` holds only ids and
- * the quote; the document title, version number and valid-from come from the answer's
- * `nearest_sources` when it lists the cited version.
+ * What a citation's hover card shows: the quote plus the cited version's document title,
+ * version number, section and validity window, all carried by the citation itself.
+ * Citations stored before that metadata existed fall back to the version id.
  */
-export function describeCitation(citation: Citation, sources: NearestSource[]): CitationDetails {
-  const source = sources.find((s) => s.version_id === citation.version_id);
+export function describeCitation(citation: Citation): CitationDetails {
   return {
     quote: citation.quote,
-    title: source?.title ?? null,
-    section: source?.section_path || null,
-    version: source ? `v${source.version_no}` : `version ${shortId(citation.version_id)}`,
-    validFrom: source ? formatDate(source.valid_from) : null,
+    title: citation.title ?? null,
+    section: citation.section_path || null,
+    version:
+      citation.version_no != null
+        ? `v${citation.version_no}`
+        : `version ${shortId(citation.version_id)}`,
+    validity: citation.valid_from ? formatValidity(citation.valid_from, citation.valid_to) : null,
   };
 }
 

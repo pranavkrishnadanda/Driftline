@@ -193,9 +193,7 @@ def check_citation(cited: DraftCitation, evidence: Mapping[str, Evidence]) -> Ci
     quote = locate_quote(cited.quote, item.text)
     if quote is None:
         return CitationCheck(False, "quote_not_found")
-    return CitationCheck(
-        True, None, Citation(chunk_id=item.chunk_id, version_id=item.version_id, quote=quote)
-    )
+    return CitationCheck(True, None, Citation.from_evidence(item, quote))
 
 
 Judge = Callable[[str, str], Awaitable[bool]]
