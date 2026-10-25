@@ -1,6 +1,12 @@
+import logging
 import socket
 from datetime import UTC, datetime
 from uuid import uuid4
+
+import pytest
+from fastapi import FastAPI
+from fastapi.responses import PlainTextResponse
+from livesrv import serve
 
 from driftline.retrieval.rerank import TEIReranker
 from driftline.retrieval.types import Evidence
@@ -78,3 +84,46 @@ async def test_disabled_reranker_and_empty_input():
     assert len(outcome.items) == 1
     empty = await TEIReranker(f"http://127.0.0.1:{closed_port()}").rerank(QUERY, [], top_n=8)
     assert empty.items == [] and empty.reranked is False and empty.error is None
+
+
+# Malformed /rerank answers, served by a real local HTTP server. Each one must make the whole
+# call fall back to the RRF order: no exception, no half-applied scores.
+MALFORMED = {
+    "out_of_range_index": [
+        {"index": 0, "score": 0.1},
+        {"index": 1, "score": 0.2},
+        {"index": 7, "score": 0.9},
+    ],
+    "negative_index": [
+        {"index": 0, "score": 0.1},
+        {"index": 1, "score": 0.2},
+        {"index": -1, "score": 0.9},
+    ],
+    "short_response": [{"index": 2, "score": 0.9}],
+    "missing_score": [{"index": 0, "score": 0.1}, {"index": 1}, {"index": 2, "score": 0.9}],
+    "non_json": None,
+}
+
+
+def malformed_tei() -> FastAPI:
+    app = FastAPI()
+    for name, payload in MALFORMED.items():
+
+        def route(payload=payload):
+            if payload is None:
+                return PlainTextResponse("upstream proxy says hello")
+            return payload
+
+        app.post(f"/{name}/rerank")(route)
+    return app
+
+
+@pytest.mark.parametrize("case", list(MALFORMED))
+async def test_malformed_rerank_response_keeps_rrf_order(case, caplog):
+    async with serve(malformed_tei()) as base_url:
+        with caplog.at_level(logging.WARNING, logger="driftline.retrieval.rerank"):
+            outcome = await TEIReranker(f"{base_url}/{case}").rerank(QUERY, items(), top_n=8)
+    assert not outcome.reranked and outcome.error
+    assert [e.text for e in outcome.items] == TEXTS
+    assert all(e.rerank_score is None for e in outcome.items)
+    assert any(r.levelno == logging.WARNING for r in caplog.records)
