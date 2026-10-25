@@ -9,8 +9,10 @@ from fastapi.responses import JSONResponse
 
 from driftline.agents.eventlog import AskEventLog
 from driftline.config import Settings
+from driftline.drift.alerts import AlertLog
 from driftline.gateway.ask import build_ask_router
 from driftline.gateway.contract import install_event_schemas
+from driftline.gateway.drift import build_drift_router
 from driftline.streams.bus import StreamBus
 
 
@@ -36,6 +38,8 @@ def create_app(settings: Settings) -> FastAPI:
             maxlen=settings.ask_events_maxlen,
             ttl_s=settings.ask_events_ttl_s,
         )
+        app.state.alerts = AlertLog(app.state.redis_stream)
+        # One pool of SSE slots for ask and alert streams alike.
         app.state.sse_slots = asyncio.Semaphore(settings.sse_max_connections)
         try:
             yield
@@ -48,11 +52,12 @@ def create_app(settings: Settings) -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
-        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Last-Event-ID", "Authorization"],
         expose_headers=["Retry-After"],
     )
     app.include_router(build_ask_router())
+    app.include_router(build_drift_router())
     install_event_schemas(app)
 
     @app.get("/healthz")

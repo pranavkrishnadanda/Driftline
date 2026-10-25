@@ -1,6 +1,114 @@
 {
   "components": {
     "schemas": {
+      "AlertEvent": {
+        "description": "A drift verdict on a watched answer, streamed on `events:alerts:{tenant}` (P4).",
+        "properties": {
+          "after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "After"
+          },
+          "answer_id": {
+            "format": "uuid",
+            "title": "Answer Id",
+            "type": "string"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Before"
+          },
+          "document_title": {
+            "title": "Document Title",
+            "type": "string"
+          },
+          "drift_event_id": {
+            "format": "uuid",
+            "title": "Drift Event Id",
+            "type": "string"
+          },
+          "new_version_id": {
+            "format": "uuid",
+            "title": "New Version Id",
+            "type": "string"
+          },
+          "old_version_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Version Id"
+          },
+          "t": {
+            "format": "date-time",
+            "title": "T",
+            "type": "string"
+          },
+          "type": {
+            "const": "alert",
+            "default": "alert",
+            "title": "Type",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "still_valid",
+              "changed",
+              "broken"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "drift_event_id",
+          "answer_id",
+          "verdict",
+          "document_title",
+          "old_version_id",
+          "new_version_id",
+          "t"
+        ],
+        "title": "AlertEvent",
+        "type": "object"
+      },
+      "AlertEvents": {
+        "discriminator": {
+          "mapping": {
+            "alert": "#/components/schemas/AlertEvent",
+            "error": "#/components/schemas/ErrorEvent"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/AlertEvent"
+          },
+          {
+            "$ref": "#/components/schemas/ErrorEvent"
+          }
+        ]
+      },
       "AnswerSchema": {
         "properties": {
           "answer": {
@@ -319,6 +427,201 @@
         "title": "ClaimEvent",
         "type": "object"
       },
+      "DocumentTimeline": {
+        "properties": {
+          "document_id": {
+            "format": "uuid",
+            "title": "Document Id",
+            "type": "string"
+          },
+          "external_id": {
+            "title": "External Id",
+            "type": "string"
+          },
+          "relations": {
+            "$ref": "#/components/schemas/TimelineRelations"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineVersion"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "document_id",
+          "external_id",
+          "title",
+          "versions",
+          "relations"
+        ],
+        "title": "DocumentTimeline",
+        "type": "object"
+      },
+      "DriftEventList": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/DriftEventOut"
+            },
+            "title": "Events",
+            "type": "array"
+          }
+        },
+        "required": [
+          "events"
+        ],
+        "title": "DriftEventList",
+        "type": "object"
+      },
+      "DriftEventOut": {
+        "properties": {
+          "after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After"
+          },
+          "answer_id": {
+            "format": "uuid",
+            "title": "Answer Id",
+            "type": "string"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before"
+          },
+          "claim_idx": {
+            "title": "Claim Idx",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "diff": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diff"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "document_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Title"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "new_version_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Version Id"
+          },
+          "old_version_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Version Id"
+          },
+          "section_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Path"
+          },
+          "verdict": {
+            "enum": [
+              "still_valid",
+              "changed",
+              "broken"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "answer_id",
+          "claim_idx",
+          "verdict",
+          "old_version_id",
+          "new_version_id",
+          "document_id",
+          "document_title",
+          "created_at"
+        ],
+        "title": "DriftEventOut",
+        "type": "object"
+      },
       "ErrorEvent": {
         "properties": {
           "code": {
@@ -527,6 +830,153 @@
         "title": "StepEvent",
         "type": "object"
       },
+      "TimelineRelation": {
+        "description": "A relation touching the document. For an outgoing one, `document_*` is the\ndocument it points at; for an incoming one, the document whose version declared it.",
+        "properties": {
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "document_id": {
+            "format": "uuid",
+            "title": "Document Id",
+            "type": "string"
+          },
+          "document_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Title"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "src_version_id": {
+            "format": "uuid",
+            "title": "Src Version Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "confidence",
+          "src_version_id",
+          "document_id",
+          "document_title"
+        ],
+        "title": "TimelineRelation",
+        "type": "object"
+      },
+      "TimelineRelations": {
+        "properties": {
+          "incoming": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineRelation"
+            },
+            "title": "Incoming",
+            "type": "array"
+          },
+          "outgoing": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineRelation"
+            },
+            "title": "Outgoing",
+            "type": "array"
+          }
+        },
+        "required": [
+          "outgoing",
+          "incoming"
+        ],
+        "title": "TimelineRelations",
+        "type": "object"
+      },
+      "TimelineVersion": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "diff_from_prev": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diff From Prev"
+          },
+          "valid_from": {
+            "format": "date-time",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "version_id": {
+            "format": "uuid",
+            "title": "Version Id",
+            "type": "string"
+          },
+          "version_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Key"
+          },
+          "version_no": {
+            "title": "Version No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version_id",
+          "version_no",
+          "version_key",
+          "valid_from",
+          "valid_to",
+          "diff_from_prev",
+          "created_at"
+        ],
+        "title": "TimelineVersion",
+        "type": "object"
+      },
       "TokenEvent": {
         "properties": {
           "text": {
@@ -585,6 +1035,25 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "WatchState": {
+        "properties": {
+          "answer_id": {
+            "format": "uuid",
+            "title": "Answer Id",
+            "type": "string"
+          },
+          "watched": {
+            "title": "Watched",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "answer_id",
+          "watched"
+        ],
+        "title": "WatchState",
+        "type": "object"
       }
     }
   },
@@ -632,6 +1101,204 @@
         "summary": "Readyz"
       }
     },
+    "/v1/alerts/stream": {
+      "get": {
+        "operationId": "alerts_v1_alerts_stream_get",
+        "parameters": [
+          {
+            "description": "tenant name",
+            "in": "query",
+            "name": "tenant",
+            "required": true,
+            "schema": {
+              "description": "tenant name",
+              "minLength": 1,
+              "title": "Tenant",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "last_event_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last Event Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "last-event-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertEvents"
+                }
+              }
+            },
+            "description": "Server-sent events: `id: <n>`, `event: <type>`, `data: <JSON>`; `: ping` heartbeats; open-ended: one `alert` per drift verdict on a watched answer. Reconnect with Last-Event-ID to replay missed events."
+          },
+          "404": {
+            "description": "unknown tenant"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "too many open streams"
+          }
+        },
+        "summary": "Drift alerts for a tenant (SSE)",
+        "tags": [
+          "drift"
+        ]
+      }
+    },
+    "/v1/answers/{answer_id}/watch": {
+      "delete": {
+        "operationId": "unwatch_v1_answers__answer_id__watch_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "answer_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Answer Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "tenant name",
+            "in": "query",
+            "name": "tenant",
+            "required": true,
+            "schema": {
+              "description": "tenant name",
+              "minLength": 1,
+              "title": "Tenant",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "unknown tenant, or not found in this tenant"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unwatch",
+        "tags": [
+          "drift"
+        ]
+      },
+      "post": {
+        "description": "Re-check this answer whenever a document it cites changes.",
+        "operationId": "watch_v1_answers__answer_id__watch_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "answer_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Answer Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "tenant name",
+            "in": "query",
+            "name": "tenant",
+            "required": true,
+            "schema": {
+              "description": "tenant name",
+              "minLength": 1,
+              "title": "Tenant",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "unknown tenant, or not found in this tenant"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Watch",
+        "tags": [
+          "drift"
+        ]
+      }
+    },
     "/v1/ask": {
       "post": {
         "operationId": "ask_v1_ask_post",
@@ -676,6 +1343,126 @@
         "summary": "Ask",
         "tags": [
           "ask"
+        ]
+      }
+    },
+    "/v1/documents/{document_id}/timeline": {
+      "get": {
+        "description": "Every version of a document with its validity window and diff from the previous\nversion, plus the relations it declares (outgoing) and receives (incoming).",
+        "operationId": "timeline_v1_documents__document_id__timeline_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "tenant name",
+            "in": "query",
+            "name": "tenant",
+            "required": true,
+            "schema": {
+              "description": "tenant name",
+              "minLength": 1,
+              "title": "Tenant",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentTimeline"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "unknown tenant, or not found in this tenant"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Timeline",
+        "tags": [
+          "drift"
+        ]
+      }
+    },
+    "/v1/drift/events": {
+      "get": {
+        "description": "Drift verdicts on this tenant's answers, latest first.",
+        "operationId": "drift_events_v1_drift_events_get",
+        "parameters": [
+          {
+            "description": "tenant name",
+            "in": "query",
+            "name": "tenant",
+            "required": true,
+            "schema": {
+              "description": "tenant name",
+              "minLength": 1,
+              "title": "Tenant",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriftEventList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "unknown tenant, or not found in this tenant"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Drift Events",
+        "tags": [
+          "drift"
         ]
       }
     },
