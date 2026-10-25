@@ -7,7 +7,9 @@ from redis.asyncio import Redis
 
 from driftline.clock import Clock
 from driftline.config import Settings
+from driftline.llm.adapters.anthropic import AnthropicAdapter
 from driftline.llm.adapters.gemini import GeminiAdapter
+from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.breaker import CircuitBreaker
 from driftline.llm.ratelimit import RateLimitTimeout, RedisTokenBucket
 from driftline.llm.types import CompletionRequest, CompletionResult, LLMProvider, ProviderError
@@ -113,16 +115,30 @@ class LLMRouter:
 
 
 def build_router(settings: Settings, redis: Redis, *, clock: Clock) -> LLMRouter:
-    if not settings.gemini_api_key:
-        raise ValueError("DRIFTLINE_GEMINI_API_KEY is required to build the LLM router")
-    fallbacks = [Route("gemini", m) for m in settings.model_fallback]
+    if not settings.anthropic_api_key and not settings.gemini_api_key:
+        raise ValueError(
+            "no LLM provider configured: set DRIFTLINE_ANTHROPIC_API_KEY or DRIFTLINE_GEMINI_API_KEY"
+        )
+    providers: dict[str, LLMProvider] = {"tei": TEIEmbeddingAdapter(settings.embed_url)}
+    extract: list[Route] = []
+    answer: list[Route] = []
+    if settings.anthropic_api_key:
+        providers["anthropic"] = AnthropicAdapter(settings.anthropic_api_key, clock=clock)
+        claude_fallbacks = [Route("anthropic", m) for m in settings.model_fallback]
+        extract += [Route("anthropic", settings.model_extract), *claude_fallbacks]
+        answer += [
+            Route("anthropic", settings.model_answer),
+            Route("anthropic", settings.model_extract),
+            *claude_fallbacks,
+        ]
+    if settings.gemini_api_key:
+        providers["gemini"] = GeminiAdapter(settings.gemini_api_key, clock=clock)
+        gemini_fallbacks = [Route("gemini", m) for m in settings.gemini_fallback_models]
+        extract += gemini_fallbacks
+        answer += gemini_fallbacks
     chains = {
-        "extract": [Route("gemini", settings.model_extract), *fallbacks],
-        "answer": [Route("gemini", settings.model_answer), *fallbacks],
-        "embed": [Route("gemini", settings.model_embed)],
+        "extract": extract,
+        "answer": answer,
+        "embed": [Route("tei", settings.model_embed)],
     }
-    return LLMRouter(
-        providers={"gemini": GeminiAdapter(settings.gemini_api_key, clock=clock)},
-        chains=chains,
-        clock=clock,
-    )
+    return LLMRouter(providers=providers, chains=chains, clock=clock)

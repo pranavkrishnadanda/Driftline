@@ -2,7 +2,10 @@ import pytest
 
 from driftline.clock import ManualClock
 from driftline.config import Settings
+from driftline.llm.adapters.anthropic import AnthropicAdapter
 from driftline.llm.adapters.deterministic import DeterministicAdapter
+from driftline.llm.adapters.gemini import GeminiAdapter
+from driftline.llm.adapters.tei import TEIEmbeddingAdapter
 from driftline.llm.breaker import CircuitBreaker
 from driftline.llm.ratelimit import RedisTokenBucket
 from driftline.llm.router import AllRoutesFailed, LLMRouter, Route, build_router
@@ -129,27 +132,81 @@ async def test_embed_uses_tier_chain_with_fallback():
     assert s.calls == ["e2"]
 
 
-async def test_build_router_tiers_follow_settings(redis_client):
-    settings = Settings(
-        _env_file=None,
-        gemini_api_key="unused-in-this-test",
-        model_extract="fx",
-        model_answer="px",
-        model_fallback=["f1", "f2"],
-        model_embed="ex",
+def _settings(**overrides):
+    # Fake key strings are fine: constructing the adapters makes no network calls.
+    base = {
+        "_env_file": None,
+        "anthropic_api_key": None,
+        "gemini_api_key": None,
+        "model_extract": "claude-haiku-5-5",
+        "model_answer": "claude-sonnet-5-5",
+        "model_fallback": [],
+        "gemini_fallback_models": ["gemini-3.8-flash"],
+        "model_embed": "BAAI/bge-base-en-v1.5",
+        "embed_url": "http://localhost:8080",
+    }
+    return Settings(**{**base, **overrides})
+
+
+def _chain(r, tier):
+    return [(x.provider, x.model) for x in r.chains[tier]]
+
+
+def test_build_router_claude_primary_with_gemini_fallback(redis_client):
+    settings = _settings(anthropic_api_key="fake-anthropic", gemini_api_key="fake-gemini")
+    r = build_router(settings, redis_client, clock=ManualClock())
+    assert _chain(r, "extract") == [
+        ("anthropic", "claude-haiku-5-5"),
+        ("gemini", "gemini-3.8-flash"),
+    ]
+    assert _chain(r, "answer") == [
+        ("anthropic", "claude-sonnet-5-5"),
+        ("anthropic", "claude-haiku-5-5"),
+        ("gemini", "gemini-3.8-flash"),
+    ]
+    assert isinstance(r.providers["anthropic"], AnthropicAdapter)
+    assert isinstance(r.providers["gemini"], GeminiAdapter)
+
+
+def test_build_router_without_gemini_has_no_gemini_routes(redis_client):
+    r = build_router(
+        _settings(anthropic_api_key="fake-anthropic"), redis_client, clock=ManualClock()
+    )
+    assert "gemini" not in r.providers
+    assert all(x.provider != "gemini" for chain in r.chains.values() for x in chain)
+    assert _chain(r, "extract") == [("anthropic", "claude-haiku-5-5")]
+    assert _chain(r, "answer") == [
+        ("anthropic", "claude-sonnet-5-5"),
+        ("anthropic", "claude-haiku-5-5"),
+    ]
+
+
+def test_model_fallback_adds_anthropic_routes_before_gemini(redis_client):
+    settings = _settings(
+        anthropic_api_key="fake-anthropic",
+        gemini_api_key="fake-gemini",
+        model_fallback=["claude-extra"],
     )
     r = build_router(settings, redis_client, clock=ManualClock())
-    assert [x.model for x in r.chains["answer"]] == ["px", "f1", "f2"]
-    assert [x.model for x in r.chains["extract"]] == ["fx", "f1", "f2"]
-    assert [x.model for x in r.chains["embed"]] == ["ex"]
-    assert {x.provider for c in r.chains.values() for x in c} == {"gemini"}
+    assert _chain(r, "extract") == [
+        ("anthropic", "claude-haiku-5-5"),
+        ("anthropic", "claude-extra"),
+        ("gemini", "gemini-3.8-flash"),
+    ]
 
 
-def test_build_router_requires_gemini_key(redis_client):
-    with pytest.raises(ValueError):
-        build_router(
-            Settings(_env_file=None, gemini_api_key=None), redis_client, clock=ManualClock()
-        )
+def test_build_router_requires_some_llm_key(redis_client):
+    with pytest.raises(ValueError, match="no LLM provider configured"):
+        build_router(_settings(), redis_client, clock=ManualClock())
+
+
+def test_embed_tier_uses_tei(redis_client):
+    settings = _settings(anthropic_api_key="fake-anthropic", embed_url="http://embedder:80")
+    r = build_router(settings, redis_client, clock=ManualClock())
+    assert _chain(r, "embed") == [("tei", "BAAI/bge-base-en-v1.5")]
+    tei = r.providers["tei"]
+    assert isinstance(tei, TEIEmbeddingAdapter)
+    assert tei._base_url == "http://embedder:80"
 
 
 async def test_rate_limit_timeout_during_half_open_probe_does_not_wedge_breaker(redis_client):
