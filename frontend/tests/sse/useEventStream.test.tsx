@@ -1,11 +1,12 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import type { AskEvent } from "@/lib/sse/events";
+import type { AlertStreamEvent, AskEvent } from "@/lib/sse/events";
 import { useEventStream } from "@/lib/sse/useEventStream";
 
 import answered from "../fixtures/sse/ask-answered.json";
 import expired from "../fixtures/sse/ask-expired.json";
+import { EXPIRED_FRAME, alert, alertFrame } from "../support/drift-fixtures";
 import { startSseServer, tokenBurst, type FixtureEvent, type SseServer } from "../support/sse-server";
 
 const ANSWERED = answered.events as FixtureEvent[];
@@ -164,5 +165,32 @@ describe("useEventStream", () => {
     const { result } = renderHook(() => useEventStream(null));
     expect(result.current.status).toBe("idle");
     expect(result.current.text).toBe("");
+  });
+
+  it("streams an open-ended alert stream, typed by the caller, and resumes it", async () => {
+    const one = alert({ drift_event_id: "e1" });
+    const two = alert({ drift_event_id: "e2", verdict: "changed" });
+    server = await startSseServer({
+      events: [alertFrame(1, one), alertFrame(2, two)],
+      retryMs: 10,
+      connections: [{ dropAfter: 1, drop: "destroy" }, { hold: true }],
+    });
+    const { result } = renderHook(() => useEventStream<AlertStreamEvent>(server!.url, FAST));
+
+    await waitFor(() => expect(result.current.events).toHaveLength(2));
+    const [first, second] = result.current.events;
+    expect(first.type === "alert" && first.drift_event_id).toBe("e1");
+    expect(second.type === "alert" && second.verdict).toBe("changed");
+    // Alerts have no terminal event: the stream stays open after them.
+    expect(result.current.status).toBe("open");
+    expect(server.connections.map((c) => c.lastEventId)).toEqual([null, "1"]);
+  });
+
+  it("reports events_expired on an alert stream as expired", async () => {
+    server = await startSseServer({ events: [EXPIRED_FRAME] });
+    const { result } = renderHook(() => useEventStream<AlertStreamEvent>(server!.url, FAST));
+
+    await waitFor(() => expect(result.current.status).toBe("expired"));
+    expect(result.current.error?.code).toBe("events_expired");
   });
 });

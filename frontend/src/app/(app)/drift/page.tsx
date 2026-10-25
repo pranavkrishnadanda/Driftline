@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 
-import { ComingSoon } from "@/components/coming-soon";
+import { DriftInbox } from "@/components/drift/drift-inbox";
+import { parseTenants } from "@/lib/ask/format";
 
 export const metadata: Metadata = { title: "Drift · Driftline" };
 
 export default function DriftPage() {
-  return (
-    <ComingSoon
-      title="Drift"
-      summary="Live alerts when a new document version changes an answer you are watching."
-    />
-  );
+  return <DriftInbox tenants={parseTenants(process.env.NEXT_PUBLIC_DRIFTLINE_TENANTS)} />;
 }

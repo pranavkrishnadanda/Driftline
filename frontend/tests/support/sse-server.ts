@@ -27,6 +27,8 @@ export interface ConnectionPlan {
   retryAfter?: string;
   /** On resume, re-send this many events the client already has (it must drop them). */
   overlap?: number;
+  /** Replay these events on this connection instead of the server's `events`. */
+  events?: FixtureEvent[];
 }
 
 export interface SseServerOptions {
@@ -40,6 +42,8 @@ export interface SseServerOptions {
 }
 
 export interface RecordedConnection {
+  /** Path plus query string, exactly as requested. */
+  url: string;
   lastEventId: string | null;
   at: number;
   /** Ids of the events written on this connection. */
@@ -85,6 +89,7 @@ export async function startSseServer(options: SseServerOptions): Promise<SseServ
 
     let resolveClosed!: () => void;
     const record: RecordedConnection = {
+      url: req.url ?? "/",
       lastEventId,
       at: Date.now(),
       sentIds: [],
@@ -113,7 +118,7 @@ export async function startSseServer(options: SseServerOptions): Promise<SseServ
 
     const after = lastEventId ? Number(lastEventId) : 0;
     const from = Math.max(0, after - (lastEventId ? (plan.overlap ?? 0) : 0));
-    const pending = options.events.filter((e) => e.id === null || e.id > from);
+    const pending = (plan.events ?? options.events).filter((e) => e.id === null || e.id > from);
 
     let sent = 0;
     for (const event of pending) {
