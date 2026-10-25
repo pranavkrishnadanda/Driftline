@@ -15,7 +15,13 @@ from urllib.parse import urlsplit
 import pytest
 
 from driftline.eval.__main__ import amain
-from driftline.eval.site import PAGES, build_site, load_site_data, readme_results_table
+from driftline.eval.site import (
+    DEMO_PATH,
+    PAGES,
+    build_site,
+    load_site_data,
+    readme_results_table,
+)
 from driftline.eval.types import EvalReport
 
 REPO = Path(__file__).resolve().parents[3]
@@ -77,6 +83,8 @@ def _assert_links_valid(out: Path) -> None:
             if parts.scheme:
                 assert href.startswith(ALLOWED_EXTERNAL), f"{page.name}: unexpected link {href}"
                 continue
+            if href == DEMO_PATH:
+                continue  # the recorded demo, added under demo/ by the pages workflow
             target = parts.path or page.name
             assert (out / target).is_file(), f"{page.name}: broken link {href}"
             if parts.fragment and target.endswith(".html"):
@@ -101,6 +109,13 @@ def test_builds_every_page_from_the_committed_reports(real_site: Path) -> None:
         assert (real_site / page.file).is_file()
     assert (real_site / ".nojekyll").is_file()
     assert (real_site / "assets" / "style.css").is_file()
+
+
+def test_every_page_links_to_the_live_demo_and_home_features_it(real_site: Path) -> None:
+    for page in PAGES:
+        assert DEMO_PATH in _parse(real_site / page.file).hrefs, page.file
+    home = (real_site / "index.html").read_text()
+    assert f'<a class="button" href="{DEMO_PATH}">Live demo</a>' in home
 
 
 def test_links_and_assets_are_valid_and_nothing_is_fetched_from_the_network(

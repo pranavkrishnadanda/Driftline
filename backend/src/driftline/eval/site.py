@@ -32,6 +32,9 @@ from driftline.eval.types import EvalReport, System
 TEMPLATES = Path(__file__).with_name("site_templates")
 REPO_URL = "https://github.com/pranavkrishnadanda/Driftline"
 PAGES_URL = "https://pranavkrishnadanda.github.io/Driftline/"
+# The recorded demo of the web app: a static export the pages workflow adds under demo/
+# after this site is built (frontend, NEXT_PUBLIC_DRIFTLINE_DEMO=1).
+DEMO_PATH = "demo/"
 SYSTEM_LABELS = {"driftline": "Driftline", "plain_rag": "Plain RAG", "no_retrieval": "No retrieval"}
 CORPUS_ORDER = ("pharma", "k8s")
 
@@ -770,6 +773,7 @@ def _env() -> Environment:
         SYSTEM_LABELS=SYSTEM_LABELS,
         REPO_URL=REPO_URL,
         PAGES_URL=PAGES_URL,
+        DEMO_PATH=DEMO_PATH,
     )
     return env
 
