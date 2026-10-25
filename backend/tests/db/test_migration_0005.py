@@ -32,7 +32,7 @@ async def _constraints(conn: asyncpg.Connection) -> set[str]:
 
 
 async def test_migration_0005_allows_reverted_content_hash(fresh_conn):
-    assert await fresh_conn.fetchval("SELECT version_num FROM alembic_version") == "0005"
+    assert await fresh_conn.fetchval("SELECT version_num FROM alembic_version") == "0006"
     assert HASH_KEY not in await _constraints(fresh_conn)
     doc = await _seed_document(fresh_conn)
     await fresh_conn.execute(INSERT_VERSION, doc, 1, "A", ts(2020), ts(2021))
@@ -60,7 +60,7 @@ async def test_migration_0005_upgrade_downgrade_roundtrip(fresh_dsn):
     run_migrations(fresh_dsn, "head")
     conn = await asyncpg.connect(fresh_dsn)
     try:
-        assert await conn.fetchval("SELECT version_num FROM alembic_version") == "0005"
+        assert await conn.fetchval("SELECT version_num FROM alembic_version") == "0006"
         assert HASH_KEY not in await _constraints(conn)
         assert await conn.fetchval("SELECT to_regclass('doc_versions_doc_hash')") is not None
     finally:

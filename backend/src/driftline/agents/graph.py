@@ -1,8 +1,12 @@
 """The answer graph (spec section 5) as a LangGraph StateGraph with a Postgres checkpointer.
 
-classify -> cache -> plan -> subagent x N (Send) -> merge -> draft -> verify -> respond
+classify -> cache -> plan -> subagent x N (Send) -> merge -> draft -> verify -> respond -> [review]
                                                           ^              |
                                                           +- re_retrieve +  (at most 2)
+
+`review` (human in the loop) runs only for a regenerated watched answer or an answer
+below `review_threshold`: it pauses the thread with `interrupt()` until a reviewer's
+decision resumes it (`run_ask` with `job.resume`).
 
 `classify` goes straight to `respond` for a refused question, or when the tenant has no
 document version that had started by now (an empty corpus): no model is called.
@@ -23,7 +27,7 @@ from uuid import UUID
 import asyncpg
 from langgraph.config import get_stream_writer
 from langgraph.graph import END, START, StateGraph
-from langgraph.types import Send
+from langgraph.types import Command, Send, interrupt
 from pydantic import BaseModel
 
 from driftline.agents.events import ASK_EVENT_ADAPTER, ClaimEvent, StepEvent, TokenEvent
@@ -86,6 +90,7 @@ class AgentConfig:
     plan_max_tokens: int = 2048
     draft_max_tokens: int = 4096
     use_judge: bool = True
+    review_threshold: float = 0.6  # an answer below this pauses for human review
 
     @classmethod
     def from_settings(cls, settings: Settings) -> "AgentConfig":
@@ -96,6 +101,7 @@ class AgentConfig:
             max_verify_retries=settings.max_verify_retries,
             plan_max_tokens=settings.default_max_output_tokens,
             draft_max_tokens=settings.answer_max_output_tokens,
+            review_threshold=settings.review_confidence_threshold,
         )
 
 
@@ -142,6 +148,8 @@ class AskState(TypedDict, total=False):
     failed: list[dict]
     degraded: Annotated[bool, operator.or_]
     answer: dict | None
+    watched_answer_id: str | None  # this ask regenerates that watched answer
+    review: dict | None  # the reviewer's decision, once a paused ask was resumed
 
 
 class SubagentInput(TypedDict):
@@ -191,6 +199,7 @@ def initial_state(job: AskJob, *, started_at: float) -> AskState:
         "started_at": started_at,
         "attempts": 0,
         "degraded": False,
+        "watched_answer_id": str(job.answer_id) if job.answer_id else None,
     }
 
 
@@ -524,7 +533,13 @@ def build_answer_graph(deps: AgentDeps) -> StateGraph:
                 )
             # Only cited answers are cached: an uncited one (insufficient evidence) could
             # never be invalidated by drift, so new documents would go unseen until TTL.
-            if deps.cache is not None and answer.status == "answered" and answer.citations:
+            # An answer that waits for review is never cached: a cache hit would skip it.
+            if (
+                deps.cache is not None
+                and answer.status == "answered"
+                and answer.citations
+                and review_reason(state, answer, cfg.review_threshold) is None
+            ):
                 await deps.cache.store(
                     tenant_id=UUID(state["tenant_id"]),
                     question=state["question"],
@@ -553,6 +568,43 @@ def build_answer_graph(deps: AgentDeps) -> StateGraph:
             return "re_retrieve"
         return "respond"
 
+    async def review(state: AskState) -> dict:
+        """Human in the loop (spec section 5): pause until a reviewer resolves the item.
+
+        This node re-runs from the top when the thread resumes, so nothing before
+        `interrupt()` has side effects: the worker opens the review item and emits the
+        `waiting` step when `run_ask` reports the pause (`ReviewPending`)."""
+        answer = AnswerSchema.model_validate(state["answer"])
+        reason = review_reason(state, answer, cfg.review_threshold)
+        decision = interrupt(
+            {
+                "reason": reason,
+                "job_id": state["job_id"],
+                "question": state["question"],
+                "answer_id": state.get("watched_answer_id"),
+                "answer": state["answer"],
+            }
+        )
+        action = decision.get("action")
+        if action == "edit":
+            answer = answer.model_copy(update={"answer": decision["edit"]["answer"]})
+        elif action == "reject":
+            answer = AnswerSchema(
+                status="insufficient_evidence",
+                answer="A reviewer rejected this answer.",
+                dropped_claims=[*answer.claims, *answer.dropped_claims],
+                nearest_sources=answer.nearest_sources,
+                as_of=answer.as_of,
+                confidence=0.0,
+                degraded=answer.degraded,
+            )
+        step(state, "review", "completed", action=action, by=decision.get("by"), reason=reason)
+        return {"answer": answer.model_dump(mode="json"), "review": decision}
+
+    def after_respond(state: AskState) -> str:
+        answer = AnswerSchema.model_validate(state["answer"])
+        return "review" if review_reason(state, answer, cfg.review_threshold) else END
+
     def traced(name: str, fn: Callable[[Any], Awaitable[dict]]):
         async def node(state):
             with deps.tracer.span(f"node.{name}", node=name, job_id=state.get("job_id")):
@@ -571,6 +623,7 @@ def build_answer_graph(deps: AgentDeps) -> StateGraph:
         ("verify", verify),
         ("re_retrieve", re_retrieve),
         ("respond", respond),
+        ("review", review),
     ):
         graph.add_node(name, traced(name, fn))
     graph.add_edge(START, "classify")
@@ -582,8 +635,20 @@ def build_answer_graph(deps: AgentDeps) -> StateGraph:
     graph.add_conditional_edges("draft", after_draft, ["verify", "respond"])
     graph.add_conditional_edges("verify", after_verify, ["re_retrieve", "respond"])
     graph.add_edge("re_retrieve", "draft")
-    graph.add_edge("respond", END)
+    graph.add_conditional_edges("respond", after_respond, ["review", END])
+    graph.add_edge("review", END)
     return graph
+
+
+def review_reason(state: dict, answer: AnswerSchema, threshold: float) -> str | None:
+    """Why this answer must wait for a human, or None. A regenerated watched answer is
+    always reviewed; any other answer only when it answered with low confidence (a
+    refusal or "insufficient evidence" has nothing to approve)."""
+    if state.get("watched_answer_id"):
+        return "watched_answer"
+    if answer.status == "answered" and answer.confidence < threshold:
+        return "low_confidence"
+    return None
 
 
 def nearest_sources(evidence: list[Evidence], limit: int) -> list[NearestSource]:
@@ -612,6 +677,17 @@ def nearest_sources(evidence: list[Evidence], limit: int) -> list[NearestSource]
 EventSink = Callable[[BaseModel], Awaitable[Any]]
 
 
+class ReviewPending(Exception):
+    """The ask is paused at the review step (LangGraph `interrupt()`), waiting for a
+    reviewer. `request` is the interrupt payload: reason, job_id, question, answer_id
+    (a regenerated watched answer) and the proposed answer."""
+
+    def __init__(self, job_id: UUID, request: dict[str, Any]) -> None:
+        super().__init__(f"ask {job_id} waits for review ({request.get('reason')})")
+        self.job_id = job_id
+        self.request = request
+
+
 async def run_ask(
     graph, job: AskJob, *, emit: EventSink, clock: Clock | None = None
 ) -> AnswerSchema:
@@ -619,17 +695,37 @@ async def run_ask(
 
     The checkpointer thread is the job id: when a checkpoint with pending nodes exists
     (a worker died mid-run), the run resumes from it instead of starting over.
+
+    When the graph pauses for review, a `step {node: "review", status: "waiting"}` is
+    emitted and `ReviewPending` is raised. The thread stays paused (a redelivered job
+    raises `ReviewPending` again without re-running anything) until a job carrying the
+    reviewer's decision (`job.resume`) resumes it with `Command(resume=...)`.
     """
     clock = clock or SystemClock()
     config = {"configurable": {"thread_id": str(job.job_id)}}
     snapshot = await graph.aget_state(config)
-    if snapshot.values.get("answer") and not snapshot.next:
+    if snapshot.interrupts:
+        if job.resume is None:
+            raise ReviewPending(job.job_id, snapshot.interrupts[0].value)
+        inputs: Any = Command(resume=job.resume.model_dump(mode="json"))
+    elif snapshot.values.get("answer") and not snapshot.next:
         return AnswerSchema.model_validate(snapshot.values["answer"])
-    inputs = None if snapshot.next else initial_state(job, started_at=clock.now())
+    else:
+        inputs = None if snapshot.next else initial_state(job, started_at=clock.now())
     final: dict = {}
     async for mode, chunk in graph.astream(inputs, config, stream_mode=["custom", "values"]):
         if mode == "custom":
             await emit(ASK_EVENT_ADAPTER.validate_python(chunk))
         else:
             final = chunk
+    snapshot = await graph.aget_state(config)
+    if snapshot.interrupts:
+        request = snapshot.interrupts[0].value
+        t_ms = round((clock.now() - snapshot.values.get("started_at", clock.now())) * 1000, 1)
+        await emit(
+            StepEvent(
+                node="review", status="waiting", detail={"reason": request["reason"]}, t_ms=t_ms
+            )
+        )
+        raise ReviewPending(job.job_id, request)
     return AnswerSchema.model_validate(final["answer"])

@@ -144,7 +144,7 @@ async def test_migration_0004_backfills_tenant_on_existing_rows(fresh_dsn):
 async def test_migration_0004_upgrade_downgrade_roundtrip(fresh_dsn):
     conn = await asyncpg.connect(fresh_dsn)
     try:
-        assert await conn.fetchval("SELECT version_num FROM alembic_version") == "0005"
+        assert await conn.fetchval("SELECT version_num FROM alembic_version") == "0006"
         assert NEW_COLUMNS <= await _columns(conn)
         assert NEW_INDEXES <= await _indexes(conn)
         assert await conn.fetchval("SELECT to_regclass('eval_cases')") == "eval_cases"
@@ -173,6 +173,6 @@ async def test_migration_0004_upgrade_downgrade_roundtrip(fresh_dsn):
     run_migrations(fresh_dsn, "head")
     conn = await asyncpg.connect(fresh_dsn)
     try:
-        assert await conn.fetchval("SELECT version_num FROM alembic_version") == "0005"
+        assert await conn.fetchval("SELECT version_num FROM alembic_version") == "0006"
     finally:
         await conn.close()

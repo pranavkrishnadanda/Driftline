@@ -258,6 +258,33 @@ async def test_malformed_llm_output_creates_review_item_without_relations(fresh_
     assert await fresh_conn.fetchval("SELECT count(*) FROM review_items") == 1
 
 
+async def _tenant_of(conn, version):
+    return await conn.fetchval(
+        "SELECT s.tenant_id FROM doc_versions v JOIN documents d ON d.id = v.document_id "
+        "JOIN sources s ON s.id = d.source_id WHERE v.id = $1",
+        version,
+    )
+
+
+async def test_review_items_carry_the_tenant_of_the_new_version(fresh_conn):
+    _, version = await seed_pair(fresh_conn)
+    await apply_relations(
+        fresh_conn,
+        version_id=version,
+        output=ExtractionOutput(relations=[relation(conf=0.5)]),
+        candidates=await candidates(fresh_conn, version),
+    )
+    _, other = await seed_pair(fresh_conn)  # a second tenant
+    extractor = SupersessionExtractor(extract_router(DeterministicAdapter("det"), "det-extract"))
+    await extractor.extract_for_version(fresh_conn, other)  # malformed: echoes the prompt
+    rows = await fresh_conn.fetch("SELECT ref_id, tenant_id FROM review_items ORDER BY created_at")
+    assert [r["tenant_id"] for r in rows] == [
+        await _tenant_of(fresh_conn, version),
+        await _tenant_of(fresh_conn, other),
+    ]
+    assert rows[1]["ref_id"] == other
+
+
 async def test_no_candidates_skips_llm_call(fresh_conn):
     _, source = await seed_source(fresh_conn)
     _, version = await seed_version(fresh_conn, source, title="Unique snowflake title")

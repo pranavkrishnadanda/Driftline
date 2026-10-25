@@ -112,14 +112,32 @@ class AskRequest(BaseModel):
     source_kinds: list[SourceKind] | None = None
 
 
+ReviewAction = Literal["approve", "edit", "reject"]
+
+
+class ReviewDecision(BaseModel):
+    """A reviewer's resolution of a paused ask; the graph resumes with it (`Command`)."""
+
+    review_id: UUID
+    action: ReviewAction
+    edit: dict | None = None
+    by: str
+
+
 class AskJob(BaseModel):
-    """Payload on the `agent` stream: one ask, already validated by the gateway."""
+    """Payload on the `agent` stream: one ask, already validated by the gateway.
+
+    `answer_id` marks a regeneration of that (watched) answer: the result replaces it in
+    place and always goes to human review first. `resume` carries a reviewer's decision
+    for an ask paused at the review step; the worker resumes the same graph thread."""
 
     job_id: UUID
     tenant_id: UUID
     question: str
     as_of: datetime | None = None
     source_kinds: list[SourceKind] | None = None
+    answer_id: UUID | None = None
+    resume: ReviewDecision | None = None
 
 
 # --- LLM-facing structured outputs -------------------------------------------------
