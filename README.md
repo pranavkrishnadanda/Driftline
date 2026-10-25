@@ -76,6 +76,24 @@ docker compose -f deploy/compose/docker-compose.yml exec ingest-worker \
 
 Default ports: gateway `8010`, Postgres `5433`, TEI `8080`, Redis `6379`. You can change them in `deploy/compose/.env`.
 
+## Use from Claude Code / Cursor
+
+The gateway serves an MCP server at `/mcp` (Streamable HTTP) with five tools: `ask` (a
+cited answer as of a date or release), `list_sources`, `get_timeline`, `diff_versions`
+and `watch_answer`. It needs a tenant API key as a bearer token. Create one, then
+register the server:
+
+```bash
+export DRIFTLINE_KEY=<your tenant key>
+claude mcp add --transport http driftline http://localhost:8010/mcp --header "Authorization: Bearer $DRIFTLINE_KEY"
+```
+
+The repo's Claude Code Skill (`.claude/skills/driftline/SKILL.md`) teaches the agent
+when to use Driftline, to always pass `as_of` for historical questions, and how to read
+citations. The [MCP guide](docs/mcp.md) covers creating API keys, the Cursor config,
+`DRIFTLINE_MCP_ALLOWED_HOSTS` for Compose and remote hosts, a reference for every tool,
+and troubleshooting (401, 421).
+
 ## Tests
 
 The tests use **no mocks**. They run against real Postgres, Redis and TEI containers started by testcontainers, plus recorded Anthropic responses (vcrpy cassettes, scrubbed of keys and account IDs). Logic that depends on an LLM uses `DeterministicAdapter`, a real in-repo provider, and time-dependent logic uses an injected `ManualClock`.
