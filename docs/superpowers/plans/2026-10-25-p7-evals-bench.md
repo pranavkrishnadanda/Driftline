@@ -114,3 +114,11 @@ Same as P3, plus:
 - Test: `backend/tests/eval/test_site.py`: the site builds from fixture reports and from an empty state.
 
 **Final P7 gate:** the full suite; ruff; the no-mock grep; no AI attribution; push; CI, eval and Pages workflows green; the Pages URL reported to the user.
+
+## Notes and follow-ups from Wave 0
+
+- **Sandbox quirk:** worktree agents can't run a command containing the token `tests/eval`, because it's read as a shell `eval`. Name the test files explicitly (e.g. `tests/eval/test_types.py`), or run from the `tests` directory with `eval/test_x.py`.
+- **T3 (bench):**
+  - **Bench must win over offline.** `agents/__main__.py:build_agent_router` checks `llm_offline` before `build_router`, so with both set the bench stub never runs. Make `llm_bench` take precedence there.
+  - **Per-worker seeds.** Every worker process with the same `llm_bench_seed` draws the same latency sequence. Derive a per-worker seed (`seed ^ hash(consumer)`) so workers aren't lock-stepped. Pin both with tests.
+- **`GoldenCase` rules:** `as_of` is a `date`, `expected_version_ids` are UUIDs (non-empty unless `kind == "not_in_corpus"`), and `golden_from_seed` rejects unfilled seeds.
