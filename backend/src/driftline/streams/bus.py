@@ -35,16 +35,30 @@ class StreamBus:
                 raise
 
     async def consume_once(
-        self, stream: str, group: str, consumer: str, handler: Handler,
-        *, count: int = 10, block_ms: int = 100,
+        self,
+        stream: str,
+        group: str,
+        consumer: str,
+        handler: Handler,
+        *,
+        count: int = 10,
+        block_ms: int = 100,
     ) -> ConsumeResult:
-        resp = await self._redis.xreadgroup(group, consumer, {stream: ">"}, count=count, block=block_ms)
+        resp = await self._redis.xreadgroup(
+            group, consumer, {stream: ">"}, count=count, block=block_ms
+        )
         entries = resp[0][1] if resp else []
         return await self._process(stream, group, entries, handler)
 
     async def reclaim_once(
-        self, stream: str, group: str, consumer: str, handler: Handler,
-        *, min_idle_ms: int, count: int = 10,
+        self,
+        stream: str,
+        group: str,
+        consumer: str,
+        handler: Handler,
+        *,
+        min_idle_ms: int,
+        count: int = 10,
     ) -> ConsumeResult:
         resp = await self._redis.xautoclaim(
             stream, group, consumer, min_idle_time=min_idle_ms, start_id="0-0", count=count
