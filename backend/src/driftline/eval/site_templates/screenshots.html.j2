@@ -1,0 +1,20 @@
+{% extends "base.html.j2" %}
+{% import "_macros.html.j2" as m %}
+{% block main %}
+<h1>Screenshots</h1>
+<p class="lede">The Driftline web app (Next.js). The screens show the app's seeded demo workspace, not eval data.</p>
+{% if data.screenshots %}
+<ul class="gallery">
+{% for s in data.screenshots %}
+  <li class="shot{% if s.mobile %} mobile{% endif %}">
+    <figure>
+      <a href="screenshots/{{ s.file }}"><img src="screenshots/{{ s.file }}" alt="Screenshot: {{ s.caption }}" loading="lazy" decoding="async"></a>
+      <figcaption>{{ s.caption }}</figcaption>
+    </figure>
+  </li>
+{% endfor %}
+</ul>
+{% else %}
+  {{ m.empty('No screenshots yet', 'docs/screenshots has no images.') }}
+{% endif %}
+{% endblock %}

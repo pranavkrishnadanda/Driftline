@@ -1,0 +1,80 @@
+{% extends "base.html.j2" %}
+{% import "_macros.html.j2" as m %}
+{% block main %}
+<h1>Benchmarks</h1>
+<p class="lede">k6 drives the gateway at several agent-worker counts with the seeded latency stub LLM
+(<code>LatencyStubAdapter</code>), so the numbers measure the system (queues, workers, streaming), not a model
+provider's quota. A chaos run kills workers at random under load and then checks that no job was lost.</p>
+
+{{ m.unreadable(data.unreadable['benchmarks']) }}
+
+{% set b = data.bench %}
+{% if b %}
+<p class="meta">Results: <code>{{ b.path }}</code>{% if data.bench_other_runs %} · older runs not shown: {% for r in data.bench_other_runs %}<code>{{ r }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</p>
+
+{% if b.workers %}
+<section aria-labelledby="scaling">
+  <h2 id="scaling">Throughput and p95 latency vs workers</h2>
+  {% if bench_charts %}
+  <div class="charts">{% for svg in bench_charts %}<figure class="chart-fig">{{ svg|safe }}</figure>{% endfor %}</div>
+  {% endif %}
+  {% set keys = [] %}
+  {% for w, f in b.workers %}{% for k in f.values %}{% if k not in keys %}{% set _ = keys.append(k) %}{% endif %}{% endfor %}{% endfor %}
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Per worker-count results">
+  <table>
+    <caption>Every value in each <code>workers-N.json</code>, as written by the bench</caption>
+    <thead><tr><th scope="col">Field</th>{% for w, f in b.workers %}<th scope="col" class="num">{{ w }} worker{{ '' if w == 1 else 's' }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for k in keys %}
+      <tr><th scope="row"><code>{{ k }}</code></th>{% for w, f in b.workers %}<td class="num">{{ f.values.get(k, '–') }}</td>{% endfor %}</tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+
+<section aria-labelledby="chaos">
+  <h2 id="chaos">Chaos</h2>
+  {% if b.chaos %}
+    {% if b.chaos_lost is none %}
+    <p class="note">The chaos summary has no lost-job counts.</p>
+    {% elif b.chaos_lost == 0 %}
+    <p class="verdict ok"><strong>Zero lost jobs</strong>: no stuck, failed, unanswered, dead-lettered or pending ask after the run.</p>
+    {% else %}
+    <p class="verdict bad"><strong>{{ b.chaos_lost }} lost or stuck job{{ '' if b.chaos_lost == 1 else 's' }}</strong> in the chaos run.</p>
+    {% endif %}
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Chaos summary">
+    <table>
+      <caption><code>{{ b.chaos.name }}</code></caption>
+      <tbody>{% for k, v in b.chaos.values.items() %}<tr><th scope="row"><code>{{ k }}</code></th><td class="num">{{ v }}</td></tr>{% endfor %}</tbody>
+    </table>
+    </div>
+  {% else %}
+    {{ m.empty('No chaos result yet', 'No chaos*.json summary in this bench run.') }}
+  {% endif %}
+</section>
+
+{% for f in b.other %}
+<section aria-labelledby="other-{{ loop.index }}">
+  <h2 id="other-{{ loop.index }}"><code>{{ f.name }}</code></h2>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="{{ f.name }}">
+  <table><caption>As written by the bench</caption>
+    <tbody>{% for k, v in f.values.items() %}<tr><th scope="row"><code>{{ k }}</code></th><td class="num">{{ v }}</td></tr>{% endfor %}</tbody>
+  </table>
+  </div>
+</section>
+{% endfor %}
+
+<section aria-labelledby="machine">
+  <h2 id="machine">Machine</h2>
+  {% if b.machine %}
+  <dl class="facts">{% for k, v in b.machine.items() %}<div><dt>{{ k }}</dt><dd>{{ v }}</dd></div>{% endfor %}</dl>
+  {% else %}
+  <p class="note">The bench files record no machine information.</p>
+  {% endif %}
+</section>
+{% else %}
+  {{ m.empty('Benchmarks not yet published', 'No load-test or chaos results are committed under bench/results yet. This page fills in from them automatically once they are.') }}
+{% endif %}
+{% endblock %}

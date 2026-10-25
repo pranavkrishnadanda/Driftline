@@ -1,0 +1,80 @@
+{% extends "base.html.j2" %}
+{% import "_macros.html.j2" as m %}
+{% block main %}
+<section class="hero">
+  <p class="eyebrow">Driftline · public report</p>
+  <h1>Answers from the version that was in force, with quotes that check out.</h1>
+  <p class="lede">Driftline keeps every version of a document and knows which one was in force on any date.
+  It answers “as of” a date from in-force sources only, verifies every quote against the exact version it cites,
+  and flags saved answers when a source changes under them. Plain RAG answers from whatever it retrieves,
+  superseded text included. This report measures the difference.</p>
+  <p class="cta"><a class="button" href="evaluation.html">Full evaluation</a>
+  <a class="button ghost" href="{{ REPO_URL }}">Source on GitHub</a></p>
+</section>
+
+<section aria-labelledby="headline">
+  <h2 id="headline">Headline: Driftline vs plain RAG</h2>
+{% if h %}
+  {% set g = h.group %}
+  {% set models = g.primary_models() %}
+  <dl class="facts">
+    <div><dt>Sample</dt><dd>{% for c in g.corpora %}{{ c }}: {{ h.sample_sizes[c] }}{% if c in h.full_set_sizes %} of {{ h.full_set_sizes[c] }}{% endif %} golden cases{% if not loop.last %}; {% endif %}{% endfor %}. A stratified sample, not the full sets.</dd></div>
+    <div><dt>Model</dt><dd>answer and judge <code>{{ models.get('answer', '?') }}</code>{% if models.get('judge') and models.get('judge') != models.get('answer') %} / <code>{{ models.judge }}</code>{% endif %}, planner <code>{{ models.get('extract', '?') }}</code></dd></div>
+    <div><dt>Date</dt><dd>{{ h.date or 'not recorded' }}</dd></div>
+    <div><dt>Cost</dt><dd>${{ '%.6f'|format(g.total_cost_usd) }} in total for these runs (sum of per-case <code>cost_usd</code>)</dd></div>
+    <div><dt>Code</dt><dd><code>{{ g.git_sha[:12] }}</code> · reports in <code>{{ g.path }}</code></dd></div>
+  </dl>
+
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Headline metrics">
+  <table class="headline">
+    <caption>Real Claude, {{ g.reports[0].metrics.cases|fmt('cases') }} cases per corpus and system. Bold row: Driftline.</caption>
+    <thead><tr>
+      <th scope="col">Corpus</th><th scope="col">System</th>
+      {% for key, label, higher in METRICS %}<th scope="col" class="num">{{ label }} <span class="dir" aria-label="{{ 'higher is better' if higher else 'lower is better' }}">{{ '↑' if higher else '↓' }}</span></th>{% endfor %}
+    </tr></thead>
+    <tbody>
+    {% for r in g.rows() %}
+      <tr{% if r.system == 'driftline' %} class="ours"{% endif %}>
+        <th scope="row">{{ r.corpus }}</th><td>{{ SYSTEM_LABELS.get(r.system, r.system) }}</td>
+        {% for key, label, higher in METRICS %}<td class="num">{{ r.metrics[key]|fmt(key) if key in r.metrics else '–' }}</td>{% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="small">Metric definitions and the exact setup of each system are on the <a href="evaluation.html#methodology">evaluation page</a>.
+  The source of truth is <a href="{{ REPO_URL }}/blob/main/evals/RESULTS.md">evals/RESULTS.md</a>.</p>
+
+  <div class="cols">
+    <div class="card loss">
+      <h3>Where Driftline loses</h3>
+      {% if h.losses %}
+      <ul>{% for l in h.losses %}<li>{{ l }}</li>{% endfor %}</ul>
+      {% else %}<p>No metric where the baseline is ahead in these reports.</p>{% endif %}
+      <p class="small">Driftline plans, fans out, verifies and re-retrieves, so it is slower and costs more per answer.</p>
+    </div>
+    <div class="card">
+      <h3>Not measured here</h3>
+      <ul>
+        {% for n in h.not_run %}<li>{{ n }}</li>{% endfor %}
+        <li>The remaining golden cases: only the stratified sample above was run with Claude.</li>
+      </ul>
+      <p class="small">More caveats (reranker timeouts on the test VM, machine details) are in
+      <a href="{{ REPO_URL }}/blob/main/evals/RESULTS.md">RESULTS.md</a>.</p>
+    </div>
+  </div>
+{% else %}
+  {{ m.empty('Evaluation results not yet published', 'No real-model eval report is committed under evals/reports yet. This section fills in when one is.') }}
+{% endif %}
+</section>
+
+<section aria-labelledby="more">
+  <h2 id="more">In this report</h2>
+  <ul class="tiles">
+    <li><a href="evaluation.html"><strong>Evaluation</strong><span>Per corpus and system, trap questions, methodology</span></a></li>
+    <li><a href="benchmarks.html"><strong>Benchmarks</strong><span>{{ 'Throughput and p95 vs workers, chaos' if data.bench else 'Not yet published' }}</span></a></li>
+    <li><a href="drift.html"><strong>Drift log</strong><span>{{ 'Nightly watch of real sources' if data.drift else 'No report yet' }}</span></a></li>
+    <li><a href="screenshots.html"><strong>Screenshots</strong><span>The web app</span></a></li>
+  </ul>
+</section>
+{% endblock %}
