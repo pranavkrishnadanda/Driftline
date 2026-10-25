@@ -106,3 +106,4 @@ Same as P3, plus:
   - **Check time-sensitive k8s glossary facts** against the official Kubernetes docs (beta APIs off by default since v1.24, the patch support window, kubelet skew since v1.28).
 - **T2b:** MCP transport security only accepts localhost Host headers by default, so requests through a Compose service name or a real host get 421. Make the allowed hosts configurable (`DRIFTLINE_MCP_ALLOWED_HOSTS`, default localhost and 127.0.0.1), and document it.
 - On mcp 2.3.0, the plan's `FastMCP` is named `MCPServer`. `/mcp` is mounted as a Starlette `Route` with `include_in_schema=False`, and MCP always requires a bearer key.
+- **T1b (add):** tenant API keys can currently only be created with raw SQL. Add `python -m driftline.auth create-key --tenant NAME` (prints the key once, stores only the hash; `--rotate` replaces it), tested with real Postgres, and switch `docs/mcp.md` to it.
