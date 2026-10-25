@@ -39,6 +39,15 @@ end
 return n
 """
 
+# KEYS[1] stream, KEYS[2] counter. The oldest stored entry id ('' when none) and the
+# counter (false when unset), read together: an append cannot land between the two reads.
+_BOUNDS = """
+local oldest = redis.call('XRANGE', KEYS[1], '-', '+', 'COUNT', 1)
+local first = ''
+if #oldest > 0 then first = oldest[1][1] end
+return {first, redis.call('GET', KEYS[2])}
+"""
+
 
 def stream_key(job_id: UUID | str) -> str:
     return f"events:ask:{job_id}"
@@ -66,6 +75,7 @@ class EventLog:
         self._maxlen = maxlen
         self._ttl_s = ttl_s
         self._append = redis.register_script(_APPEND)
+        self._bounds = redis.register_script(_BOUNDS)
 
     async def append(
         self, scope_id: UUID | str, event: BaseModel, *, dedupe_id: str | None = None
@@ -105,11 +115,16 @@ class EventLog:
         return int(value) if value else 0
 
     async def has_gap(self, scope_id: UUID | str, after: int) -> bool:
-        """True when events after `after` were already trimmed away."""
-        first = await self.first_id(scope_id)
-        if first is None:
-            return after < await self.last_id(scope_id)
-        return first > after + 1
+        """True when events after `after` were already trimmed away.
+
+        The oldest id and the counter are read in one script: read separately, the first
+        append could land between them, and an empty stream with counter 1 would look
+        like a trimmed one."""
+        stream = self._key(scope_id)
+        first, last = await self._bounds(keys=[stream, f"{stream}:seq"])
+        if not first:
+            return after < (int(last) if last else 0)
+        return _seq(first) > after + 1
 
 
 class AskEventLog(EventLog):

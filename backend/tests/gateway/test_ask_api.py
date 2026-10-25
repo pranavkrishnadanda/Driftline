@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import httpx
 import pytest
+import redis.asyncio as aioredis
 from dbseed import seed_source
 from livesrv import serve
 
@@ -227,6 +228,51 @@ async def test_sse_replays_the_log_and_ends_after_final(
     assert [(f["id"], f["event"]) for f in got] == [(1, "step"), (2, "token"), (3, "final")]
     assert ASK_EVENT_ADAPTER.validate_python(got[2]["data"]).answer == ANSWER
     assert [f["id"] for f in frames(alias.text)] == [3]
+
+
+async def test_a_client_connecting_as_the_job_starts_gets_event_1_not_events_expired(
+    fresh_dsn, redis_url, redis_client, fresh_conn, tenant
+):
+    """The first event is appended the moment a client connects: the client must get ids
+    1, 2, 3, never a false `events_expired`. A Redis MONITOR sees the gateway's up-front
+    gap check reach Redis and appends the first event right then, racing the check."""
+    jobs = {str(await new_job(fresh_conn, tenant)) for _ in range(40)}
+    writer = aioredis.from_url(redis_url, decode_responses=True)
+    log = AskEventLog(writer)
+    started: set[str] = set()
+    writes: list[asyncio.Task] = []
+
+    async def write(job):
+        for event in (StepEvent(node="plan", status="started"), TokenEvent(text="Check")):
+            await log.append(job, event)
+        await log.append(job, FinalEvent(answer=ANSWER))
+
+    async def start_jobs_when_checked(monitor):
+        # The gateway first reads the counter (`events:ask:{job}:seq`, the clamp); the
+        # first command naming the stream key itself is the gap check.
+        async for command in monitor.listen():
+            for word in command["command"].split():
+                job = word.removeprefix("events:ask:")
+                if job in jobs and job not in started:
+                    started.add(job)
+                    writes.append(asyncio.create_task(write(job)))
+
+    try:
+        async with redis_client.monitor() as monitor:
+            watcher = asyncio.create_task(start_jobs_when_checked(monitor))
+            async with asgi_client(settings_for(fresh_dsn, redis_url)) as client:
+                results = await asyncio.gather(
+                    *(get(client, f"/v1/jobs/{job}/events") for job in jobs)
+                )
+            watcher.cancel()
+        await asyncio.gather(*writes)
+    finally:
+        await writer.aclose()
+    assert started == jobs
+    bodies = [frames(r.text) for r in results]
+    expired = [b for b in bodies if any(f.get("event") == "error" for f in b)]
+    assert expired == []
+    assert all([f["id"] for f in b if "id" in f] == [1, 2, 3] for b in bodies)
 
 
 async def test_reconnect_with_last_event_id_replays_only_missed_events(

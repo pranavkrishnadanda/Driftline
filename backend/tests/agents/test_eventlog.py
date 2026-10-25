@@ -95,6 +95,28 @@ async def test_gap_is_detected_when_the_whole_stream_is_gone(redis_client):
     assert not await log.has_gap(job, after=3)
 
 
+async def test_gap_check_racing_the_first_append_never_reports_a_gap(redis_url):
+    """A client checking `has_gap(after=0)` while the writer appends the first event must
+    never see a gap: nothing was trimmed. Reading the oldest entry and the counter in two
+    round trips lets the append land in between ("no entries" plus counter 1)."""
+    checker = aioredis.from_url(redis_url, decode_responses=True)
+    writer = aioredis.from_url(redis_url, decode_responses=True)
+    try:
+        check_log, write_log = AskEventLog(checker), AskEventLog(writer)
+        false_gaps = 0
+        for _ in range(20):
+            jobs = [uuid4() for _ in range(25)]
+            results = await asyncio.gather(
+                *(check_log.has_gap(job, after=0) for job in jobs),
+                *(write_log.append(job, TokenEvent(text="first")) for job in jobs),
+            )
+            false_gaps += sum(1 for gap in results[: len(jobs)] if gap)
+        assert false_gaps == 0
+    finally:
+        await checker.aclose()
+        await writer.aclose()
+
+
 async def test_ttl_is_set_on_stream_and_counter_and_refreshed_on_append(redis_client):
     log = AskEventLog(redis_client, ttl_s=100)
     job = uuid4()
