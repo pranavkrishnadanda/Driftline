@@ -134,6 +134,34 @@ async def test_changed_file_creates_second_version(worker, fresh_pool, redis_cli
         assert await conn.fetchval("SELECT count(*) FROM outbox") == 2
 
 
+async def test_successful_fetch_never_unpauses_but_recovers_a_stale_source(
+    worker, fresh_pool, redis_client, tmp_path
+):
+    """A successful fetch only flips `stale_source` back to `active`; a `paused` source
+    (e.g. a manually queued job, or one in flight when it was paused) stays paused."""
+    write(tmp_path, "a.md", "# A\n\nbody\n", T1)
+    write(tmp_path, "b.md", "# B\n\nbody\n", T1)
+    source = await upload_source(fresh_pool, tmp_path)
+
+    async def set_status(status: str) -> None:
+        async with fresh_pool.acquire() as conn:
+            await conn.execute("UPDATE sources SET status = $2 WHERE id = $1", source, status)
+
+    async def status() -> str:
+        async with fresh_pool.acquire() as conn:
+            return await conn.fetchval("SELECT status FROM sources WHERE id = $1", source)
+
+    await set_status("paused")
+    job = await ingest(fresh_pool, redis_client, worker, source, "a.md")
+    async with fresh_pool.acquire() as conn:
+        assert await conn.fetchval("SELECT status FROM jobs WHERE id = $1", job) == "succeeded"
+    assert await status() == "paused"
+
+    await set_status("stale_source")
+    await ingest(fresh_pool, redis_client, worker, source, "b.md")
+    assert await status() == "active"
+
+
 async def test_fetch_failure_feeds_the_failure_streak_and_fails_the_job(
     worker, fresh_pool, redis_client, tmp_path
 ):
