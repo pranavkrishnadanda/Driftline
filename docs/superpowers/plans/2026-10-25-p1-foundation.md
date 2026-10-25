@@ -32,6 +32,7 @@
 
 **Configuration**
 - Settings come from environment variables with prefix `DRIFTLINE_` (for example `DRIFTLINE_GEMINI_API_KEY`).
+- Gateway host port: DRIFTLINE_GATEWAY_PORT (default 8010); the container listens on 8000.
 - Gemini model IDs live in config only. Defaults: `gemini-2.5-flash` (extract), `gemini-2.5-pro` (answer), fallback `["gemini-2.5-flash", "gemini-2.5-flash-lite"]`, embedding `gemini-embedding-001`. Update the defaults if newer stable IDs exist when you implement; never hard-code them elsewhere.
 - Embedding dimension is **768**. `chunks.embedding` is `vector(768)` and `Settings.embed_dim = 768`.
 
@@ -2246,12 +2247,12 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: `python -m driftline.db.migrate` (T1) and `driftline.gateway.main:app` (T7).
-- Produces: `docker compose -f deploy/compose/docker-compose.yml up -d --build`, which serves the gateway on `localhost:8000` with migrations applied, and CI that runs ruff and the full test suite on every push and PR.
+- Produces: `docker compose -f deploy/compose/docker-compose.yml up -d --build`, which serves the gateway on `localhost:8010` with migrations applied, and CI that runs ruff and the full test suite on every push and PR.
 
 - [ ] **Step 1: Write the failing check**
 
-Run: `docker compose -f deploy/compose/docker-compose.yml up -d --build && sleep 5 && curl -fsS localhost:8000/readyz`
-Expected: FAIL. `curl: (7) Failed to connect to localhost port 8000` (there is no gateway service yet).
+Run: `docker compose -f deploy/compose/docker-compose.yml up -d --build && sleep 5 && curl -fsS localhost:8010/readyz`
+Expected: FAIL. `curl: (7) Failed to connect to localhost port 8010` (there is no gateway service yet).
 
 - [ ] **Step 2: Add the Dockerfile, the Compose service and the CI workflow**
 
@@ -2286,7 +2287,7 @@ Add this under `services:` in `deploy/compose/docker-compose.yml`:
       DRIFTLINE_DATABASE_URL: postgresql://driftline:driftline@postgres:5432/driftline
       DRIFTLINE_REDIS_URL: redis://redis:6379/0
       DRIFTLINE_GEMINI_API_KEY: ${DRIFTLINE_GEMINI_API_KEY:-}
-    ports: ["8000:8000"]
+    ports: ["${DRIFTLINE_GATEWAY_PORT:-8010}:8000"]
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
@@ -2314,7 +2315,7 @@ jobs:
 
 - [ ] **Step 3: Run the check to verify it passes**
 
-Run: `docker compose -f deploy/compose/docker-compose.yml up -d --build && sleep 8 && curl -fsS localhost:8000/readyz`
+Run: `docker compose -f deploy/compose/docker-compose.yml up -d --build && sleep 8 && curl -fsS localhost:8010/readyz`
 Expected: `{"postgres":"ok","redis":"ok"}`
 
 Run: `docker compose -f deploy/compose/docker-compose.yml exec postgres psql -U driftline -c "\dt"`
