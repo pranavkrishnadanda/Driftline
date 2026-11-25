@@ -94,3 +94,7 @@ cd frontend && bun run test
 More screenshots are in [`docs/screenshots`](docs/screenshots/README.md). The design spec and phase plans are in [`docs/superpowers`](docs/superpowers).
 
 *Driftline is an engineering project. Its answers are not legal, medical or compliance advice.*
+
+## How it was built
+
+Designed and directed by Pranav Krishna Danda. Most of the code was written with AI coding agents (Claude) under that design; every change was checked by the test suite and CI, and the benchmark numbers above come from real runs.
